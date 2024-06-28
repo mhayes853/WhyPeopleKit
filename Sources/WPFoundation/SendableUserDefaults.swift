@@ -135,7 +135,7 @@ extension SendableUserDefaults {
 // MARK: - Valid Key Check
 
 #if DEBUG
-// NB: It shouldn't be possible for regex literals to be unsafe.
+// NB: It shouldn't be possible for regex literals to be non-thread-safe.
 nonisolated(unsafe) private let swiftVariableName = /^[a-zA-Z_$][\w$]*$/
 #endif
 
