@@ -13,7 +13,7 @@ let package = Package(
     .macCatalyst(.v16)
   ],
   products: [
-    .library(name: "WhyPeopleKit", targets: ["WhyPeopleKit"]),
+    .library(name: "WPFoundation", targets: ["WPFoundation"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.11.2"),
@@ -22,9 +22,7 @@ let package = Package(
   ],
   targets: [
     .target(name: "WPFoundation"),
-    .testTarget(name: "WPFoundationTests", dependencies: ["WPFoundation"]),
-    .target(name: "WhyPeopleKit"),
-    .testTarget(name: "WhyPeopleKitTests", dependencies: ["WhyPeopleKit"])
+    .testTarget(name: "WPFoundationTests", dependencies: ["WPFoundation"])
   ],
   swiftLanguageVersions: [.version("6")]
 )

@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "WhyPeopleKit"
-               BuildableName = "WhyPeopleKit"
-               BlueprintName = "WhyPeopleKit"
+               BlueprintIdentifier = "WPFoundation"
+               BuildableName = "WPFoundation"
+               BlueprintName = "WPFoundation"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,28 +29,6 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
-      <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "WPFoundationTests"
-               BuildableName = "WPFoundationTests"
-               BlueprintName = "WPFoundationTests"
-               ReferencedContainer = "container:">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "WhyPeopleKitTests"
-               BuildableName = "WhyPeopleKitTests"
-               BlueprintName = "WhyPeopleKitTests"
-               ReferencedContainer = "container:">
-            </BuildableReference>
-         </TestableReference>
-      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -72,9 +50,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "WhyPeopleKit"
-            BuildableName = "WhyPeopleKit"
-            BlueprintName = "WhyPeopleKit"
+            BlueprintIdentifier = "WPFoundation"
+            BuildableName = "WPFoundation"
+            BlueprintName = "WPFoundation"
             ReferencedContainer = "container:">
          </BuildableReference>
       </MacroExpansion>
