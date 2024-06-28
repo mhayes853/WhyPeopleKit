@@ -21,7 +21,22 @@ let package = Package(
     .package(url: "https://github.com/MobileNativeFoundation/Kronos", from: "4.2.2")
   ],
   targets: [
+    .target(name: "WPFoundation"),
+    .testTarget(name: "WPFoundationTests", dependencies: ["WPFoundation"]),
     .target(name: "WhyPeopleKit"),
     .testTarget(name: "WhyPeopleKitTests", dependencies: ["WhyPeopleKit"])
-  ]
+  ],
+  swiftLanguageVersions: [.version("6")]
 )
+
+for target in package.targets {
+  target.swiftSettings = target.swiftSettings ?? []
+  target.swiftSettings?
+    .append(
+      .unsafeFlags([
+        "-Xfrontend", "-warn-concurrency",
+        "-Xfrontend", "-enable-actor-data-race-checks",
+        "-enable-bare-slash-regex"
+      ])
+    )
+}
