@@ -1,5 +1,4 @@
 import Foundation
-import os
 
 // MARK: - SendableUserDefaults
 
@@ -16,14 +15,34 @@ public final class SendableUserDefaults: UserDefaults, @unchecked Sendable {
 
 // MARK: - Observation
 
-// NB: It shouldn't be possible for regex literals to be unsafe.
-nonisolated(unsafe) private let swiftVariableName = /^[a-zA-Z_$][\w$]*$/
-
 extension SendableUserDefaults {
+  /// A token of observation from a ``SendableUserDefaults`` instance.
+  ///
+  /// You do not create instances of this type, rather you call ``observeValue(forKey:options:_:)``
+  /// to observe the value for specified key in the current defaults database. The returned
+  /// instance can be passed to ``removeObservation(_:)`` to cancel the observation.
   public struct Observation: Sendable {
     fileprivate let observer: Observer
   }
   
+  /// Observes a value for a specified key in an update closure.
+  ///
+  /// The key must be formatted like a swift variable name. Otherwise, value updates will not be
+  /// emitted after the update for the initial value. A runtime warning will be issued if the key
+  /// is not formatted properly.
+  ///
+  /// ```swift
+  /// // 🔴
+  /// let bad = SendableUserDefaults.standard.values(forKey: "hello.world")
+  /// // ✅
+  /// let good = SendableUserDefaults.standard.values(forKey: "helloWorld")
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - key: A key in the current user‘s defaults database.
+  ///   - options: A combination of the `NSKeyValueObservingOptions` values that specifies what is included in observation notifications. For possible values, see `NSKeyValueObservingOptions`.
+  ///   - onUpdate: A closure that runs with the most recently emitted value.
+  /// - Returns: An ``Observation`` that can be passed to ``removeObservation(_:)`` to cancel this observation and not receive future updates.
   public func observeValue(
     forKey key: String,
     options: NSKeyValueObservingOptions = [.initial, .new],
@@ -35,25 +54,11 @@ extension SendableUserDefaults {
     return Observation(observer: observer)
   }
   
+  /// Cancels an observation from ``observeValue(forKey:options:_:)``.
+  ///
+  /// - Parameter observation: An ``Observation``.
   public func removeObservation(_ observation: Observation) {
     self.removeObserver(observation.observer, forKeyPath: observation.observer.key)
-  }
-  
-  private func debugValidKeyCheck(_ key: String) {
-#if DEBUG
-    if (try? swiftVariableName.wholeMatch(in: key)) == nil {
-      runtimeWarn(
-        """
-        An invalid key format was detected for SendableUserDefaults value observation:
-          
-          - Key: \(key)
-        
-        Key names which do not use the same format as swift variable names will not receive any \
-        KVO updates.
-        """
-      )
-    }
-#endif
   }
   
   fileprivate final class Observer: NSObject, Sendable {
@@ -81,7 +86,8 @@ extension SendableUserDefaults {
 // MARK: - AsyncSequence
 
 extension SendableUserDefaults {
-  public struct Values: Sendable {
+  /// An asynchronous sequence of updates to the value for a specified key.
+  public struct Values: AsyncSequence, Sendable {
     let key: String
     let options: NSKeyValueObservingOptions
     let userDefaults: SendableUserDefaults
@@ -100,10 +106,54 @@ extension SendableUserDefaults {
     }
   }
   
+  /// An asynchronous sequence of updates to the value for a specified key.
+  ///
+  /// The key must be formatted like a swift variable name. Otherwise, value updates will not be
+  /// emitted after the update for the initial value. A runtime warning will be issued if the key
+  /// is not formatted properly.
+  ///
+  /// ```swift
+  /// // 🔴
+  /// let bad = SendableUserDefaults.standard.values(forKey: "hello.world")
+  /// // ✅
+  /// let good = SendableUserDefaults.standard.values(forKey: "helloWorld")
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - key: A key in the current user‘s defaults database.
+  ///   - options: A combination of the `NSKeyValueObservingOptions` values that specifies what is included in observation notifications. For possible values, see `NSKeyValueObservingOptions`.
+  /// - Returns: An asynchronous sequence emitting updates for the value at a specified key.
   public func values(
     forKey key: String,
     options: NSKeyValueObservingOptions = [.initial, .new]
   ) -> Values {
-    Values(key: key, options: options, userDefaults: self)
+    self.debugValidKeyCheck(key)
+    return Values(key: key, options: options, userDefaults: self)
+  }
+}
+
+// MARK: - Valid Key Check
+
+#if DEBUG
+// NB: It shouldn't be possible for regex literals to be unsafe.
+nonisolated(unsafe) private let swiftVariableName = /^[a-zA-Z_$][\w$]*$/
+#endif
+
+extension SendableUserDefaults {
+  private func debugValidKeyCheck(_ key: String) {
+#if DEBUG
+    if !key.contains(swiftVariableName) {
+      runtimeWarn(
+        """
+        An invalid key format was detected for SendableUserDefaults value observation:
+          
+          - Key: \(key)
+        
+        Key names which do not use the same format as swift variable names will not receive any \
+        KVO updates.
+        """
+      )
+    }
+#endif
   }
 }

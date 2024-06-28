@@ -37,7 +37,7 @@ struct SendableUserDefaultsTest {
   )
   func observeNewInvalidFormat(key: String) async throws {
     withKnownIssue {
-      _ = self.userDefaults.values(forKey: key).makeAsyncIterator()
+      _ = self.userDefaults.values(forKey: key)
     } matching: { issue in
       issue.comments.contains(
         """
