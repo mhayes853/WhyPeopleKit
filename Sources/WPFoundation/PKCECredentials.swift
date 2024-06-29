@@ -34,7 +34,10 @@ extension PKCECredentials {
     var codeVerifierBuffer = [UInt8](repeating: 0, count: 32)
     let errorCode = SecRandomCopyBytes(kSecRandomDefault, 32, &codeVerifierBuffer)
     guard errorCode == errSecSuccess else { throw SecError(code: errorCode) }
-    self.init(codeVerifier: Data(codeVerifierBuffer).base64URLEncodedString())
+    self.init(
+      codeVerifier: Data(codeVerifierBuffer).base64URLEncodedString(),
+      challengeMethod: challengeMethod
+    )
   }
 }
 
