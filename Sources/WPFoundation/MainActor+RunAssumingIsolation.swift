@@ -1,7 +1,7 @@
 import Foundation
 
 extension MainActor {
-  /// A backport of ``assumeIsolated``.
+  /// A backport of `MainActor.assumeIsolated`.
   ///
   /// Assume that the current task is executing on the main actor's
   /// serial executor, or stop program execution.
@@ -16,7 +16,7 @@ extension MainActor {
   ///
   /// If the current context is not running on the actor's serial executor, or
   /// if the actor is a reference to a remote actor, this method will crash
-  /// with a fatal error (similar to ``preconditionIsolated()``).
+  /// with a fatal error (similar to `preconditionIsolated()`).
   ///
   /// This method can only be used from synchronous functions, as asynchronous
   /// functions should instead perform a normal method call to the actor, which
@@ -24,8 +24,8 @@ extension MainActor {
   ///
   /// - Note: This check is performed against the MainActor's serial executor,
   ///   meaning that / if another actor uses the same serial executor--by using
-  ///   ``MainActor/sharedUnownedExecutor`` as its own
-  ///   ``Actor/unownedExecutor``--this check will succeed , as from a concurrency
+  ///   `MainActor/sharedUnownedExecutor` as its own
+  ///   `Actor/unownedExecutor`--this check will succeed , as from a concurrency
   ///   safety perspective, the serial executor guarantees mutual exclusion of
   ///   those two actors.
   ///

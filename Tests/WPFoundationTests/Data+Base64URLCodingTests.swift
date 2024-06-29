@@ -1,4 +1,5 @@
 import WPFoundation
+import Foundation
 import Testing
 
 @Suite("Data+Base64URLCoding tests")

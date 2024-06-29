@@ -34,6 +34,7 @@ for target in package.targets {
       .unsafeFlags([
         "-Xfrontend", "-warn-concurrency",
         "-Xfrontend", "-enable-actor-data-race-checks",
+        "-emit-symbol-graph",
         "-enable-bare-slash-regex"
       ])
     )
