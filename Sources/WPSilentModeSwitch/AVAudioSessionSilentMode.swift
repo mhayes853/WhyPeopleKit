@@ -27,9 +27,9 @@ public final class AVAudioSessionSilentMode: Sendable {
 
 @available(macOS, unavailable)
 extension AVAudioSessionSilentMode: SilentMode {
-  public typealias Updates = AsyncRemoveDuplicatesSequence<AsyncStream<SilentModeStatus>>
+  public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<AsyncStream<SilentModeStatus>>
   
-  public var updates: Updates {
+  public var statusUpdates: StatusUpdates {
     AsyncStream<SilentModeStatus> { continuation in
       let observer = self.session.observe(\.outputVolume, options: [.initial, .new]) { session, _ in
         continuation.yield(session.outputVolume > 0 ? .hasVolume : .noVolume)

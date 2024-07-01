@@ -24,8 +24,8 @@ public enum SilentModeStatus: Hashable, Sendable {
 /// This protocol detects whether or not the device's ringer is off, or if the system volume is
 /// zero.
 public protocol SilentMode {
-  associatedtype Updates: AsyncSequence where Updates.Element == SilentModeStatus
+  associatedtype StatusUpdates: AsyncSequence where StatusUpdates.Element == SilentModeStatus
   
   /// An `AsyncSequence` broadcasting updates to silent mode.
-  var updates: Updates { get }
+  var statusUpdates: StatusUpdates { get }
 }

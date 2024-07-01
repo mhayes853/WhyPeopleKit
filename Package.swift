@@ -27,8 +27,12 @@ let package = Package(
     .testTarget(name: "WPFoundationTests", dependencies: ["WPFoundation"]),
     .target(
       name: "WPSilentModeSwitch",
-      dependencies: [.product(name: "AsyncAlgorithms", package: "swift-async-algorithms")]
-    )
+      dependencies: [
+        "WPFoundation",
+        .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
+      ]
+    ),
+    .testTarget(name: "WPSilentModeSwitchTests", dependencies: ["WPSilentModeSwitch"])
   ],
   swiftLanguageVersions: [.version("6")]
 )
