@@ -1,5 +1,5 @@
 {
-  "originHash" : "f6496b42973e3f1f3b2a8875c0e1aa73e9f21a81cd1fab493f8c08e834a56d23",
+  "originHash" : "c6f7f10d3e04d9cb78da839d3b10768c83684af4bbf2540d138786d082aebde5",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -107,6 +107,15 @@
       "state" : {
         "revision" : "2f5ab6e091dd032b63dacbda052405756010dc3b",
         "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "swift-numerics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-numerics",
+      "state" : {
+        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
+        "version" : "1.0.2"
       }
     },
     {
