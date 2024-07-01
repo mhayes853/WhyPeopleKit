@@ -3,6 +3,7 @@ extension SetAlgebra {
   /// otherwise.
   ///
   /// - Parameter member: The member to toggle.
+  @inlinable
   public mutating func toggle(_ member: Element) {
     if self.contains(member) {
       self.remove(member)
