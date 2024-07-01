@@ -1,5 +1,5 @@
 import WPFoundation
-@_spi(Experimental) import Testing
+import Testing
 
 @Suite("StringProtocol+Characters tests")
 struct StringProtocolCharactersTests {
