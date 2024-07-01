@@ -2,7 +2,7 @@ import CoreAudio
 import AsyncAlgorithms
 import WPFoundation
 
-public typealias CoreAudioDeviceID = UInt32
+public typealias _AudioDeviceID = UInt32
 
 #if os(macOS)
 import AudioToolbox
@@ -11,10 +11,11 @@ import AudioToolbox
 
 /// A ``DeviceVolume`` conformance that uses CoreAudio to listen for whether or not the device if
 /// muted.
+@available(macOS 13, *)
 public final class CoreAudioDeviceVolume: Sendable {
-  private let deviceId: CoreAudioDeviceID
+  private let deviceId: _AudioDeviceID
   
-  /// Attempts to initialize a ``CoreAudioSilentMode-2iozb`` instance.
+  /// Attempts to initialize a ``CoreAudioDeviceVolume`` instance.
   public init?() throws {
     guard let deviceId = try _defaultOutputDeviceId() else { return nil }
     self.deviceId = deviceId
@@ -23,6 +24,7 @@ public final class CoreAudioDeviceVolume: Sendable {
 
 // MARK: - DeviceVolume Conformance
 
+@available(macOS 13, *)
 extension CoreAudioDeviceVolume: DeviceVolume {
   public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<
     AsyncThrowingStream<DeviceVolumeStatus, Error>
@@ -98,7 +100,8 @@ extension CoreAudioDeviceVolume: DeviceVolume {
   }
 }
 
-public func _defaultOutputDeviceId() throws -> CoreAudioDeviceID? {
+@available(macOS 13, *)
+public func _defaultOutputDeviceId() throws -> _AudioDeviceID? {
   var result = kAudioObjectUnknown
   var size = UInt32(MemoryLayout<AudioDeviceID>.size)
   var address = AudioObjectPropertyAddress(
@@ -121,12 +124,14 @@ public func _defaultOutputDeviceId() throws -> CoreAudioDeviceID? {
   return result == kAudioObjectUnknown ? nil : result
 }
 
+@available(macOS 13, *)
 public let _mutePropertyAddress = AudioObjectPropertyAddress(
   mSelector: kAudioDevicePropertyMute,
   mScope: kAudioDevicePropertyScopeOutput,
   mElement: kAudioObjectPropertyElementMain
 )
 
+@available(macOS 13, *)
 public let _volumePropertyAddress = AudioObjectPropertyAddress(
   mSelector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
   mScope: kAudioObjectPropertyScopeOutput,
