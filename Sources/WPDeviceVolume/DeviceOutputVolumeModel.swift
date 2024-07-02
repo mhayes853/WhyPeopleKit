@@ -10,14 +10,14 @@ import AVFoundation
 /// through the `EnvironmentValues`.
 /// ```swift
 /// struct SoundEffectPickerView: View {
-///   @Environment(\.systemDeviceOutputVolume) var outputVolume
+///   @Environment(\.systemDeviceOutputVolume) var volume
 ///   @Binding var soundEffectName: String
 ///
 ///   var body: some View {
 ///     Form {
-///       if self.outputVolume.status.isMuted {
+///       if self.volume.isMuted {
 ///         Text("Your device is muted! Turn off silent mode so you can hear sound effects!")
-///       } else if !self.outputVolume.status.hasVolume {
+///       } else if !self.volume.hasVolume {
 ///         Text("Your volume is turned all the way down! Turn up your volume so you can hear sound effects!")
 ///       }
 ///       Picker("Sound Effect", selection: self.$soundEffectName) {
@@ -34,6 +34,7 @@ import AVFoundation
 /// instance in `EnvironmentValues` and the default instance are the same.
 @MainActor
 @Perceptible
+@dynamicMemberLookup
 public final class DeviceOutputVolumeModel {
   /// The current ``DeviceOutputVolumeStatus``.
   public private(set) var status = DeviceOutputVolumeStatus(
@@ -76,6 +77,16 @@ extension DeviceOutputVolumeModel {
   /// - Parameter volume: The ``DeviceOutputVolume`` instance to observe.
   public convenience init(_ volume: @autoclosure @escaping () throws -> some DeviceOutputVolume) {
     self.init { try volume() }
+  }
+}
+
+// MARK: - Dynamic Member Lookup
+
+extension DeviceOutputVolumeModel {
+  public subscript<Value>(
+    dynamicMember keyPath: KeyPath<DeviceOutputVolumeStatus, Value>
+  ) -> Value {
+    self.status[keyPath: keyPath]
   }
 }
 
