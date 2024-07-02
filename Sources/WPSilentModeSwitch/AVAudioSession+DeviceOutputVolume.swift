@@ -1,28 +1,46 @@
 import AVFoundation
 import AsyncAlgorithms
 
-// MARK: - SilentMode Conformance
+// MARK: - AVAudioSessionDeviceOutputVolume
+
+/// An ``DeviceOutputVolume`` conformance that uses `AVAudioSession` to detect the output volume
+/// of the device.
+///
+/// This instance cannot detect ``DeviceOutputVolumeStatus/isMuted``, and it will always by false
+/// for status updates on this conformance.
+@available(macOS, unavailable)
+public final class AVAudioSessionDeviceOutputVolume: Sendable {
+  public let session: AVAudioSession
+  
+  /// Attempts to initialize an ``AVAudioSessionDeviceOutputVolume`` by setting the specified
+  /// `AVAudioSession` to active.
+  ///
+  /// Setting the underlying session to active is necessary to observe the output volume.
+  ///
+  /// - Parameter session: The `AVAudioSession` to use.
+  public init(
+    session: AVAudioSession = .sharedInstance(),
+    options: AVAudioSession.SetActiveOptions = []
+  ) throws {
+    try session.setActive(true, options: [])
+    self.session = session
+  }
+}
+
+// MARK: - DeviceOutputVolume Conformance
 
 @available(macOS, unavailable)
-extension AVAudioSession: DeviceOutputVolume {
+extension AVAudioSessionDeviceOutputVolume: DeviceOutputVolume {
   public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<
-    AsyncThrowingStream<DeviceOutputVolumeStatus, Error>
+    AsyncStream<DeviceOutputVolumeStatus>
   >
   
-  /// An `AsyncSequence` of status updates for the current ``DeviceOutputVolumeStatus``.
-  ///
-  /// This sets this audio session to be active.
-  ///
-  /// This conformance of ``DeviceOutputVolume`` cannot detect if the device is muted through hardware
-  /// of software means.
   public var statusUpdates: StatusUpdates {
-    AsyncThrowingStream<DeviceOutputVolumeStatus, Error> { continuation in
-      do {
-        try self.setActive(true, options: [])
-      } catch {
-        continuation.finish(throwing: error)
-      }
-      let observer = self.observe(\.outputVolume, options: [.initial, .new]) { session, _ in
+    AsyncStream<DeviceOutputVolumeStatus> { continuation in
+      let observer = self.session.observe(
+        \.outputVolume,
+         options: [.initial, .new]
+      ) { session, _ in
         continuation.yield(DeviceOutputVolumeStatus(outputVolume: Double(session.outputVolume)))
       }
       continuation.onTermination = { @Sendable _ in observer.invalidate() }

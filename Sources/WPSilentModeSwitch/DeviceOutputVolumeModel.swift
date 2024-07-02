@@ -86,11 +86,11 @@ extension DeviceOutputVolumeModel {
   ///
   /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
   ///
-  /// On watchOS, this instance is backed by the shared `AVAudioSession`. The watchOS instance
-  /// does not detect whether or not the device is in silent mode because watchOS does not have an
-  /// API to detect silent mode.
+  /// On watchOS, this instance is backed by  ``AVAudioSessionDeviceOutputVolume``. The watchOS
+  /// instance does not detect whether or not the device is in silent mode because watchOS does
+  /// not have an API to detect silent mode.
   ///
-  /// On all other platforms, this is backed by the shared `AVAudioSession` and
+  /// On all other platforms, this is backed by ``AVAudioSessionDeviceOutputVolume`` and
   /// ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:clock:)``. The latter extension
   /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
   /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
@@ -99,9 +99,9 @@ extension DeviceOutputVolumeModel {
 #if os(macOS)
     DeviceOutputVolumeModel { try CoreAudioDeviceOutputVolume() }
 #elseif os(watchOS)
-    DeviceOutputVolumeModel(AVAudioSession.sharedInstance())
+    DeviceOutputVolumeModel { try AVAudioSessionDeviceOutputVolume() }
 #else
-    DeviceOutputVolumeModel(AVAudioSession.sharedInstance().pingForMuteStatus())
+    DeviceOutputVolumeModel { try AVAudioSessionDeviceOutputVolume().pingForMuteStatus() }
 #endif
   }()
 }
