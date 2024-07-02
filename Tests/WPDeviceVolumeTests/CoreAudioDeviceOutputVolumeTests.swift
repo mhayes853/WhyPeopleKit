@@ -1,4 +1,4 @@
-import WPSilentModeSwitch
+import WPDeviceVolume
 import WPFoundation
 import Testing
 import CoreAudio

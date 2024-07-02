@@ -1,4 +1,4 @@
-@testable import WPSilentModeSwitch
+@testable import WPDeviceVolume
 import Clocks
 import Testing
 

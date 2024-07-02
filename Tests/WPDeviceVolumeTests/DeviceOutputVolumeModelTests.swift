@@ -1,4 +1,4 @@
-import WPSilentModeSwitch
+import WPDeviceVolume
 import ConcurrencyExtras
 import Testing
 

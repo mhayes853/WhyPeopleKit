@@ -14,7 +14,7 @@ let package = Package(
   ],
   products: [
     .library(name: "WPFoundation", targets: ["WPFoundation"]),
-    .library(name: "WPSilentModeSwitch", targets: ["WPSilentModeSwitch"])
+    .library(name: "WPDeviceVolume", targets: ["WPDeviceVolume"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.11.2"),
@@ -29,19 +29,19 @@ let package = Package(
     .target(name: "WPFoundation"),
     .testTarget(name: "WPFoundationTests", dependencies: ["WPFoundation"]),
     .target(
-      name: "WPSilentModeSwitch",
+      name: "WPDeviceVolume",
       dependencies: [
         "WPFoundation",
         .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
-        .product(name: "Perception", package: "swift-perception"),
-        .product(name: "Clocks", package: "swift-clocks")
+        .product(name: "Perception", package: "swift-perception")
       ],
       resources: [.process("Resources")]
     ),
     .testTarget(
-      name: "WPSilentModeSwitchTests",
+      name: "WPDeviceVolumeTests",
       dependencies: [
-        "WPSilentModeSwitch",
+        "WPDeviceVolume",
+        .product(name: "Clocks", package: "swift-clocks"),
         .product(name: "Numerics", package: "swift-numerics")
       ]
     )
