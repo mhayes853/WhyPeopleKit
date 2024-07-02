@@ -11,7 +11,6 @@ import AudioToolbox
 
 /// A ``DeviceVolume`` conformance that uses CoreAudio to listen for whether or not the device if
 /// muted.
-@available(macOS 13, *)
 public final class CoreAudioDeviceVolume: Sendable {
   private let deviceId: _AudioDeviceID
   
@@ -24,7 +23,6 @@ public final class CoreAudioDeviceVolume: Sendable {
 
 // MARK: - DeviceVolume Conformance
 
-@available(macOS 13, *)
 extension CoreAudioDeviceVolume: DeviceVolume {
   public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<
     AsyncThrowingStream<DeviceVolumeStatus, Error>
@@ -100,7 +98,6 @@ extension CoreAudioDeviceVolume: DeviceVolume {
   }
 }
 
-@available(macOS 13, *)
 public func _defaultOutputDeviceId() throws -> _AudioDeviceID? {
   var result = kAudioObjectUnknown
   var size = UInt32(MemoryLayout<AudioDeviceID>.size)
@@ -124,36 +121,16 @@ public func _defaultOutputDeviceId() throws -> _AudioDeviceID? {
   return result == kAudioObjectUnknown ? nil : result
 }
 
-@available(macOS 13, *)
 public let _mutePropertyAddress = AudioObjectPropertyAddress(
   mSelector: kAudioDevicePropertyMute,
   mScope: kAudioDevicePropertyScopeOutput,
   mElement: kAudioObjectPropertyElementMain
 )
 
-@available(macOS 13, *)
 public let _volumePropertyAddress = AudioObjectPropertyAddress(
   mSelector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
   mScope: kAudioObjectPropertyScopeOutput,
   mElement: kAudioObjectPropertyElementMain
 )
-
-#else
-
-@available(macOS 13, *)
-public final class CoreAudioDeviceVolume: Sendable {
-  public init?() throws { fatalError() }
-}
-
-@available(macOS 13, *)
-extension CoreAudioDeviceVolume: DeviceVolume {
-  public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<
-    AsyncThrowingStream<DeviceVolumeStatus, Error>
-  >
-  
-  public var statusUpdates: StatusUpdates {
-    fatalError()
-  }
-}
 
 #endif

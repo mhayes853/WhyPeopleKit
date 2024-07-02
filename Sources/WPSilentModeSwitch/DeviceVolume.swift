@@ -26,7 +26,6 @@ public struct DeviceVolumeStatus: Hashable, Sendable {
   ///
   /// - Parameters:
   ///   - decibals: The amount of volume in in the range [0, 1].
-  ///   - isMuted: Whether or not the device is muted through hardware or software means.
   public init(decibals: Double) {
     self.decibals = decibals
     self.isMuted = false
