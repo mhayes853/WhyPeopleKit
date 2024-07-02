@@ -2,8 +2,6 @@ import CoreAudio
 import AsyncAlgorithms
 import WPFoundation
 
-public typealias _AudioDeviceID = UInt32
-
 #if os(macOS)
 import AudioToolbox
 
@@ -12,15 +10,22 @@ import AudioToolbox
 /// A ``DeviceOutputVolume`` conformance that uses CoreAudio to listen for whether or not the device if
 /// muted.
 public final class CoreAudioDeviceOutputVolume: Sendable {
-  private let deviceId: _AudioDeviceID
+  private let deviceId: AudioDeviceID
   
-  /// Attempts to initialize a ``CoreAudioDeviceVolume`` instance.
+  /// Attempts to initialize a ``CoreAudioDeviceOutputVolume`` instance.
   ///
   /// This initializer fails if the default output device id cannot be found.
   public init() throws {
     guard let deviceId = try _defaultOutputDeviceId() else {
       throw CoreAudioError(OSStatus(kAudioObjectUnknown))
     }
+    self.deviceId = deviceId
+  }
+  
+  /// Initializes a ``CoreAudioDeviceOutputVolume`` with a specified `AudioDeviceID`.
+  ///
+  /// - Parameter deviceId: The `AudioDeviceID` to use.
+  public init(_ deviceId: AudioDeviceID) {
     self.deviceId = deviceId
   }
 }
@@ -105,7 +110,7 @@ extension CoreAudioDeviceOutputVolume: DeviceOutputVolume {
   }
 }
 
-public func _defaultOutputDeviceId() throws -> _AudioDeviceID? {
+public func _defaultOutputDeviceId() throws -> AudioDeviceID? {
   var result = kAudioObjectUnknown
   var size = UInt32(MemoryLayout<AudioDeviceID>.size)
   var address = AudioObjectPropertyAddress(
