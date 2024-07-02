@@ -10,13 +10,13 @@ struct DeviceOutputVolumePingForMuteStatusTests {
   func muteStatus() async throws {
     let clock = TestClock()
     let sleepTime = SleepTime(duration: .milliseconds(250))
-    let deviceVolume = AsyncThrowingStream<DeviceOutputVolumeStatus, Error> { _ in }
-      .pingForMuteStatus(
-        interval: .seconds(1),
-        threshold: .milliseconds(200),
-        clock: clock,
-        ping: { try? await clock.sleep(for: sleepTime.duration) }
-      )
+    let (stream, _) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
+    let deviceVolume = TestDeviceOutputVolume(statusUpdates: stream).pingForMuteStatus(
+      interval: .seconds(1),
+      threshold: .milliseconds(200),
+      clock: clock,
+      ping: { try? await clock.sleep(for: sleepTime.duration) }
+    )
     let task = Task {
       try await deviceVolume.statusUpdates.prefix(3).reduce([Bool]()) { acc, status in
         acc + [status.isMuted]
@@ -40,7 +40,7 @@ struct DeviceOutputVolumePingForMuteStatusTests {
     let clock = TestClock()
     let sleepTime = SleepTime(duration: .milliseconds(100))
     let (stream, continuation) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
-    let deviceVolume = stream.pingForMuteStatus(
+    let deviceVolume = TestDeviceOutputVolume(statusUpdates: stream).pingForMuteStatus(
       interval: .seconds(1),
       threshold: .milliseconds(200),
       clock: clock,
@@ -71,7 +71,7 @@ struct DeviceOutputVolumePingForMuteStatusTests {
   @Test("Forwards Error From Base Volume")
   func forwardsBaseError() async throws {
     let (stream, continuation) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
-    let deviceVolume = stream.pingForMuteStatus(
+    let deviceVolume = TestDeviceOutputVolume(statusUpdates: stream).pingForMuteStatus(
       interval: .seconds(1),
       threshold: .milliseconds(200),
       clock: TestClock()

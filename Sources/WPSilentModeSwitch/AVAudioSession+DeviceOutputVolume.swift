@@ -22,7 +22,7 @@ public final class AVAudioSessionDeviceOutputVolume: Sendable {
     session: AVAudioSession = .sharedInstance(),
     options: AVAudioSession.SetActiveOptions = []
   ) throws {
-    try session.setActive(true, options: [])
+    try session.setActive(true, options: options)
     self.session = session
   }
 }

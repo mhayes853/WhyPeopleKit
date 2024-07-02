@@ -7,8 +7,8 @@ import Testing
 struct DeviceOutputVolumeModelTests {
   @Test("Consumes Sequence of Status Updates")
   func consumeStatusUpdates() async {
-    let (stream, continuation) = AsyncStream<DeviceOutputVolumeStatus>.makeStream()
-    let model = DeviceOutputVolumeModel(stream)
+    let (stream, continuation) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
+    let model = DeviceOutputVolumeModel(TestDeviceOutputVolume(statusUpdates: stream))
     var status = DeviceOutputVolumeStatus(outputVolume: 0.5)
     continuation.yield(status)
     await Task.megaYield()
@@ -23,7 +23,7 @@ struct DeviceOutputVolumeModelTests {
   @Test("Forwards Error from DeviceOutputVolume")
   func forwardsError() async {
     let (stream, continuation) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
-    let model = DeviceOutputVolumeModel(stream)
+    let model = DeviceOutputVolumeModel(TestDeviceOutputVolume(statusUpdates: stream))
     #expect(model.error == nil)
     struct SomeError: Equatable, Error {}
     continuation.finish(throwing: SomeError())

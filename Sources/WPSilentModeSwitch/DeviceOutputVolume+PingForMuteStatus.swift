@@ -10,13 +10,13 @@ import UIKit
 // MARK: - Extension
 
 extension DeviceOutputVolume where Self: Sendable {
-  /// Sets `isMuted` on emissions of this volume's ``statusUpdates`` based on a ping hack using
-  /// AudioToolbox.
+  /// Sets ``DeviceOutputVolumeStatus/isMuted`` on emissions of this volume's ``statusUpdates``
+  /// based on a ping hack using AudioToolbox.
   ///
   /// ```swift
   /// // Returns a DeviceOutputVolume instance that uses AVAudioSession to check the global output volume
   /// // and the AudioToolbox technique to detect if the device is muted.
-  /// let volume = AVAudioSession.sharedInstance().pingForMuteStatus()
+  /// let volume = try AVAudioSessionDeviceOutputVolume().pingForMuteStatus()
   /// ```
   ///
   /// iOS does not have a built-in API to detect the position of the ringer. The only way to
@@ -24,15 +24,17 @@ extension DeviceOutputVolume where Self: Sendable {
   /// the playback length is under the specified threshold. If the playback length is under the
   /// specified threshold, then the device is muted.
   /// 
-  /// This extension overrides the `isMuted` value of this ``DeviceOutputVolume`` instance.
+  /// This extension overrides the resulting ``DeviceOutputVolumeStatus/isMuted`` value of this
+  /// ``DeviceOutputVolume`` instance.
   ///
   /// - Parameters:
   ///   - interval: The interval to ping at.
   ///   - threshold: The threshold that the playback length must be under in order to conside the
   ///   device to be muted.
   ///   - clock: A `Clock` to use to control the interval.
-  /// - Returns: A new ``DeviceOutputVolume`` instance that combines the `outputVolume` value of this
-  /// instance, and overrides the `isMuted` value of this instance.
+  /// - Returns: A new ``DeviceOutputVolume`` instance that uses the
+  /// ``DeviceOutputVolumeStatus/outputVolume`` value of this instance, and overrides the
+  /// ``DeviceOutputVolumeStatus/isMuted`` value of this instance when emitting status updates.
   public func pingForMuteStatus<C: Clock>(
     interval: Duration = .milliseconds(750),
     threshold: Duration = .milliseconds(100),
