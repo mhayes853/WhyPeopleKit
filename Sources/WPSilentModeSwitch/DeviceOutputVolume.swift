@@ -1,7 +1,7 @@
-// MARK: - DeviceVolumeStatus
+// MARK: - DeviceOutputVolumeStatus
 
-/// A status of a device's volume.
-public struct DeviceVolumeStatus: Hashable, Sendable {
+/// A status of a device's output volume.
+public struct DeviceOutputVolumeStatus: Hashable, Sendable {
   /// The amount of volume in in the range [0, 1].
   public let outputVolume: Double
   
@@ -11,7 +11,7 @@ public struct DeviceVolumeStatus: Hashable, Sendable {
   @available(watchOS, unavailable)
   public let isMuted: Bool
   
-  /// Iniitializes a ``DeviceVolumeStatus`` instance.
+  /// Iniitializes a ``DeviceOutputVolumeStatus`` instance.
   ///
   /// - Parameters:
   ///   - decibals: The amount of volume in in the range [0, 1].
@@ -22,7 +22,7 @@ public struct DeviceVolumeStatus: Hashable, Sendable {
     self.isMuted = isMuted
   }
   
-  /// Iniitializes a ``DeviceVolumeStatus`` instance.
+  /// Iniitializes a ``DeviceOutputVolumeStatus`` instance.
   ///
   /// - Parameters:
   ///   - decibals: The amount of volume in in the range [0, 1].
@@ -32,7 +32,7 @@ public struct DeviceVolumeStatus: Hashable, Sendable {
   }
 }
 
-extension DeviceVolumeStatus {
+extension DeviceOutputVolumeStatus {
   /// Whether or not the volume decibals is not totally silent.
   public var hasVolume: Bool {
     self.outputVolume > 0
@@ -44,12 +44,12 @@ extension DeviceVolumeStatus {
   }
 }
 
-// MARK: - SilentMode
+// MARK: - DeviceOutputVolume
 
 /// A protocol for reading and observing the status of the device's volume.
-public protocol DeviceVolume {
-  associatedtype StatusUpdates: AsyncSequence where StatusUpdates.Element == DeviceVolumeStatus
+public protocol DeviceOutputVolume {
+  associatedtype StatusUpdates: AsyncSequence where StatusUpdates.Element == DeviceOutputVolumeStatus
   
-  /// An `AsyncSequence` of status updates for the current ``DeviceVolumeStatus``.
+  /// An `AsyncSequence` of status updates for the current ``DeviceOutputVolumeStatus``.
   var statusUpdates: StatusUpdates { get }
 }

@@ -9,12 +9,12 @@ import UIKit
 
 // MARK: - Extension
 
-extension DeviceVolume where Self: Sendable {
+extension DeviceOutputVolume where Self: Sendable {
   /// Sets `isMuted` on emissions of this volume's ``statusUpdates`` based on a ping hack using
   /// AudioToolbox.
   ///
   /// ```swift
-  /// // Returns a DeviceVolume instance that uses AVAudioSession to check the global output volume
+  /// // Returns a DeviceOutputVolume instance that uses AVAudioSession to check the global output volume
   /// // and the AudioToolbox technique to detect if the device is muted.
   /// let volume = AVAudioSession.sharedInstance().pingForMuteStatus()
   /// ```
@@ -24,14 +24,14 @@ extension DeviceVolume where Self: Sendable {
   /// the playback length is under the specified threshold. If the playback length is under the
   /// specified threshold, then the device is muted.
   /// 
-  /// This extension overrides the `isMuted` value of this ``DeviceVolume`` instance.
+  /// This extension overrides the `isMuted` value of this ``DeviceOutputVolume`` instance.
   ///
   /// - Parameters:
   ///   - interval: The interval to ping at.
   ///   - threshold: The threshold that the playback length must be under in order to conside the
   ///   device to be muted.
   ///   - clock: A `Clock` to use to control the interval.
-  /// - Returns: A new ``DeviceVolume`` instance that combines the `outputVolume` value of this
+  /// - Returns: A new ``DeviceOutputVolume`` instance that combines the `outputVolume` value of this
   /// instance, and overrides the `isMuted` value of this instance.
   public func pingForMuteStatus<C: Clock>(
     interval: Duration = .milliseconds(750),
@@ -66,7 +66,7 @@ extension DeviceVolume where Self: Sendable {
 // MARK: - PingForMuteStatus Type
 
 public struct _PingForMuteStatusDeviceVolume<
-  Base: DeviceVolume & Sendable,
+  Base: DeviceOutputVolume & Sendable,
   C: Clock
 >: Sendable where C.Duration == Duration {
   let interval: Duration
@@ -76,15 +76,15 @@ public struct _PingForMuteStatusDeviceVolume<
   let ping: @Sendable () async -> Void
 }
 
-// MARK: - DeviceVolume Conformance
+// MARK: - DeviceOutputVolume Conformance
 
-extension _PingForMuteStatusDeviceVolume: DeviceVolume {
+extension _PingForMuteStatusDeviceVolume: DeviceOutputVolume {
   public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<
-    AsyncThrowingStream<DeviceVolumeStatus, Error>
+    AsyncThrowingStream<DeviceOutputVolumeStatus, Error>
   >
   
   public var statusUpdates: StatusUpdates {
-    AsyncThrowingStream<DeviceVolumeStatus, Error> { continuation in
+    AsyncThrowingStream<DeviceOutputVolumeStatus, Error> { continuation in
       let task = Task {
         do {
           // NB: Cancellation propogates to async let when the continuation is terminated.
@@ -120,21 +120,21 @@ extension _PingForMuteStatusDeviceVolume: DeviceVolume {
   }
   
   private final actor StatusUpdatesState {
-    private var status = DeviceVolumeStatus(outputVolume: 0, isMuted: false) {
+    private var status = DeviceOutputVolumeStatus(outputVolume: 0, isMuted: false) {
       didSet { self.continuation.yield(self.status) }
     }
-    private let continuation: AsyncThrowingStream<DeviceVolumeStatus, Error>.Continuation
+    private let continuation: AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.Continuation
     
-    init(continuation: AsyncThrowingStream<DeviceVolumeStatus, Error>.Continuation) {
+    init(continuation: AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.Continuation) {
       self.continuation = continuation
     }
     
     func setOutputVolume(_ outputVolume: Double) {
-      self.status = DeviceVolumeStatus(outputVolume: outputVolume, isMuted: self.status.isMuted)
+      self.status = DeviceOutputVolumeStatus(outputVolume: outputVolume, isMuted: self.status.isMuted)
     }
     
     func setMuted(_ isMuted: Bool) {
-      self.status = DeviceVolumeStatus(outputVolume: self.status.outputVolume, isMuted: isMuted)
+      self.status = DeviceOutputVolumeStatus(outputVolume: self.status.outputVolume, isMuted: isMuted)
     }
   }
 }

@@ -9,17 +9,17 @@ import AudioToolbox
 
 // MARK: - Test Suite
 
-@Suite("CoreAudioDeviceVolume tests", .serialized)
-struct CoreAudioDeviceVolumeTests {
+@Suite("CoreAudioDeviceOutputVolume tests", .serialized)
+struct CoreAudioDeviceOutputVolumeTests {
   @Test("Status Updates Respond to Mute Switch Changes")
   func respondToMuteSwitchChanges() async throws {
-    let silentMode = try #require(try CoreAudioDeviceVolume())
+    let silentMode = try #require(try CoreAudioDeviceOutputVolume())
     let testDecibals = 0.5
     try await setVolume(outputVolume: testDecibals)
     try await setIsMuted(false)
     let task = Task {
       try await silentMode.statusUpdates.prefix(5)
-        .reduce([DeviceVolumeStatus]()) { acc, status in acc + [status] }
+        .reduce([DeviceOutputVolumeStatus]()) { acc, status in acc + [status] }
     }
     try await setIsMuted(false)
     try await setIsMuted(true)
@@ -29,11 +29,11 @@ struct CoreAudioDeviceVolumeTests {
     try await setIsMuted(false)
     let statuses = try await task.value.map(TestStatus.init(volumeStatus:))
     let expectedStatuses =  [
-      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: false),
-      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: true),
-      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: false),
-      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: true),
-      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: false)
+      DeviceOutputVolumeStatus(outputVolume: testDecibals, isMuted: false),
+      DeviceOutputVolumeStatus(outputVolume: testDecibals, isMuted: true),
+      DeviceOutputVolumeStatus(outputVolume: testDecibals, isMuted: false),
+      DeviceOutputVolumeStatus(outputVolume: testDecibals, isMuted: true),
+      DeviceOutputVolumeStatus(outputVolume: testDecibals, isMuted: false)
     ]
     .map(TestStatus.init(volumeStatus:))
     #expect(statuses == expectedStatuses)
@@ -41,12 +41,12 @@ struct CoreAudioDeviceVolumeTests {
   
   @Test("Status Updates Respond to Volume Changes")
   func respondToVolumeChanges() async throws {
-    let silentMode = try #require(try CoreAudioDeviceVolume())
+    let silentMode = try #require(try CoreAudioDeviceOutputVolume())
     try await setVolume(outputVolume: 1)
     try await setIsMuted(false)
     let task = Task {
       try await silentMode.statusUpdates.prefix(5)
-        .reduce([DeviceVolumeStatus]()) { acc, status in acc + [status] }
+        .reduce([DeviceOutputVolumeStatus]()) { acc, status in acc + [status] }
     }
     try await setVolume(outputVolume: 0.1)
     try await setVolume(outputVolume: 0.1)
@@ -57,11 +57,11 @@ struct CoreAudioDeviceVolumeTests {
     try await setVolume(outputVolume: 0.5)
     let statuses = try await task.value.map(TestStatus.init(volumeStatus:))
     let expectedStatuses =  [
-      DeviceVolumeStatus(outputVolume: 1, isMuted: false),
-      DeviceVolumeStatus(outputVolume: 0.1, isMuted: false),
-      DeviceVolumeStatus(outputVolume: 0.3, isMuted: false),
-      DeviceVolumeStatus(outputVolume: 0, isMuted: false),
-      DeviceVolumeStatus(outputVolume: 0.5, isMuted: false)
+      DeviceOutputVolumeStatus(outputVolume: 1, isMuted: false),
+      DeviceOutputVolumeStatus(outputVolume: 0.1, isMuted: false),
+      DeviceOutputVolumeStatus(outputVolume: 0.3, isMuted: false),
+      DeviceOutputVolumeStatus(outputVolume: 0, isMuted: false),
+      DeviceOutputVolumeStatus(outputVolume: 0.5, isMuted: false)
     ]
     .map(TestStatus.init(volumeStatus:))
     #expect(statuses == expectedStatuses)
@@ -71,7 +71,7 @@ struct CoreAudioDeviceVolumeTests {
 // MARK: - TestStatus
 
 struct TestStatus {
-  let volumeStatus: DeviceVolumeStatus
+  let volumeStatus: DeviceOutputVolumeStatus
 }
 
 extension TestStatus: Equatable {

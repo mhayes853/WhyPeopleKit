@@ -9,9 +9,9 @@ import AudioToolbox
 
 // MARK: - CoreAudioDeviceVolume
 
-/// A ``DeviceVolume`` conformance that uses CoreAudio to listen for whether or not the device if
+/// A ``DeviceOutputVolume`` conformance that uses CoreAudio to listen for whether or not the device if
 /// muted.
-public final class CoreAudioDeviceVolume: Sendable {
+public final class CoreAudioDeviceOutputVolume: Sendable {
   private let deviceId: _AudioDeviceID
   
   /// Attempts to initialize a ``CoreAudioDeviceVolume`` instance.
@@ -21,15 +21,15 @@ public final class CoreAudioDeviceVolume: Sendable {
   }
 }
 
-// MARK: - DeviceVolume Conformance
+// MARK: - DeviceOutputVolume Conformance
 
-extension CoreAudioDeviceVolume: DeviceVolume {
+extension CoreAudioDeviceOutputVolume: DeviceOutputVolume {
   public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<
-    AsyncThrowingStream<DeviceVolumeStatus, Error>
+    AsyncThrowingStream<DeviceOutputVolumeStatus, Error>
   >
   
   public var statusUpdates: StatusUpdates {
-    AsyncThrowingStream<DeviceVolumeStatus, Error> { continuation in
+    AsyncThrowingStream<DeviceOutputVolumeStatus, Error> { continuation in
       self.yieldCurrentStatus(continuation: continuation)
       // NB: This cannot be made explicitly sendable due to AudioObjectAddPropertyListenerBlock not
       // accepting a sendable closure. To avoid compiler errors in onTermination, we mark this as
@@ -59,7 +59,7 @@ extension CoreAudioDeviceVolume: DeviceVolume {
   }
 
   private func yieldCurrentStatus(
-    continuation: AsyncThrowingStream<DeviceVolumeStatus, Error>.Continuation
+    continuation: AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.Continuation
   ) {
     var muted = UInt32(0)
     var outputVolume = Float(0)
@@ -93,7 +93,7 @@ extension CoreAudioDeviceVolume: DeviceVolume {
       continuation.finish(throwing: CoreAudioError(status))
       return
     }
-    let deviceVolumeStatus = DeviceVolumeStatus(
+    let deviceVolumeStatus = DeviceOutputVolumeStatus(
       outputVolume: Double(outputVolume),
       isMuted: muted == 1
     )

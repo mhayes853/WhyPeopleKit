@@ -4,8 +4,8 @@ import Testing
 
 #if !os(watchOS)
 
-@Suite("DeviceVolume+PingForMuteStatus tests")
-struct DeviceVolumePingForMuteStatusTests {
+@Suite("DeviceOutputVolume+PingForMuteStatus tests")
+struct DeviceOutputVolumePingForMuteStatusTests {
   @Test("Is Muted When Ping Finishes Under the Threshold")
   func muteStatus() async throws {
     let clock = TestClock()
@@ -39,7 +39,7 @@ struct DeviceVolumePingForMuteStatusTests {
   func merges() async throws {
     let clock = TestClock()
     let sleepTime = SleepTime(duration: .milliseconds(100))
-    let (stream, continuation) = AsyncThrowingStream<DeviceVolumeStatus, Error>.makeStream()
+    let (stream, continuation) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
     let deviceVolume = TestDeviceVolume(statusUpdates: stream)
       .pingForMuteStatus(
         interval: .seconds(1),
@@ -49,29 +49,29 @@ struct DeviceVolumePingForMuteStatusTests {
       )
     let task = Task {
       try await deviceVolume.statusUpdates.prefix(4)
-        .reduce([DeviceVolumeStatus]()) { acc, status in acc + [status] }
+        .reduce([DeviceOutputVolumeStatus]()) { acc, status in acc + [status] }
     }
-    continuation.yield(DeviceVolumeStatus(outputVolume: 0.7, isMuted: false))
+    continuation.yield(DeviceOutputVolumeStatus(outputVolume: 0.7, isMuted: false))
     await clock.advance(by: .milliseconds(100))
     await clock.advance(by: .seconds(1))
     await clock.advance(by: .milliseconds(100))
     await sleepTime.setDuration(.milliseconds(300))
-    continuation.yield(DeviceVolumeStatus(outputVolume: 0.5, isMuted: true))
+    continuation.yield(DeviceOutputVolumeStatus(outputVolume: 0.5, isMuted: true))
     await clock.advance(by: .seconds(1))
     await clock.advance(by: .milliseconds(300))
     let statuses = try await task.value
     let expectedStatuses = [
-      DeviceVolumeStatus(outputVolume: 0.7, isMuted: false),
-      DeviceVolumeStatus(outputVolume: 0.7, isMuted: true),
-      DeviceVolumeStatus(outputVolume: 0.5, isMuted: true),
-      DeviceVolumeStatus(outputVolume: 0.5, isMuted: false)
+      DeviceOutputVolumeStatus(outputVolume: 0.7, isMuted: false),
+      DeviceOutputVolumeStatus(outputVolume: 0.7, isMuted: true),
+      DeviceOutputVolumeStatus(outputVolume: 0.5, isMuted: true),
+      DeviceOutputVolumeStatus(outputVolume: 0.5, isMuted: false)
     ]
     #expect(statuses == expectedStatuses)
   }
   
   @Test("Forwards Error From Base Volume")
   func forwardsBaseError() async throws {
-    let (stream, continuation) = AsyncThrowingStream<DeviceVolumeStatus, Error>.makeStream()
+    let (stream, continuation) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
     let deviceVolume = TestDeviceVolume(statusUpdates: stream)
       .pingForMuteStatus(
         interval: .seconds(1),
@@ -81,7 +81,7 @@ struct DeviceVolumePingForMuteStatusTests {
       )
     let task = Task {
       try await deviceVolume.statusUpdates
-        .reduce([DeviceVolumeStatus]()) { acc, status in acc + [status] }
+        .reduce([DeviceOutputVolumeStatus]()) { acc, status in acc + [status] }
     }
     struct SomeError: Error {}
     continuation.finish(throwing: SomeError())
@@ -103,8 +103,8 @@ private actor SleepTime {
   }
 }
 
-private struct TestDeviceVolume: DeviceVolume {
-  let statusUpdates: AsyncThrowingStream<DeviceVolumeStatus, Error>
+private struct TestDeviceVolume: DeviceOutputVolume {
+  let statusUpdates: AsyncThrowingStream<DeviceOutputVolumeStatus, Error>
 }
 
 #endif
