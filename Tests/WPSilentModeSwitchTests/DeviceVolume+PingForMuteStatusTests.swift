@@ -2,7 +2,7 @@
 import Clocks
 import Testing
 
-#if os(iOS)
+#if !os(watchOS)
 
 @Suite("DeviceVolume+PingForMuteStatus tests")
 struct DeviceVolumePingForMuteStatusTests {

@@ -7,8 +7,8 @@ public struct DeviceVolumeStatus: Hashable, Sendable {
   
   /// Whether or not the device is muted through hardware or software means.
   ///
-  /// Only iOS and macOS have mechanisms to detect if the device is muted.
-  @available(macOS 13, iOS 16, *)
+  /// watchOS does not have a mechanism to detect if the device is globally muted.
+  @available(watchOS, unavailable)
   public let isMuted: Bool
   
   /// Iniitializes a ``DeviceVolumeStatus`` instance.
@@ -16,7 +16,7 @@ public struct DeviceVolumeStatus: Hashable, Sendable {
   /// - Parameters:
   ///   - decibals: The amount of volume in in the range [0, 1].
   ///   - isMuted: Whether or not the device is muted through hardware or software means.
-  @available(macOS 13, iOS 16, *)
+  @available(watchOS, unavailable)
   public init(decibals: Double, isMuted: Bool) {
     self.decibals = decibals
     self.isMuted = isMuted

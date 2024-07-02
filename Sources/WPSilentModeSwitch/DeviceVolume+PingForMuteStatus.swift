@@ -1,4 +1,4 @@
-#if os(iOS)
+#if !os(watchOS)
 import AudioToolbox
 import AsyncAlgorithms
 import ConcurrencyExtras
