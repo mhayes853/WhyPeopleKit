@@ -51,20 +51,20 @@ struct DeviceVolumePingForMuteStatusTests {
       try await deviceVolume.statusUpdates.prefix(4)
         .reduce([DeviceVolumeStatus]()) { acc, status in acc + [status] }
     }
-    continuation.yield(DeviceVolumeStatus(decibals: 0.7, isMuted: false))
+    continuation.yield(DeviceVolumeStatus(outputVolume: 0.7, isMuted: false))
     await clock.advance(by: .milliseconds(100))
     await clock.advance(by: .seconds(1))
     await clock.advance(by: .milliseconds(100))
     await sleepTime.setDuration(.milliseconds(300))
-    continuation.yield(DeviceVolumeStatus(decibals: 0.5, isMuted: true))
+    continuation.yield(DeviceVolumeStatus(outputVolume: 0.5, isMuted: true))
     await clock.advance(by: .seconds(1))
     await clock.advance(by: .milliseconds(300))
     let statuses = try await task.value
     let expectedStatuses = [
-      DeviceVolumeStatus(decibals: 0.7, isMuted: false),
-      DeviceVolumeStatus(decibals: 0.7, isMuted: true),
-      DeviceVolumeStatus(decibals: 0.5, isMuted: true),
-      DeviceVolumeStatus(decibals: 0.5, isMuted: false)
+      DeviceVolumeStatus(outputVolume: 0.7, isMuted: false),
+      DeviceVolumeStatus(outputVolume: 0.7, isMuted: true),
+      DeviceVolumeStatus(outputVolume: 0.5, isMuted: true),
+      DeviceVolumeStatus(outputVolume: 0.5, isMuted: false)
     ]
     #expect(statuses == expectedStatuses)
   }

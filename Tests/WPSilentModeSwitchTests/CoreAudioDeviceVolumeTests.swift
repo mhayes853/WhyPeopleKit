@@ -15,7 +15,7 @@ struct CoreAudioDeviceVolumeTests {
   func respondToMuteSwitchChanges() async throws {
     let silentMode = try #require(try CoreAudioDeviceVolume())
     let testDecibals = 0.5
-    try await setVolume(decibals: testDecibals)
+    try await setVolume(outputVolume: testDecibals)
     try await setIsMuted(false)
     let task = Task {
       try await silentMode.statusUpdates.prefix(5)
@@ -29,11 +29,11 @@ struct CoreAudioDeviceVolumeTests {
     try await setIsMuted(false)
     let statuses = try await task.value.map(TestStatus.init(volumeStatus:))
     let expectedStatuses =  [
-      DeviceVolumeStatus(decibals: testDecibals, isMuted: false),
-      DeviceVolumeStatus(decibals: testDecibals, isMuted: true),
-      DeviceVolumeStatus(decibals: testDecibals, isMuted: false),
-      DeviceVolumeStatus(decibals: testDecibals, isMuted: true),
-      DeviceVolumeStatus(decibals: testDecibals, isMuted: false)
+      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: false),
+      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: true),
+      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: false),
+      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: true),
+      DeviceVolumeStatus(outputVolume: testDecibals, isMuted: false)
     ]
     .map(TestStatus.init(volumeStatus:))
     #expect(statuses == expectedStatuses)
@@ -42,26 +42,26 @@ struct CoreAudioDeviceVolumeTests {
   @Test("Status Updates Respond to Volume Changes")
   func respondToVolumeChanges() async throws {
     let silentMode = try #require(try CoreAudioDeviceVolume())
-    try await setVolume(decibals: 1)
+    try await setVolume(outputVolume: 1)
     try await setIsMuted(false)
     let task = Task {
       try await silentMode.statusUpdates.prefix(5)
         .reduce([DeviceVolumeStatus]()) { acc, status in acc + [status] }
     }
-    try await setVolume(decibals: 0.1)
-    try await setVolume(decibals: 0.1)
-    try await setVolume(decibals: 0.3)
-    try await setVolume(decibals: 0.3)
-    try await setVolume(decibals: 0.3)
-    try await setVolume(decibals: 0)
-    try await setVolume(decibals: 0.5)
+    try await setVolume(outputVolume: 0.1)
+    try await setVolume(outputVolume: 0.1)
+    try await setVolume(outputVolume: 0.3)
+    try await setVolume(outputVolume: 0.3)
+    try await setVolume(outputVolume: 0.3)
+    try await setVolume(outputVolume: 0)
+    try await setVolume(outputVolume: 0.5)
     let statuses = try await task.value.map(TestStatus.init(volumeStatus:))
     let expectedStatuses =  [
-      DeviceVolumeStatus(decibals: 1, isMuted: false),
-      DeviceVolumeStatus(decibals: 0.1, isMuted: false),
-      DeviceVolumeStatus(decibals: 0.3, isMuted: false),
-      DeviceVolumeStatus(decibals: 0, isMuted: false),
-      DeviceVolumeStatus(decibals: 0.5, isMuted: false)
+      DeviceVolumeStatus(outputVolume: 1, isMuted: false),
+      DeviceVolumeStatus(outputVolume: 0.1, isMuted: false),
+      DeviceVolumeStatus(outputVolume: 0.3, isMuted: false),
+      DeviceVolumeStatus(outputVolume: 0, isMuted: false),
+      DeviceVolumeStatus(outputVolume: 0.5, isMuted: false)
     ]
     .map(TestStatus.init(volumeStatus:))
     #expect(statuses == expectedStatuses)
@@ -76,8 +76,8 @@ struct TestStatus {
 
 extension TestStatus: Equatable {
   static func == (lhs: Self, rhs: Self) -> Bool {
-    let isApproximatelyEqual = lhs.volumeStatus.decibals.isApproximatelyEqual(
-      to: rhs.volumeStatus.decibals,
+    let isApproximatelyEqual = lhs.volumeStatus.outputVolume.isApproximatelyEqual(
+      to: rhs.volumeStatus.outputVolume,
       relativeTolerance: 0.0001
     )
     return lhs.volumeStatus.isMuted == rhs.volumeStatus.isMuted && isApproximatelyEqual
@@ -86,8 +86,8 @@ extension TestStatus: Equatable {
 
 // MARK: - Volume Manipulation
 
-private func setVolume(decibals: Double) async throws {
-  var decibals = Float(decibals)
+private func setVolume(outputVolume: Double) async throws {
+  var outputVolume = Float(outputVolume)
   let deviceId = try #require(try _defaultOutputDeviceId())
   try withUnsafePointer(to: _volumePropertyAddress) {
     let status = AudioObjectSetPropertyData(
@@ -95,8 +95,8 @@ private func setVolume(decibals: Double) async throws {
       $0,
       0,
       nil,
-      UInt32(MemoryLayout.size(ofValue: decibals)),
-      &decibals
+      UInt32(MemoryLayout.size(ofValue: outputVolume)),
+      &outputVolume
     )
     if status != noErr {
       throw CoreAudioError(status)

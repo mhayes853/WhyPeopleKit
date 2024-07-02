@@ -23,7 +23,7 @@ extension AVAudioSession: DeviceVolume {
         continuation.finish(throwing: error)
       }
       let observer = self.observe(\.outputVolume, options: [.initial, .new]) { session, _ in
-        continuation.yield(DeviceVolumeStatus(decibals: Double(session.outputVolume)))
+        continuation.yield(DeviceVolumeStatus(outputVolume: Double(session.outputVolume)))
       }
       continuation.onTermination = { @Sendable _ in observer.invalidate() }
     }

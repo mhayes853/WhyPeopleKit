@@ -62,7 +62,7 @@ extension CoreAudioDeviceVolume: DeviceVolume {
     continuation: AsyncThrowingStream<DeviceVolumeStatus, Error>.Continuation
   ) {
     var muted = UInt32(0)
-    var decibals = Float(0)
+    var outputVolume = Float(0)
     var mutePropertySize = UInt32(MemoryLayout<UInt32>.size)
     var volumePropertySize = UInt32(MemoryLayout<Float>.size)
     var status = withUnsafePointer(to: _mutePropertyAddress) {
@@ -86,14 +86,17 @@ extension CoreAudioDeviceVolume: DeviceVolume {
         0,
         nil,
         &volumePropertySize,
-        &decibals
+        &outputVolume
       )
     }
     if status != noErr {
       continuation.finish(throwing: CoreAudioError(status))
       return
     }
-    let deviceVolumeStatus = DeviceVolumeStatus(decibals: Double(decibals), isMuted: muted == 1)
+    let deviceVolumeStatus = DeviceVolumeStatus(
+      outputVolume: Double(outputVolume),
+      isMuted: muted == 1
+    )
     continuation.yield(deviceVolumeStatus)
   }
 }

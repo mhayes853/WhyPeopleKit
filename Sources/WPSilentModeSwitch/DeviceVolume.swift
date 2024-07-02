@@ -3,7 +3,7 @@
 /// A status of a device's volume.
 public struct DeviceVolumeStatus: Hashable, Sendable {
   /// The amount of volume in in the range [0, 1].
-  public let decibals: Double
+  public let outputVolume: Double
   
   /// Whether or not the device is muted through hardware or software means.
   ///
@@ -17,8 +17,8 @@ public struct DeviceVolumeStatus: Hashable, Sendable {
   ///   - decibals: The amount of volume in in the range [0, 1].
   ///   - isMuted: Whether or not the device is muted through hardware or software means.
   @available(watchOS, unavailable)
-  public init(decibals: Double, isMuted: Bool) {
-    self.decibals = decibals
+  public init(outputVolume: Double, isMuted: Bool) {
+    self.outputVolume = outputVolume
     self.isMuted = isMuted
   }
   
@@ -26,8 +26,8 @@ public struct DeviceVolumeStatus: Hashable, Sendable {
   ///
   /// - Parameters:
   ///   - decibals: The amount of volume in in the range [0, 1].
-  public init(decibals: Double) {
-    self.decibals = decibals
+  public init(outputVolume: Double) {
+    self.outputVolume = outputVolume
     self.isMuted = false
   }
 }
@@ -35,7 +35,7 @@ public struct DeviceVolumeStatus: Hashable, Sendable {
 extension DeviceVolumeStatus {
   /// Whether or not the volume decibals is not totally silent.
   public var hasVolume: Bool {
-    self.decibals > 0
+    self.outputVolume > 0
   }
   
   /// Returns true if the device does not have volume, or if it is muted.

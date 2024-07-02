@@ -2,7 +2,10 @@
 import AudioToolbox
 import AsyncAlgorithms
 import ConcurrencyExtras
+
+#if canImport(UIKit)
 import UIKit
+#endif
 
 // MARK: - Extension
 
@@ -28,7 +31,7 @@ extension DeviceVolume where Self: Sendable {
   ///   - threshold: The threshold that the playback length must be under in order to conside the
   ///   device to be muted.
   ///   - clock: A `Clock` to use to control the interval.
-  /// - Returns: A new ``DeviceVolume`` instance that combines the `decibels` value of this
+  /// - Returns: A new ``DeviceVolume`` instance that combines the `outputVolume` value of this
   /// instance, and overrides the `isMuted` value of this instance.
   public func pingForMuteStatus<C: Clock>(
     interval: Duration = .milliseconds(750),
@@ -107,7 +110,7 @@ extension _PingForMuteStatusDeviceVolume: DeviceVolume {
   
   private func runBaseSequence(state: StatusUpdatesState) async throws {
     for try await newStatus in self.base.statusUpdates {
-      await state.setDecibals(newStatus.decibals)
+      await state.setOutputVolume(newStatus.outputVolume)
     }
   }
   
@@ -117,7 +120,7 @@ extension _PingForMuteStatusDeviceVolume: DeviceVolume {
   }
   
   private final actor StatusUpdatesState {
-    private var status = DeviceVolumeStatus(decibals: 0, isMuted: false) {
+    private var status = DeviceVolumeStatus(outputVolume: 0, isMuted: false) {
       didSet { self.continuation.yield(self.status) }
     }
     private let continuation: AsyncThrowingStream<DeviceVolumeStatus, Error>.Continuation
@@ -126,12 +129,12 @@ extension _PingForMuteStatusDeviceVolume: DeviceVolume {
       self.continuation = continuation
     }
     
-    func setDecibals(_ decibals: Double) {
-      self.status = DeviceVolumeStatus(decibals: decibals, isMuted: self.status.isMuted)
+    func setOutputVolume(_ outputVolume: Double) {
+      self.status = DeviceVolumeStatus(outputVolume: outputVolume, isMuted: self.status.isMuted)
     }
     
     func setMuted(_ isMuted: Bool) {
-      self.status = DeviceVolumeStatus(decibals: self.status.decibals, isMuted: isMuted)
+      self.status = DeviceVolumeStatus(outputVolume: self.status.outputVolume, isMuted: isMuted)
     }
   }
 }
@@ -165,7 +168,9 @@ private final class AudioToolboxPinger: Sendable {
   }
   
   func ping() async {
+#if canImport(UIKit)
     guard await UIApplication.shared.applicationState == .active else { return }
+#endif
     await withUnsafeContinuation { continuation in
       AudioServicesPlaySystemSoundWithCompletion(
         self.soundId,
