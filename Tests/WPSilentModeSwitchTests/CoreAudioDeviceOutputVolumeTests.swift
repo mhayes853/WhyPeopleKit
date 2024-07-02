@@ -13,7 +13,7 @@ import AudioToolbox
 struct CoreAudioDeviceOutputVolumeTests {
   @Test("Status Updates Respond to Mute Switch Changes")
   func respondToMuteSwitchChanges() async throws {
-    let silentMode = try #require(try CoreAudioDeviceOutputVolume())
+    let silentMode = try CoreAudioDeviceOutputVolume()
     let testDecibals = 0.5
     try await setVolume(outputVolume: testDecibals)
     try await setIsMuted(false)
@@ -41,7 +41,7 @@ struct CoreAudioDeviceOutputVolumeTests {
   
   @Test("Status Updates Respond to Volume Changes")
   func respondToVolumeChanges() async throws {
-    let silentMode = try #require(try CoreAudioDeviceOutputVolume())
+    let silentMode = try CoreAudioDeviceOutputVolume()
     try await setVolume(outputVolume: 1)
     try await setIsMuted(false)
     let task = Task {

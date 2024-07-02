@@ -15,8 +15,12 @@ public final class CoreAudioDeviceOutputVolume: Sendable {
   private let deviceId: _AudioDeviceID
   
   /// Attempts to initialize a ``CoreAudioDeviceVolume`` instance.
-  public init?() throws {
-    guard let deviceId = try _defaultOutputDeviceId() else { return nil }
+  ///
+  /// This initializer fails if the default output device id cannot be found.
+  public init() throws {
+    guard let deviceId = try _defaultOutputDeviceId() else {
+      throw CoreAudioError(OSStatus(kAudioObjectUnknown))
+    }
     self.deviceId = deviceId
   }
 }
