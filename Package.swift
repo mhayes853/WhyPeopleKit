@@ -49,7 +49,8 @@ let package = Package(
         .product(name: "Numerics", package: "swift-numerics")
       ]
     ),
-    .target(name: "WPTestSupport", dependencies: ["WPFoundation"])
+    .target(name: "WPTestSupport", dependencies: ["WPFoundation"]),
+    .testTarget(name: "WPTestSupportTests", dependencies: ["WPTestSupport"])
   ],
   swiftLanguageVersions: [.version("6")]
 )

@@ -54,13 +54,15 @@ public func withTestFailable<T>(
 // MARK: - FailCurrentTest
 
 /// Fails the current test case.
-/// 
+///
+/// This function is safe to use outside of a testing context, as it uses a dynamic overlay to
+/// invoke the proper testing framework. When called outside a testing context, a runtime warning
+/// will be issued.
+///
 /// By default, this function will detect whether or not Swift Testing, or XCTest is running, and
 /// call the appropriate failure function. You can also use a custom testing framework by passing a
 /// ``TestFailable`` conformance to ``withTestFailable(_:operation:)-1wdty``, and calling this
 /// function within the operation closure.
-/// 
-/// If this is called outside of a test, then a runtime warning is issued instead.
 ///
 /// - Parameters:
 ///   - message: A message to fail the current test with.
@@ -85,12 +87,12 @@ public var _canFailCurrentTest: Bool {
 }
 
 private enum TestAssetionsLocals {
-  @TaskLocal static var testFailable: (any TestFailable & Sendable)? = currentTestFailable
+  @TaskLocal static var testFailable: (any TestFailable & Sendable)? = defaultTestFailable
 }
 
 package protocol DefaultTestFailable: TestFailable, Sendable {}
 
-private let currentTestFailable: (any DefaultTestFailable)? = {
+private let defaultTestFailable: (any DefaultTestFailable)? = {
   NSClassFromString("_DefaultTestFailable")
     .flatMap { $0 as Any as? NSObjectProtocol }
     .flatMap {
