@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
   name: "WhyPeopleKit",
+  defaultLocalization: "en",
   platforms: [
     .macOS(.v13),
     .iOS(.v16),
@@ -27,7 +28,7 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/swift-perception", from: "1.2.4")
   ],
   targets: [
-    .target(name: "WPFoundation"),
+    .target(name: "WPFoundation", resources: [.process("Resources")]),
     .testTarget(
       name: "WPFoundationTests",
       dependencies: ["WPFoundation", "WPTestSupport"]
