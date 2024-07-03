@@ -14,7 +14,8 @@ let package = Package(
   ],
   products: [
     .library(name: "WPFoundation", targets: ["WPFoundation"]),
-    .library(name: "WPDeviceVolume", targets: ["WPDeviceVolume"])
+    .library(name: "WPDeviceVolume", targets: ["WPDeviceVolume"]),
+    .library(name: "WPTestSupport", targets: ["WPTestSupport"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.11.2"),
@@ -27,7 +28,10 @@ let package = Package(
   ],
   targets: [
     .target(name: "WPFoundation"),
-    .testTarget(name: "WPFoundationTests", dependencies: ["WPFoundation"]),
+    .testTarget(
+      name: "WPFoundationTests",
+      dependencies: ["WPFoundation", "WPTestSupport"]
+    ),
     .target(
       name: "WPDeviceVolume",
       dependencies: [
@@ -44,7 +48,8 @@ let package = Package(
         .product(name: "Clocks", package: "swift-clocks"),
         .product(name: "Numerics", package: "swift-numerics")
       ]
-    )
+    ),
+    .target(name: "WPTestSupport", dependencies: ["WPFoundation"])
   ],
   swiftLanguageVersions: [.version("6")]
 )

@@ -35,12 +35,27 @@ public func runtimeWarn(
 ) {
 #if DEBUG
   let message = message()
-  let category = category ?? "Runtime Warning"
-  if let file, let line {
-    failCurrentTest(message, file: file, line: line)
+  if _canFailCurrentTest {
+    if let file, let line {
+      failCurrentTest(message, file: file, line: line)
+    } else {
+      failCurrentTest(message)
+    }
   } else {
-    failCurrentTest(message)
+    _runtimeWarn(message, category: category, file: file, line: line)
   }
+#endif
+}
+
+public func _runtimeWarn(
+  _ message: @autoclosure () -> String,
+  category: String? = "WPFoundation",
+  file: StaticString? = nil,
+  line: UInt? = nil
+) {
+#if DEBUG
+  let message = message()
+  let category = category ?? "Runtime Warning"
 #if canImport(os)
   os_log(
     .fault,
