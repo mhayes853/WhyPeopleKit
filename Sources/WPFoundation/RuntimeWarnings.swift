@@ -23,6 +23,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 import Foundation
+import os
 
 /// Emits a purple runtime warning in Xcode.
 @_transparent
@@ -56,7 +57,6 @@ public func _runtimeWarn(
 #if DEBUG
   let message = message()
   let category = category ?? "Runtime Warning"
-#if canImport(os)
   os_log(
     .fault,
     dso: dso,
@@ -64,17 +64,10 @@ public func _runtimeWarn(
     "%@",
     message
   )
-#else
-  fputs("\(formatter.string(from: Date())) [\(category)] \(message)\n", stderr)
-#endif
 #endif
 }
 
 #if DEBUG
-
-#if canImport(os)
-import os
-
 // NB: Xcode runtime warnings offer a much better experience than traditional assertions and
 //     breakpoints, but Apple provides no means of creating custom runtime warnings ourselves.
 //     To work around this, we hook into SwiftUI's runtime issue delivery mechanism, instead.
@@ -95,14 +88,4 @@ nonisolated(unsafe) let dso = { () -> UnsafeRawPointer in
   }
   return #dsohandle
 }()
-#else
-import Foundation
-
-@usableFromInline
-let formatter: DateFormatter = {
-  let formatter = DateFormatter()
-  formatter.dateFormat = "yyyy-MM-dd HH:MM:SS.sssZ"
-  return formatter
-}()
-#endif
 #endif
