@@ -2,7 +2,7 @@ import Testing
 import WPFoundation
 
 /// A `TestFailable` conformance that uses swift testing.
-public struct SwiftTestingFailable: DefaultTestFailable {
+public struct SwiftTestingFailable: TestFailable, Sendable {
   public init() {}
   
   public func failTest(_ message: String?, file: StaticString, line: UInt) {

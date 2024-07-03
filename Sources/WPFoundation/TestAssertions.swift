@@ -91,8 +91,10 @@ private enum TestAssetionsLocals {
 package protocol DefaultTestFailable: TestFailable, Sendable {}
 
 private let currentTestFailable: (any DefaultTestFailable)? = {
-  NSClassFromString("TestFailableHolder")
+  NSClassFromString("_DefaultTestFailable")
     .flatMap { $0 as Any as? NSObjectProtocol }
-    .flatMap { $0.perform(Selector(("current")))?.takeUnretainedValue() }
-    .flatMap { $0.value(forKeyPath: "failable") as? any DefaultTestFailable }
+    .flatMap {
+      let failable = $0.perform(Selector(("current")))?.takeUnretainedValue()
+      return failable as? any DefaultTestFailable
+    }
 }()

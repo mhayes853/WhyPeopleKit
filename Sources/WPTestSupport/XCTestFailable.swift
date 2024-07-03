@@ -2,7 +2,7 @@ import XCTest
 import WPFoundation
 
 /// A `TestFailable` conformance that uses XCTest.
-public struct XCTestFailable: DefaultTestFailable {
+public struct XCTestFailable: TestFailable, Sendable {
   public init() {}
   
   public func failTest(_ message: String?, file: StaticString, line: UInt) {
