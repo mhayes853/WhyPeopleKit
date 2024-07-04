@@ -93,7 +93,7 @@ private enum TestAssetionsLocals {
 package protocol DefaultTestFailable: TestFailable, Sendable {}
 
 private let defaultTestFailable: (any DefaultTestFailable)? = {
-  NSClassFromString("_DefaultTestFailable")
+  NSClassFromString("_WPDefaultTestFailable")
     .flatMap { $0 as Any as? NSObjectProtocol }
     .flatMap {
       let failable = $0.perform(Selector(("current")))?.takeUnretainedValue()

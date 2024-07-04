@@ -7,7 +7,7 @@ import XCTest
 // NB: This internal class is called by WPFoundation using NSClassFromString to decide what test
 // framework to use when calling failCurrentTest. WPFoundation cannot use this class directly
 // since we import both XCTest and Swift Testing in this test support module.
-@objc(_DefaultTestFailable)
+@objc(_WPDefaultTestFailable)
 final class _DefaultTestFailable: NSObject, DefaultTestFailable {
   // NB: Using "new" gives a warning when using a string Selector, but applying the fix-it from
   // that warning results in a compile error, so we'll need this method to use for the selector.
