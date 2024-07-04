@@ -16,7 +16,8 @@ let package = Package(
   products: [
     .library(name: "WPFoundation", targets: ["WPFoundation"]),
     .library(name: "WPDeviceVolume", targets: ["WPDeviceVolume"]),
-    .library(name: "WPTestSupport", targets: ["WPTestSupport"])
+    .library(name: "WPTestSupport", targets: ["WPTestSupport"]),
+    .library(name: "WPHaptics", targets: ["WPHaptics"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.11.2"),

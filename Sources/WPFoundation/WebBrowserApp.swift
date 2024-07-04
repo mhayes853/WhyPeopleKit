@@ -77,7 +77,7 @@ extension URL {
 
 // MARK: - Supported Apps
 
-#if canImport(UIKit)
+#if canImport(UIKit) && canImport(SafariServices)
 import UIKit
 import SafariServices
 

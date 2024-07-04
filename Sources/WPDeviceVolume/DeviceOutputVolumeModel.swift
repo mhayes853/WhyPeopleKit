@@ -37,10 +37,7 @@ import AVFoundation
 @dynamicMemberLookup
 public final class DeviceOutputVolumeModel {
   /// The current ``DeviceOutputVolumeStatus``.
-  public private(set) var status = DeviceOutputVolumeStatus(
-    outputVolume: 0,
-    isMuted: false
-  )
+  public private(set) var status = DeviceOutputVolumeStatus(outputVolume: 0)
   
   /// An error if one occurred when observing the ``DeviceOutputVolume``.
   ///

@@ -8,7 +8,6 @@ public struct DeviceOutputVolumeStatus: Hashable, Sendable {
   /// Whether or not the device is muted through hardware or software means.
   ///
   /// watchOS does not have a mechanism to detect if the device is globally muted.
-  @available(watchOS, unavailable)
   public let isMuted: Bool
   
   /// Iniitializes a ``DeviceOutputVolumeStatus`` instance.
