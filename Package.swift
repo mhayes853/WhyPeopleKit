@@ -51,7 +51,8 @@ let package = Package(
       ]
     ),
     .target(name: "WPTestSupport", dependencies: ["WPFoundation"]),
-    .testTarget(name: "WPTestSupportTests", dependencies: ["WPTestSupport"])
+    .testTarget(name: "WPTestSupportTests", dependencies: ["WPTestSupport"]),
+    .target(name: "WPHaptics")
   ],
   swiftLanguageVersions: [.version("6")]
 )
