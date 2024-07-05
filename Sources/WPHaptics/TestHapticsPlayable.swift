@@ -1,17 +1,18 @@
-import os
+import Foundation
 
 /// A ``HapticsPlayable`` conformance that is suitable to use for test stubbing.
-public final class TestHapticsPlayable<HapticEvent: Sendable>: HapticsPlayable, Sendable {
-  private let _playedEvents = OSAllocatedUnfairLock(initialState: [HapticEvent]())
+public final class TestHapticsPlayable<HapticEvent>: HapticsPlayable, @unchecked Sendable {
+  private let lock = NSLock()
+  private var _playedEvents = [HapticEvent]()
   
   public init() {}
   
   /// An array of the played events in the order they were played.
   public var playedEvents: [HapticEvent] {
-    self._playedEvents.withLock { $0 }
+    self.lock.withLock { self._playedEvents }
   }
   
-  public func play(event: HapticEvent) async throws {
-    self._playedEvents.withLock { $0.append(event) }
+  public func play(event: HapticEvent) {
+    self.lock.withLock { self._playedEvents.append(event) }
   }
 }
