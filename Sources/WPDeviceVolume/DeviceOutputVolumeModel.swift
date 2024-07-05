@@ -103,15 +103,7 @@ extension DeviceOutputVolumeModel {
   /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
   /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
   /// then the device is inferred to be in silent mode.
-  public static let `default`: DeviceOutputVolumeModel = {
-#if os(macOS)
-    DeviceOutputVolumeModel { try CoreAudioDeviceOutputVolume() }
-#elseif os(watchOS)
-    DeviceOutputVolumeModel { try AVAudioSessionDeviceOutputVolume() }
-#else
-    DeviceOutputVolumeModel { try AVAudioSessionDeviceOutputVolume().pingForMuteStatus() }
-#endif
-  }()
+  public static let `default` = DeviceOutputVolumeModel { try .systemDefault() }
 }
 
 // MARK: - TaskHoler

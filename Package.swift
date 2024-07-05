@@ -58,7 +58,10 @@ let package = Package(
     .target(name: "WPHaptics"),
     .target(
       name: "WPDependencies",
-      dependencies: [.product(name: "Dependencies", package: "swift-dependencies")]
+      dependencies: [
+        "WPDeviceVolume",
+        .product(name: "Dependencies", package: "swift-dependencies")
+      ]
     )
   ],
   swiftLanguageVersions: [.version("6")]

@@ -92,7 +92,9 @@ public final class DeviceOutputVolumeSubscription: Sendable {
     self.onCancel = onCancel
   }
   
-  deinit { self.cancel() }
+  deinit {
+    self.cancel()
+  }
   
   /// Cancels this subscription.
   public func cancel() {
