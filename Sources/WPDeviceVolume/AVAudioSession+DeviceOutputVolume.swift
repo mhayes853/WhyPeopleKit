@@ -1,5 +1,4 @@
 import AVFoundation
-import AsyncAlgorithms
 
 // MARK: - AVAudioSessionDeviceOutputVolume
 
@@ -31,20 +30,17 @@ public final class AVAudioSessionDeviceOutputVolume: Sendable {
 
 @available(macOS, unavailable)
 extension AVAudioSessionDeviceOutputVolume: DeviceOutputVolume {
-  public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<
-    AsyncStream<DeviceOutputVolumeStatus>
-  >
-  
-  public var statusUpdates: StatusUpdates {
-    AsyncStream<DeviceOutputVolumeStatus> { continuation in
-      let observer = self.session.observe(
-        \.outputVolume,
-         options: [.initial, .new]
-      ) { session, _ in
-        continuation.yield(DeviceOutputVolumeStatus(outputVolume: Double(session.outputVolume)))
-      }
-      continuation.onTermination = { @Sendable _ in observer.invalidate() }
+  public func subscribe(
+    _ callback: @Sendable @escaping (Result<DeviceOutputVolumeStatus, Error>) -> Void
+  ) -> DeviceOutputVolumeSubscription {
+    let callback = removeDuplicates(callback)
+    let observer = self.session.observe(
+      \.outputVolume,
+       options: [.initial, .new]
+    ) { session, _ in
+      let status = DeviceOutputVolumeStatus(outputVolume: Double(session.outputVolume))
+      callback(.success(status))
     }
-    .removeDuplicates()
+    return DeviceOutputVolumeSubscription { observer.invalidate() }
   }
 }

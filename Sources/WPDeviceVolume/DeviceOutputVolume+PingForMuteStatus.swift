@@ -1,6 +1,6 @@
 #if !os(watchOS)
 import AudioToolbox
-import AsyncAlgorithms
+private import AsyncAlgorithms
 
 #if canImport(UIKit)
 import UIKit
@@ -80,26 +80,22 @@ public struct _PingForMuteStatusDeviceVolume<
 // MARK: - DeviceOutputVolume Conformance
 
 extension _PingForMuteStatusDeviceVolume: DeviceOutputVolume {
-  public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<
-    AsyncThrowingStream<DeviceOutputVolumeStatus, Error>
-  >
-  
-  public var statusUpdates: StatusUpdates {
-    AsyncThrowingStream<DeviceOutputVolumeStatus, Error> { continuation in
-      let task = Task {
-        do {
-          // NB: Cancellation propogates to async let when the continuation is terminated.
-          let state = StatusUpdatesState(continuation: continuation)
-          async let timer: Void = self.runTimerSequence(state: state)
-          try await self.runBaseSequence(state: state)
-          await timer
-        } catch {
-          continuation.finish(throwing: error)
-        }
+  public func subscribe(
+    _ callback: @escaping @Sendable (Result<DeviceOutputVolumeStatus, any Error>) -> Void
+  ) -> DeviceOutputVolumeSubscription {
+    let callback = removeDuplicates(callback)
+    let task = Task {
+      do {
+        // NB: Cancellation propogates to async let when the continuation is terminated.
+        let state = StatusUpdatesState(callback)
+        async let timer: Void = self.runTimerSequence(state: state)
+        try await self.runBaseSequence(state: state)
+        await timer
+      } catch {
+        callback(.failure(error))
       }
-      continuation.onTermination = { @Sendable _ in task.cancel() }
     }
-    .removeDuplicates()
+    return DeviceOutputVolumeSubscription { task.cancel() }
   }
   
   private func runTimerSequence(state: StatusUpdatesState) async {
@@ -122,20 +118,26 @@ extension _PingForMuteStatusDeviceVolume: DeviceOutputVolume {
   
   private final actor StatusUpdatesState {
     private var status = DeviceOutputVolumeStatus(outputVolume: 0, isMuted: false) {
-      didSet { self.continuation.yield(self.status) }
+      didSet { self.callback(.success(self.status)) }
     }
-    private let continuation: AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.Continuation
+    private let callback: @Sendable (Result<DeviceOutputVolumeStatus, Error>) -> Void
     
-    init(continuation: AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.Continuation) {
-      self.continuation = continuation
+    init(_ callback: @Sendable @escaping (Result<DeviceOutputVolumeStatus, Error>) -> Void) {
+      self.callback = callback
     }
     
     func setOutputVolume(_ outputVolume: Double) {
-      self.status = DeviceOutputVolumeStatus(outputVolume: outputVolume, isMuted: self.status.isMuted)
+      self.status = DeviceOutputVolumeStatus(
+        outputVolume: outputVolume,
+        isMuted: self.status.isMuted
+      )
     }
     
     func setMuted(_ isMuted: Bool) {
-      self.status = DeviceOutputVolumeStatus(outputVolume: self.status.outputVolume, isMuted: isMuted)
+      self.status = DeviceOutputVolumeStatus(
+        outputVolume: self.status.outputVolume,
+        isMuted: isMuted
+      )
     }
   }
 }

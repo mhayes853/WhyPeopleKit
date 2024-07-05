@@ -1,5 +1,4 @@
 import CoreAudio
-import AsyncAlgorithms
 import WPFoundation
 
 #if os(macOS)
@@ -33,42 +32,35 @@ public final class CoreAudioDeviceOutputVolume: Sendable {
 // MARK: - DeviceOutputVolume Conformance
 
 extension CoreAudioDeviceOutputVolume: DeviceOutputVolume {
-  public typealias StatusUpdates = AsyncRemoveDuplicatesSequence<
-    AsyncThrowingStream<DeviceOutputVolumeStatus, Error>
-  >
-  
-  public var statusUpdates: StatusUpdates {
-    AsyncThrowingStream<DeviceOutputVolumeStatus, Error> { continuation in
-      self.yieldCurrentStatus(continuation: continuation)
-      // NB: This cannot be made explicitly sendable due to AudioObjectAddPropertyListenerBlock not
-      // accepting a sendable closure. To avoid compiler errors in onTermination, we mark this as
-      // unsafe.
-      nonisolated(unsafe) let muteListenerBlock: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-        self?.yieldCurrentStatus(continuation: continuation)
-      }
-      nonisolated(unsafe) let volumeListenerBlock: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-        self?.yieldCurrentStatus(continuation: continuation)
-      }
+  public func subscribe(
+    _ callback: @Sendable @escaping (Result<DeviceOutputVolumeStatus, any Error>) -> Void
+  ) -> DeviceOutputVolumeSubscription {
+    let callback = removeDuplicates(callback)
+    self.emitCurrentStatus(callback)
+    nonisolated(unsafe) let muteListenerBlock: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+      self?.emitCurrentStatus(callback)
+    }
+    nonisolated(unsafe) let volumeListenerBlock: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+      self?.emitCurrentStatus(callback)
+    }
+    _ = withUnsafePointer(to: _mutePropertyAddress) {
+      AudioObjectAddPropertyListenerBlock(self.deviceId, $0, nil, muteListenerBlock)
+    }
+    _ = withUnsafePointer(to: _volumePropertyAddress) {
+      AudioObjectAddPropertyListenerBlock(self.deviceId, $0, nil, volumeListenerBlock)
+    }
+    return DeviceOutputVolumeSubscription {
       _ = withUnsafePointer(to: _mutePropertyAddress) {
-        AudioObjectAddPropertyListenerBlock(self.deviceId, $0, nil, muteListenerBlock)
+        AudioObjectRemovePropertyListenerBlock(self.deviceId, $0, nil, muteListenerBlock)
       }
       _ = withUnsafePointer(to: _volumePropertyAddress) {
-        AudioObjectAddPropertyListenerBlock(self.deviceId, $0, nil, volumeListenerBlock)
-      }
-      continuation.onTermination = { @Sendable _ in
-        _ = withUnsafePointer(to: _mutePropertyAddress) {
-          AudioObjectRemovePropertyListenerBlock(self.deviceId, $0, nil, muteListenerBlock)
-        }
-        _ = withUnsafePointer(to: _volumePropertyAddress) {
-          AudioObjectRemovePropertyListenerBlock(self.deviceId, $0, nil, volumeListenerBlock)
-        }
+        AudioObjectRemovePropertyListenerBlock(self.deviceId, $0, nil, volumeListenerBlock)
       }
     }
-    .removeDuplicates()
   }
 
-  private func yieldCurrentStatus(
-    continuation: AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.Continuation
+  private func emitCurrentStatus(
+    _ callback: @Sendable @escaping (Result<DeviceOutputVolumeStatus, any Error>) -> Void
   ) {
     var muted = UInt32(0)
     var outputVolume = Float(0)
@@ -85,7 +77,7 @@ extension CoreAudioDeviceOutputVolume: DeviceOutputVolume {
       )
     }
     if status != noErr {
-      continuation.finish(throwing: CoreAudioError(status))
+      callback(.failure(CoreAudioError(status)))
       return
     }
     status = withUnsafePointer(to: _volumePropertyAddress) {
@@ -99,14 +91,14 @@ extension CoreAudioDeviceOutputVolume: DeviceOutputVolume {
       )
     }
     if status != noErr {
-      continuation.finish(throwing: CoreAudioError(status))
+      callback(.failure(CoreAudioError(status)))
       return
     }
     let deviceVolumeStatus = DeviceOutputVolumeStatus(
       outputVolume: Double(outputVolume),
       isMuted: muted == 1
     )
-    continuation.yield(deviceVolumeStatus)
+    callback(.success(deviceVolumeStatus))
   }
 }
 
