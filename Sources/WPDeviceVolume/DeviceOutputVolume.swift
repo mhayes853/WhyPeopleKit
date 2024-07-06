@@ -3,13 +3,13 @@
 /// A status of a device's output volume.
 public struct DeviceOutputVolumeStatus: Hashable, Sendable {
   /// The amount of volume in in the range [0, 1].
-  public let outputVolume: Double
+  public var outputVolume: Double
   
   /// Whether or not the device is muted through hardware or software means.
   ///
   /// watchOS does not have a mechanism to detect if the device is globally muted, so this property
   /// is always false.
-  public let isMuted: Bool
+  public var isMuted: Bool
   
   /// Iniitializes a ``DeviceOutputVolumeStatus`` instance.
   ///

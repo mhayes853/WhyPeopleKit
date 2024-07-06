@@ -18,3 +18,11 @@ struct TestDeviceOutputVolume: DeviceOutputVolume {
     return DeviceOutputVolumeSubscription { task.cancel() }
   }
 }
+
+struct NoopDeviceOutputVolume: DeviceOutputVolume {
+  func subscribe(
+    _ callback: @escaping @Sendable (Result<DeviceOutputVolumeStatus, any Error>) -> Void
+  ) -> DeviceOutputVolumeSubscription {
+    DeviceOutputVolumeSubscription {}
+  }
+}

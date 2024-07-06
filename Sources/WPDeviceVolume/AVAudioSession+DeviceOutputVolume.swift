@@ -33,13 +33,13 @@ extension AVAudioSessionDeviceOutputVolume: DeviceOutputVolume {
   public func subscribe(
     _ callback: @Sendable @escaping (Result<DeviceOutputVolumeStatus, Error>) -> Void
   ) -> DeviceOutputVolumeSubscription {
-    let callback = removeDuplicates(callback)
+    let state = RemoveDuplicatesState(callback)
     let observer = self.session.observe(
       \.outputVolume,
        options: [.initial, .new]
     ) { session, _ in
       let status = DeviceOutputVolumeStatus(outputVolume: Double(session.outputVolume))
-      callback(.success(status))
+      state.emit { $0 = status }
     }
     return DeviceOutputVolumeSubscription { observer.invalidate() }
   }

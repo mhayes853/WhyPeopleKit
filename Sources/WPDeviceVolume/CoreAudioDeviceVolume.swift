@@ -35,13 +35,13 @@ extension CoreAudioDeviceOutputVolume: DeviceOutputVolume {
   public func subscribe(
     _ callback: @Sendable @escaping (Result<DeviceOutputVolumeStatus, any Error>) -> Void
   ) -> DeviceOutputVolumeSubscription {
-    let callback = removeDuplicates(callback)
-    self.emitCurrentStatus(callback)
+    let state = RemoveDuplicatesState(callback)
+    self.emitCurrentStatus(state)
     nonisolated(unsafe) let muteListenerBlock: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-      self?.emitCurrentStatus(callback)
+      self?.emitCurrentStatus(state)
     }
     nonisolated(unsafe) let volumeListenerBlock: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-      self?.emitCurrentStatus(callback)
+      self?.emitCurrentStatus(state)
     }
     _ = withUnsafePointer(to: _mutePropertyAddress) {
       AudioObjectAddPropertyListenerBlock(self.deviceId, $0, nil, muteListenerBlock)
@@ -59,9 +59,7 @@ extension CoreAudioDeviceOutputVolume: DeviceOutputVolume {
     }
   }
 
-  private func emitCurrentStatus(
-    _ callback: @Sendable @escaping (Result<DeviceOutputVolumeStatus, any Error>) -> Void
-  ) {
+  private func emitCurrentStatus(_ state: RemoveDuplicatesState) {
     var muted = UInt32(0)
     var outputVolume = Float(0)
     var mutePropertySize = UInt32(MemoryLayout<UInt32>.size)
@@ -77,7 +75,7 @@ extension CoreAudioDeviceOutputVolume: DeviceOutputVolume {
       )
     }
     if status != noErr {
-      callback(.failure(CoreAudioError(status)))
+      state.emit(error: CoreAudioError(status))
       return
     }
     status = withUnsafePointer(to: _volumePropertyAddress) {
@@ -91,14 +89,14 @@ extension CoreAudioDeviceOutputVolume: DeviceOutputVolume {
       )
     }
     if status != noErr {
-      callback(.failure(CoreAudioError(status)))
+      state.emit(error: CoreAudioError(status))
       return
     }
     let deviceVolumeStatus = DeviceOutputVolumeStatus(
       outputVolume: Double(outputVolume),
       isMuted: muted == 1
     )
-    callback(.success(deviceVolumeStatus))
+    state.emit { $0 = deviceVolumeStatus }
   }
 }
 

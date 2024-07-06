@@ -1,6 +1,7 @@
 @testable import WPDeviceVolume
 import Clocks
 import Testing
+import os
 
 #if !os(watchOS)
 
@@ -10,8 +11,7 @@ struct DeviceOutputVolumePingForMuteStatusTests {
   func muteStatus() async throws {
     let clock = TestClock()
     let sleepTime = SleepTime(duration: .milliseconds(250))
-    let (stream, _) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
-    let deviceVolume = TestDeviceOutputVolume(statusUpdates: stream).pingForMuteStatus(
+    let deviceVolume = NoopDeviceOutputVolume().pingForMuteStatus(
       interval: .seconds(1),
       threshold: .milliseconds(200),
       clock: clock,
@@ -85,6 +85,68 @@ struct DeviceOutputVolumePingForMuteStatusTests {
     await #expect(throws: SomeError.self) {
       try await task.value
     }
+  }
+  
+  @Test("Uses Same Ping For Multiple Subscribers")
+  func samePing() async throws {
+    let clock = TestClock()
+    let deviceVolume = NoopDeviceOutputVolume().pingForMuteStatus(
+      interval: .seconds(1),
+      threshold: .milliseconds(200),
+      clock: clock,
+      ping: { try? await clock.sleep(for: .milliseconds(100)) }
+    )
+    let task1 = Task {
+      try await deviceVolume.statusUpdates.first(where: { _ in true })
+    }
+    await clock.advance(by: .milliseconds(50))
+    let task2 = Task {
+      try await deviceVolume.statusUpdates.first(where: { _ in true })
+    }
+    await clock.advance(by: .milliseconds(50))
+    let (value1, value2) = try await (task1.value, task2.value)
+    #expect(value1?.isMuted == true)
+    #expect(value2?.isMuted == true)
+  }
+  
+  @Test("Emits Current Muted Status to New Subscriber")
+  func emitsStatusToNewSubscriber() async throws {
+    let clock = TestClock()
+    let deviceVolume = NoopDeviceOutputVolume().pingForMuteStatus(
+      interval: .seconds(1),
+      threshold: .milliseconds(200),
+      clock: clock,
+      ping: { try? await clock.sleep(for: .milliseconds(100)) }
+    )
+    Task {
+      try await deviceVolume.statusUpdates.first(where: { _ in true })
+    }
+    await clock.advance(by: .milliseconds(100))
+    await clock.advance(by: .milliseconds(432))
+    let status = try await deviceVolume.statusUpdates.first(where: { _ in true })
+    #expect(status?.isMuted == true)
+  }
+  
+  @Test("Stops Pinging When No More Subscribers")
+  func stopsPinging() async throws {
+    let clock = TestClock()
+    let pingCount = OSAllocatedUnfairLock(initialState: 0)
+    let deviceVolume = NoopDeviceOutputVolume().pingForMuteStatus(
+      interval: .seconds(1),
+      threshold: .milliseconds(200),
+      clock: clock,
+      ping: {
+        try? await clock.sleep(for: .milliseconds(100))
+        pingCount.withLock { $0 += 1 }
+      }
+    )
+    async let status = deviceVolume.statusUpdates.first(where: { _ in true })
+    await clock.advance(by: .milliseconds(100))
+    _ = try await status
+    pingCount.withLock { #expect($0 == 1) }
+    await clock.advance(by: .seconds(1))
+    await clock.advance(by: .milliseconds(100))
+    pingCount.withLock { #expect($0 == 1) }
   }
 }
 

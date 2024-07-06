@@ -1,5 +1,6 @@
 #if !os(watchOS)
 import AudioToolbox
+import os
 private import AsyncAlgorithms
 
 #if canImport(UIKit)
@@ -13,8 +14,8 @@ extension DeviceOutputVolume where Self: Sendable {
   /// based on a ping hack using AudioToolbox.
   ///
   /// ```swift
-  /// // Returns a DeviceOutputVolume instance that uses AVAudioSession to check the global output volume
-  /// // and the AudioToolbox technique to detect if the device is muted.
+  /// // Returns a DeviceOutputVolume instance that uses AVAudioSession to check the global output
+  /// // volume and the AudioToolbox technique to detect if the device is muted.
   /// let volume = try AVAudioSessionDeviceOutputVolume().pingForMuteStatus()
   /// ```
   ///
@@ -66,15 +67,71 @@ extension DeviceOutputVolume where Self: Sendable {
 
 // MARK: - PingForMuteStatus Type
 
-public struct _PingForMuteStatusDeviceVolume<
+public final class _PingForMuteStatusDeviceVolume<
   Base: DeviceOutputVolume & Sendable,
   C: Clock
 >: Sendable where C.Duration == Duration {
-  let interval: Duration
-  let threshold: Duration
-  let clock: C
-  let base: Base
-  let ping: @Sendable () async -> Void
+  private let interval: Duration
+  private let threshold: Duration
+  private let clock: C
+  private let base: Base
+  private let ping: @Sendable () async -> Void
+  private let pingState = OSAllocatedUnfairLock(initialState: PingState())
+  
+  init(
+    interval: Duration,
+    threshold: Duration,
+    clock: C,
+    base: Base,
+    ping: @Sendable @escaping () async -> Void
+  ) {
+    self.interval = interval
+    self.threshold = threshold
+    self.clock = clock
+    self.base = base
+    self.ping = ping
+  }
+}
+
+// MARK: - PingState
+
+extension _PingForMuteStatusDeviceVolume {
+  struct PingState: Sendable {
+    private var isMuted: Bool?
+    private var id = 0
+    private var callbacks = [Int: @Sendable (Bool) -> Void]()
+    private var pingTask: Task<Void, Never>?
+    
+    mutating func register(
+      _ callback: @Sendable @escaping (Bool) -> Void,
+      beginPingTaskIfNeeded task: @Sendable @escaping () async -> Void
+    ) -> Int {
+      let shouldBeginPingTask = self.callbacks.isEmpty
+      let id = self.id
+      defer { self.id += 1 }
+      self.callbacks[id] = callback
+      if let isMuted {
+        callback(isMuted)
+      }
+      if shouldBeginPingTask {
+        self.pingTask = Task { await task() }
+      }
+      return id
+    }
+    
+    mutating func emit(isMuted: Bool) {
+      self.isMuted = isMuted
+      self.callbacks.values.forEach { $0(isMuted) }
+    }
+    
+    mutating func unregister(id: Int) {
+      self.callbacks.removeValue(forKey: id)
+      if self.callbacks.isEmpty {
+        self.pingTask?.cancel()
+        self.pingTask = nil
+      }
+    }
+  }
 }
 
 // MARK: - DeviceOutputVolume Conformance
@@ -83,62 +140,34 @@ extension _PingForMuteStatusDeviceVolume: DeviceOutputVolume {
   public func subscribe(
     _ callback: @escaping @Sendable (Result<DeviceOutputVolumeStatus, any Error>) -> Void
   ) -> DeviceOutputVolumeSubscription {
-    let callback = removeDuplicates(callback)
-    let task = Task {
-      do {
-        // NB: Cancellation propogates to async let when the continuation is terminated.
-        let state = StatusUpdatesState(callback)
-        async let timer: Void = self.runTimerSequence(state: state)
-        try await self.runBaseSequence(state: state)
-        await timer
-      } catch {
-        callback(.failure(error))
+    let state = RemoveDuplicatesState(callback)
+    let callbackId = self.pingState.withLock {
+      $0.register { isMuted in
+        state.emit { $0.isMuted = isMuted }
+      } beginPingTaskIfNeeded: {
+        await self.pingForMuteStatus()
+        for await _ in AsyncTimerSequence(interval: self.interval, clock: self.clock) {
+          await self.pingForMuteStatus()
+        }
       }
     }
-    return DeviceOutputVolumeSubscription { task.cancel() }
-  }
-  
-  private func runTimerSequence(state: StatusUpdatesState) async {
-    await state.setMuted(await self.pingForMuteStatus())
-    for await _ in AsyncTimerSequence(interval: self.interval, clock: self.clock) {
-      await state.setMuted(await self.pingForMuteStatus())
+    let subscription = self.base.subscribe { result in
+      do {
+        try state.emit { $0.outputVolume = try result.get().outputVolume }
+      } catch {
+        state.emit(error: error)
+      }
+    }
+    return DeviceOutputVolumeSubscription { [weak self] in
+      subscription.cancel()
+      self?.pingState.withLock { $0.unregister(id: callbackId) }
     }
   }
   
-  private func runBaseSequence(state: StatusUpdatesState) async throws {
-    for try await newStatus in self.base.statusUpdates {
-      await state.setOutputVolume(newStatus.outputVolume)
-    }
-  }
-  
-  private func pingForMuteStatus() async -> Bool {
+  private func pingForMuteStatus() async {
     let time = await self.clock.measure { await self.ping() }
-    return time < self.threshold
-  }
-  
-  private final actor StatusUpdatesState {
-    private var status = DeviceOutputVolumeStatus(outputVolume: 0, isMuted: false) {
-      didSet { self.callback(.success(self.status)) }
-    }
-    private let callback: @Sendable (Result<DeviceOutputVolumeStatus, Error>) -> Void
-    
-    init(_ callback: @Sendable @escaping (Result<DeviceOutputVolumeStatus, Error>) -> Void) {
-      self.callback = callback
-    }
-    
-    func setOutputVolume(_ outputVolume: Double) {
-      self.status = DeviceOutputVolumeStatus(
-        outputVolume: outputVolume,
-        isMuted: self.status.isMuted
-      )
-    }
-    
-    func setMuted(_ isMuted: Bool) {
-      self.status = DeviceOutputVolumeStatus(
-        outputVolume: self.status.outputVolume,
-        isMuted: isMuted
-      )
-    }
+    let isMuted = time < self.threshold
+    self.pingState.withLock { $0.emit(isMuted: isMuted) }
   }
 }
 
