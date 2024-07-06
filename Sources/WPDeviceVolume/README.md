@@ -48,3 +48,16 @@ func observeOutputVolume(_ volume: some DeviceOutputVolume) async throws {
   }
 }
 ```
+
+You can also obtain a conformance to track the system output volume by using the  `SystemDefaultDeviceOutputVolume` type.
+
+```swift
+let volume = try SystemDefaultDeviceOutputVolume.systemDefault()
+try await observeOutputVolume(volume)
+
+// OR
+
+try await observeOutputVolume(.systemDefault())
+```
+
+The `systemDeviceOutputVolume` environment value uses `.systemDefault()` under the hood, so the instance returned by `.systemDefault()` uses the same underlying frameworks as `systemDeviceOutputVolume`. 
