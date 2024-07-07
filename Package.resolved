@@ -1,5 +1,5 @@
 {
-  "originHash" : "c4d2e6aaed79b1f16eeb39142069632204f7d7aea602d2e57a00a2db9147e94a",
+  "originHash" : "0e8c69ae3c6f824d3e91b3c01c0f2b1378681c405c8b0f067584490196c15b65",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "7f73084879cf6f8c50ab93e34ab0aae2569b04a8",
         "version" : "4.2.7"
+      }
+    },
+    {
+      "identity" : "posthog-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PostHog/posthog-ios",
+      "state" : {
+        "revision" : "08b53e64abd503ca3e5f0eebd6b89a32fbe33850",
+        "version" : "3.6.1"
       }
     },
     {

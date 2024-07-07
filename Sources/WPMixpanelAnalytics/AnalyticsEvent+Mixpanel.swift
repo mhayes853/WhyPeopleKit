@@ -6,30 +6,32 @@ import WPAnalyticsCore
 /// A protocol for a custom `AnalyticsEvent` that uses Mixpanel.
 ///
 /// This protocol is useful for modularizing application-specific custom analytics events across
-/// multiple modules. For instance, we may have an application-specific event to track a charge.
-/// We'll start by defining a custom `TrackChargeEvent` in a module that cannot import
+/// multiple modules. For instance, we may have an application-specific event set a user group.
+/// We'll start by defining a custom `SetUserGroupEvent` in a module that cannot import
 /// ``WPMixpanelAnalytics``.
 ///
 /// ```swift
-/// // In Module A (Cannot import WPMixpanelAnalytics)
+/// // In Module A (Cannot import WPPostHogAnalytics)
 /// import WPAnalyticsCore
 ///
-/// public struct TrackChargeEvent: Equatable, Sendable {
-///   public let amount: Double
+/// public struct SetUserGroupEvent: Equatable, Sendable {
+///   public let type: String
+///   public let id: String
 ///   public let properties: [String: AnalyticsEvent.Value?]
 /// }
 ///
 /// extension AnaltyticsEvent {
-///   public static func trackCharge(
-///     amount: Double,
+///   public static func setUserGroup(
+///     type: Double,
+///     id: String,
 ///     properties: [String: AnalyticsEvent.Value?]
 ///   ) -> Self {
-///     .custom(TrackChargeEvent(amount: amount, properties: properties))
+///     .custom(SetUserGroupEvent(type: type, id: id, properties: properties))
 ///   }
 /// }
 /// ```
 ///
-/// We can then conform `TrackChargeEvent` to ``CustomMixpanelEvent`` in another module that can import
+/// We can then conform `SetUserGroupEvent` to ``CustomMixpanelEvent`` in another module that can import
 /// ``WPMixpanelAnalytics``.
 ///
 /// ```swift
@@ -37,8 +39,11 @@ import WPAnalyticsCore
 /// import ModuleA
 /// import WPMixpanelAnalytics
 ///
-/// extension TrackChargeEvent: CustomMixpanelEvent {
+/// extension SetUserGroupEvent: CustomMixpanelEvent {
 ///   public func record(on instance: MixpanelInstance) {
+///     instance.setGroup(groupKey: self.type, groupID: self.id)
+///     instance.getGroup(groupKey: self.type, groupID: self.id)
+///       .set(properties: self.properties.mixpanelProperties)
 ///     instance.people.trackCharge(
 ///       amount: self.amount,
 ///       properties: self.properties.mixpanelProperties
@@ -47,8 +52,8 @@ import WPAnalyticsCore
 /// }
 /// ```
 ///
-/// Anytime we record `.trackCharges` on the `AnalyticsRecordable` instance provided by
-/// ``WPMixpanelAnalytics``, a charge will be tracked to Mixpanel.
+/// Anytime we record `.setUserGroup` on the `AnalyticsRecordable` instance provided by
+/// ``WPMixpanelAnalytics``, the current user will be added to the user group on Mixpanel.
 public protocol CustomMixpanelEvent: Equatable, Sendable {
   /// Records this event on a `MixpanelInstance`.
   ///

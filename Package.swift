@@ -20,7 +20,8 @@ let package = Package(
     .library(name: "WPHaptics", targets: ["WPHaptics"]),
     .library(name: "WPDependencies", targets: ["WPDependencies"]),
     .library(name: "WPAnalyticsCore", targets: ["WPAnalyticsCore"]),
-    .library(name: "WPMixpanelAnalytics", targets: ["WPMixpanelAnalytics"])
+    .library(name: "WPMixpanelAnalytics", targets: ["WPMixpanelAnalytics"]),
+    .library(name: "WPPostHogAnalytics", targets: ["WPPostHogAnalytics"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.11.2"),
@@ -31,7 +32,8 @@ let package = Package(
     .package(url: "https://github.com/apple/swift-numerics", from: "1.0.2"),
     .package(url: "https://github.com/pointfreeco/swift-perception", from: "1.2.4"),
     .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.3.1"),
-    .package(url: "https://github.com/mixpanel/mixpanel-swift", .upToNextMajor(from: "4.2.1"))
+    .package(url: "https://github.com/mixpanel/mixpanel-swift", .upToNextMajor(from: "4.2.1")),
+    .package(url: "https://github.com/PostHog/posthog-ios", .upToNextMajor(from: "3.0.0"))
   ],
   targets: [
     .target(name: "WPFoundation", resources: [.process("Resources")]),
@@ -76,7 +78,14 @@ let package = Package(
         .product(name: "Mixpanel", package: "mixpanel-swift")
       ]
     ),
-    .testTarget(name: "WPMixpanelAnalyticsTests", dependencies: ["WPMixpanelAnalytics"])
+    .testTarget(name: "WPMixpanelAnalyticsTests", dependencies: ["WPMixpanelAnalytics"]),
+    .target(
+      name: "WPPostHogAnalytics",
+      dependencies: [
+        "WPAnalyticsCore",
+        .product(name: "PostHog", package: "posthog-ios")
+      ]
+    )
   ],
   swiftLanguageVersions: [.version("6")]
 )
