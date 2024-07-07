@@ -4,7 +4,7 @@ import Foundation
 
 public enum AnalyticsEvent: Sendable {
   case event(name: String, properties: [String: Value?])
-  case identify(userId: String)
+  case identify(distinctId: String)
   case opt(OptInStatus)
   case setUserProperties([String: Value?])
   case custom(any Sendable)
@@ -13,6 +13,11 @@ public enum AnalyticsEvent: Sendable {
 // MARK: - Convenience Initializers
 
 extension AnalyticsEvent {
+  /// Initializes an ``AnalyticsEvent`` with the specified name and associated properties.
+  ///
+  /// - Parameters:
+  ///   - name: The name of the event.
+  ///   - properties: The properties associated with the event.
   @inlinable
   public init(_ name: String, properties: [String: Value?] = [:]) {
     self = .event(name: name, properties: properties)
@@ -29,6 +34,7 @@ extension AnalyticsEvent: ExpressibleByStringLiteral {
 // MARK: - Value
 
 extension AnalyticsEvent {
+  /// A value that is represented in an analytics event.
   public enum Value: Hashable, Sendable {
     case integer(Int64)
     case unsignedInteger(UInt64)
