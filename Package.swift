@@ -60,10 +60,11 @@ let package = Package(
       name: "WPDependencies",
       dependencies: [
         "WPDeviceVolume",
+        "WPAnalyticsCore",
         .product(name: "Dependencies", package: "swift-dependencies")
       ]
     ),
-    .target(name: "WPAnalyticsCore")
+    .target(name: "WPAnalyticsCore", dependencies: ["WPFoundation"])
   ],
   swiftLanguageVersions: [.version("6")]
 )

@@ -1,18 +1,12 @@
 import Foundation
 
-// MARK: - CustomAnalyticsEventRecordable
-
-public protocol CustomAnalyticsEventRecordable<Event> {
-  associatedtype Event
-  
-  func record(event: Event)
-}
-
 // MARK: - AnalyticsEventRecordable
 
-public protocol AnalyticsEventRecordable: CustomAnalyticsEventRecordable<AnalyticsEvent> {}
+public protocol AnalyticsRecordable {
+  func record(event: AnalyticsEvent)
+}
 
-extension AnalyticsEventRecordable {
+extension AnalyticsRecordable {
   @inlinable
   public func record(name: String, properties: [String: AnalyticsEvent.Value] = [:]) {
     self.record(event: AnalyticsEvent(name, properties: properties))
