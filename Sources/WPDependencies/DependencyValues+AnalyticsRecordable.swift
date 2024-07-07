@@ -15,7 +15,7 @@ extension DependencyValues {
   /// recorded events.
   ///
   /// ```swift
-  /// let recorder = TestAnalyticsRecordable()
+  /// let recorder = TestAnalyticsRecorder()
   ///
   /// // Provision model with overridden dependencies
   /// let model = withDependencies {
