@@ -5,7 +5,7 @@ import WPAnalyticsCore
 // MARK: - Event Type
 
 extension AnalyticsEvent.Value {
-  /// This value as a ``Mixpanel/MixpanelType``.
+  /// This value as a `MixpanelType`.
   ///
   /// All nested nil values are represented as `NSNull`.
   public var mixpanelType: any MixpanelType {
@@ -46,7 +46,7 @@ extension Dictionary where Key == String, Value == AnalyticsEvent.Value {
 // MARK: - Optional Type
 
 extension Optional<AnalyticsEvent.Value> {
-  /// This value as a ``Mixpanel/MixpanelType``.
+  /// This value as a `MixpanelType`.
   ///
   /// If this value is nil, then `NSNull` is returned.
   public var mixpanelType: any MixpanelType {

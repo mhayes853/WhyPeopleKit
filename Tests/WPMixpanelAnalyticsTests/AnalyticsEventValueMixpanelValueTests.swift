@@ -1,5 +1,4 @@
 import WPMixpanelAnalytics
-@preconcurrency import Mixpanel
 import Testing
 import WPFoundation
 
