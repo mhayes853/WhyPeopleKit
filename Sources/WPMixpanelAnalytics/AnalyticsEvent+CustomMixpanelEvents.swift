@@ -225,7 +225,17 @@ extension AnalyticsEvent {
 // MARK: - Helper
 
 extension AnalyticsEvent {
-  fileprivate static func mixpanel(_ record: @Sendable (MixpanelInstance) -> Void) -> Self {
-    .custom(record)
+  fileprivate static func mixpanel(_ record: @Sendable @escaping (MixpanelInstance) -> Void) -> Self {
+    .custom(MixpanelEvent(record: record))
+  }
+}
+
+private struct MixpanelEvent {
+  let record: @Sendable (MixpanelInstance) -> Void
+}
+
+extension MixpanelEvent: Equatable {
+  static func == (lhs: Self, rhs: Self) -> Bool {
+    true
   }
 }

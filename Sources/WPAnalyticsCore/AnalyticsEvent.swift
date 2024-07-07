@@ -1,4 +1,4 @@
-import Foundation
+import WPFoundation
 
 // MARK: - AnalyticsEvent
 
@@ -7,7 +7,28 @@ public enum AnalyticsEvent: Sendable {
   case identify(distinctId: String)
   case opt(OptInStatus)
   case setUserProperties([String: Value?])
-  case custom(any Sendable)
+  case custom(any Equatable & Sendable)
+}
+
+// MARK: - Equatable
+
+extension AnalyticsEvent: Equatable {
+  public static func == (lhs: Self, rhs: Self) -> Bool {
+    switch (lhs, rhs) {
+    case let (.event(n1, p1), .event(n2, p2)):
+      n1 == n2 && p1 == p2
+    case let (.identify(id1), .identify(id2)):
+      id1 == id2
+    case let (.opt(s1), .opt(s2)):
+      s1 == s2
+    case let (.setUserProperties(p1), .setUserProperties(p2)):
+      p1 == p2
+    case let (.custom(c1), .custom(c2)):
+      equals(c1, c2)
+    default:
+      false
+    }
+  }
 }
 
 // MARK: - Convenience Initializers

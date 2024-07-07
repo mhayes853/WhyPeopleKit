@@ -68,6 +68,7 @@ let package = Package(
       ]
     ),
     .target(name: "WPAnalyticsCore", dependencies: ["WPFoundation"]),
+    .testTarget(name: "WPAnalyticsCoreTests", dependencies: ["WPAnalyticsCore"]),
     .target(
       name: "WPMixpanelAnalytics",
       dependencies: [
