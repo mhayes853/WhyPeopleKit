@@ -1,5 +1,5 @@
 {
-  "originHash" : "c6f7f10d3e04d9cb78da839d3b10768c83684af4bbf2540d138786d082aebde5",
+  "originHash" : "c4d2e6aaed79b1f16eeb39142069632204f7d7aea602d2e57a00a2db9147e94a",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "f331821314f9b35867a18c5c8fc2f918536d79ac",
         "version" : "4.3.1"
+      }
+    },
+    {
+      "identity" : "mixpanel-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mixpanel/mixpanel-swift",
+      "state" : {
+        "revision" : "7f73084879cf6f8c50ab93e34ab0aae2569b04a8",
+        "version" : "4.2.7"
       }
     },
     {

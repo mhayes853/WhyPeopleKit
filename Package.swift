@@ -18,7 +18,9 @@ let package = Package(
     .library(name: "WPDeviceVolume", targets: ["WPDeviceVolume"]),
     .library(name: "WPTestSupport", targets: ["WPTestSupport"]),
     .library(name: "WPHaptics", targets: ["WPHaptics"]),
-    .library(name: "WPDependencies", targets: ["WPDependencies"])
+    .library(name: "WPDependencies", targets: ["WPDependencies"]),
+    .library(name: "WPAnalyticsCore", targets: ["WPAnalyticsCore"]),
+    .library(name: "WPMixpanelAnalytics", targets: ["WPMixpanelAnalytics"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.11.2"),
@@ -28,7 +30,8 @@ let package = Package(
     .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.0"),
     .package(url: "https://github.com/apple/swift-numerics", from: "1.0.2"),
     .package(url: "https://github.com/pointfreeco/swift-perception", from: "1.2.4"),
-    .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.3.1")
+    .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.3.1"),
+    .package(url: "https://github.com/mixpanel/mixpanel-swift", .upToNextMajor(from: "4.2.1"))
   ],
   targets: [
     .target(name: "WPFoundation", resources: [.process("Resources")]),
@@ -64,7 +67,15 @@ let package = Package(
         .product(name: "Dependencies", package: "swift-dependencies")
       ]
     ),
-    .target(name: "WPAnalyticsCore", dependencies: ["WPFoundation"])
+    .target(name: "WPAnalyticsCore", dependencies: ["WPFoundation"]),
+    .target(
+      name: "WPMixpanelAnalytics",
+      dependencies: [
+        "WPAnalyticsCore",
+        .product(name: "Mixpanel", package: "mixpanel-swift")
+      ]
+    ),
+    .testTarget(name: "WPMixpanelAnalyticsTests", dependencies: ["WPMixpanelAnalytics"])
   ],
   swiftLanguageVersions: [.version("6")]
 )

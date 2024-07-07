@@ -8,7 +8,7 @@ public protocol AnalyticsRecordable {
 
 extension AnalyticsRecordable {
   @inlinable
-  public func record(name: String, properties: [String: AnalyticsEvent.Value] = [:]) {
+  public func record(name: String, properties: [String: AnalyticsEvent.Value?] = [:]) {
     self.record(event: AnalyticsEvent(name, properties: properties))
   }
 }
@@ -16,17 +16,16 @@ extension AnalyticsRecordable {
 // MARK: - AnalyticsEvent
 
 public enum AnalyticsEvent: Sendable {
-  case event(name: String, properties: [String: Value])
+  case event(name: String, properties: [String: Value?])
   case identify(userId: String)
-  case userProperties([String: Value], once: Bool)
-  case setGroup(key: String, id: String)
-  case groupProperties(key: String, id: String, properties: [String: Value])
+  case opt(OptInStatus)
+  case setUserProperties([String: Value?])
   case custom(any Sendable)
 }
 
 extension AnalyticsEvent {
   @inlinable
-  public init(_ name: String, properties: [String: Value] = [:]) {
+  public init(_ name: String, properties: [String: Value?] = [:]) {
     self = .event(name: name, properties: properties)
   }
 }
@@ -49,8 +48,8 @@ extension AnalyticsEvent {
     case double(Double)
     case date(Date)
     case url(URL)
-    case array([Value])
-    case dict([String: Value])
+    case array([Value?])
+    case dict([String: Value?])
   }
 }
 
