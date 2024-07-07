@@ -62,7 +62,8 @@ let package = Package(
         "WPDeviceVolume",
         .product(name: "Dependencies", package: "swift-dependencies")
       ]
-    )
+    ),
+    .target(name: "WPAnalyticsCore")
   ],
   swiftLanguageVersions: [.version("6")]
 )
