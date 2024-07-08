@@ -2,11 +2,82 @@ import WPFoundation
 
 // MARK: - AnalyticsEvent
 
+/// A type for a payload that can be recorded by an analytics platform.
+/// 
+/// This type contains a few cases which are deemed necessary for any analytics platform, and uses
+/// the ``custom(_:)`` case when tapping into features specific to the analytics platform.
 public enum AnalyticsEvent: Sendable {
+  /// A typical analytics event with a name and associated properties.
+  ///
+  /// You can also initialize this case by using the ``init(_:properties:)`` and string literal
+  /// initializers.
+  ///
+  /// - Parameters:
+  ///   - name: The name of the event.
+  ///   - properties: The properties associated with the event.
   case event(name: String, properties: [String: Value?])
+  
+  /// An event for identifying the current user.
+  ///
+  /// - Parameters:
+  ///   - distinctId: A string that uniquely identifies the current user.
   case identify(distinctId: String)
+  
+  /// An event for opting in and out of analytics tracking.
   case opt(OptInStatus)
+  
+  /// An event for associating properties with the current user.
   case setUserProperties([String: Value?])
+  
+  /// An event for defining custom events.
+  ///
+  /// You can use this case to define events that tap into functionallity particular to a specific
+  /// analytics platform, or you can use it to define generic events that are not represented by
+  /// this type.
+  ///
+  /// Any event passed into this case must be both `Sendable` and `Equatable`. To avoid equality
+  /// conflicts, you'll want to create a dedicated type for each kind of custom event in your 
+  /// application.
+  ///
+  /// ```swift
+  /// struct TrackChargeEvent: Equatable, Sendable {
+  ///   let amount: Double
+  ///   let properties: [String: Value?]
+  /// }
+  ///
+  /// extension AnalyticsEvent {
+  ///   static func trackCharge(amount: Double, properties: [String: Value?]) -> Self {
+  ///     .custom(TrackChargeEvent(amount: amount, properties: properties))
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// Then when implementing ``AnalyticsRecordable``, make sure to handle this type of event in
+  /// ``AnalyticsRecordable/record(event:)``.
+  ///
+  /// ```swift
+  /// struct MyAnalyticsRecorder: AnalyticsRecordable {
+  ///   func record(event: AnalyticsEvent) {
+  ///     switch event {
+  ///       case let .event(name, properties):
+  ///         // ...
+  ///
+  ///       case let .identify(distinctId):
+  ///         // ...
+  ///
+  ///       case let .setUserProperties(properties):
+  ///         // ...
+  ///
+  ///       case let .opt(status):
+  ///         // ...
+  ///
+  ///       case let .custom(event):
+  ///         guard let event = event as? TrackChargeEvent else { return }
+  ///         // Record the event somehow...
+  ///     }
+  ///   }
+  /// }
+  /// ```
   case custom(any Equatable & Sendable)
 }
 
@@ -156,7 +227,7 @@ extension AnalyticsEvent.Value: ExpressibleByArrayLiteral {
 
 extension AnalyticsEvent.Value: ExpressibleByDictionaryLiteral {
   @inlinable
-  public init(dictionaryLiteral elements: (String, Self)...) {
-    self = .dict([String: Self](uniqueKeysWithValues: elements))
+  public init(dictionaryLiteral elements: (String, Self?)...) {
+    self = .dict([String: Self?](uniqueKeysWithValues: elements))
   }
 }
