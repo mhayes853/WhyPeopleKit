@@ -26,8 +26,6 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.11.2"),
     .package(url: "https://github.com/pointfreeco/swift-clocks", from: "1.0.2"),
-    .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.13.0"),
-    .package(url: "https://github.com/MobileNativeFoundation/Kronos", from: "4.2.2"),
     .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.0"),
     .package(url: "https://github.com/apple/swift-numerics", from: "1.0.2"),
     .package(url: "https://github.com/pointfreeco/swift-perception", from: "1.2.4"),

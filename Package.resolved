@@ -1,5 +1,5 @@
 {
-  "originHash" : "0e8c69ae3c6f824d3e91b3c01c0f2b1378681c405c8b0f067584490196c15b65",
+  "originHash" : "9b38358d3cfe418b52c630601325ba678ed38d47ab797b00cb536eac711e8f7b",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -8,15 +8,6 @@
       "state" : {
         "revision" : "9dc9cbe4bc45c65164fa653a563d8d8db61b09bb",
         "version" : "1.0.0"
-      }
-    },
-    {
-      "identity" : "kronos",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/MobileNativeFoundation/Kronos",
-      "state" : {
-        "revision" : "f331821314f9b35867a18c5c8fc2f918536d79ac",
-        "version" : "4.3.1"
       }
     },
     {
@@ -35,15 +26,6 @@
       "state" : {
         "revision" : "08b53e64abd503ca3e5f0eebd6b89a32fbe33850",
         "version" : "3.6.1"
-      }
-    },
-    {
-      "identity" : "sentry-cocoa",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/getsentry/sentry-cocoa",
-      "state" : {
-        "revision" : "8fd4e804f2e72e0b9c1b189ce4e8349c4d10b6a2",
-        "version" : "8.30.0"
       }
     },
     {
