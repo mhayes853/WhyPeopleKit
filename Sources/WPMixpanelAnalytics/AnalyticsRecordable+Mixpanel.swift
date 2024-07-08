@@ -34,20 +34,19 @@ public struct MixpanelAnalyticsRecorder: AnalyticsRecordable, Sendable {
   }
 }
 
-// MARK: - Main Instance
-
-extension MixpanelAnalyticsRecorder {
-  public static let main = Self(Mixpanel.mainInstance())
-}
-
 // MARK: - AnalyticsRecordable Extensions
 
 extension AnalyticsRecordable where Self == MixpanelAnalyticsRecorder {
+  /// Creates an `AnalyticsRecordable` using the specified `MixpanelInstance`.
+  ///
+  /// - Parameter instance: The `MixpanelInstance` to use.
+  /// - Returns: `AnalyticsRecordable` using `instance`.
   public static func mixpanel(_ instance: MixpanelInstance) -> Self {
     MixpanelAnalyticsRecorder(instance)
   }
   
+  /// An `AnalyticsRecordable` using `Mixpanel.mainInstance()`.
   public static var mixpanel: Self {
-    .main
+    .mixpanel(Mixpanel.mainInstance())
   }
 }
