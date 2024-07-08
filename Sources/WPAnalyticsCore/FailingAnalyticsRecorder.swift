@@ -1,9 +1,9 @@
 import WPFoundation
 
-// MARK: - FailingAnalyticsRecordable
+// MARK: - FailingAnalyticsRecorder
 
 /// An ``AnalyticsRecordable`` conformance that fails the current test when an event is recorded.
-public struct FailingAnalyticsRecordable: AnalyticsRecordable, Sendable {
+public struct FailingAnalyticsRecorder: AnalyticsRecordable, Sendable {
   public init() {}
   
   public func record(event: AnalyticsEvent) {
@@ -13,9 +13,9 @@ public struct FailingAnalyticsRecordable: AnalyticsRecordable, Sendable {
 
 // MARK: - Extension
 
-extension AnalyticsRecordable where Self == FailingAnalyticsRecordable {
+extension AnalyticsRecordable where Self == FailingAnalyticsRecorder {
   /// An ``AnalyticsRecordable`` conformance that fails the current test when an event is recorded.
   public static var failing: Self {
-    FailingAnalyticsRecordable()
+    FailingAnalyticsRecorder()
   }
 }

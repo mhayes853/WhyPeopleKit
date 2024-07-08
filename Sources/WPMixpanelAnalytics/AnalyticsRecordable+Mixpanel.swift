@@ -22,11 +22,11 @@ public struct MixpanelAnalyticsRecorder: AnalyticsRecordable, Sendable {
     case let .setUserProperties(properties):
       self.instance.people.set(properties: properties.mixpanelProperties)
       
-    case let .opt(status):
-      switch status {
-      case .in: self.instance.optInTracking()
-      case .out: self.instance.optOutTracking()
-      }
+    case .opt(.in):
+      self.instance.optInTracking()
+      
+    case .opt(.out):
+      self.instance.optOutTracking()
       
     case let .custom(event):
       (event as? any CustomMixpanelEvent)?.record(on: self.instance)

@@ -1,7 +1,7 @@
-// MARK: - ConsoleAnalyticsRecordable
+// MARK: - ConsoleAnalyticsRecorder
 
 /// An ``AnalyticsRecordable`` conformance that logs events to the console.
-public struct ConsoleAnalyticsRecordable: AnalyticsRecordable, Sendable {
+public struct ConsoleAnalyticsRecorder: AnalyticsRecordable, Sendable {
   public init() {}
   
   public func record(event: AnalyticsEvent) {
@@ -13,10 +13,10 @@ public struct ConsoleAnalyticsRecordable: AnalyticsRecordable, Sendable {
 
 // MARK: - Extension
 
-extension AnalyticsRecordable where Self == ConsoleAnalyticsRecordable {
+extension AnalyticsRecordable where Self == ConsoleAnalyticsRecorder {
   /// An ``AnalyticsRecordable`` conformance that logs events to the console.
   public static var console: Self {
-    ConsoleAnalyticsRecordable()
+    ConsoleAnalyticsRecorder()
   }
 }
 
@@ -31,7 +31,7 @@ extension AnalyticsRecordable {
 
 public struct _WithConsoleLoggingRecordable<Base: AnalyticsRecordable>: AnalyticsRecordable {
   let base: Base
-  let console = ConsoleAnalyticsRecordable()
+  let console = ConsoleAnalyticsRecorder()
   
   public func record(event: AnalyticsEvent) {
     self.base.record(event: event)

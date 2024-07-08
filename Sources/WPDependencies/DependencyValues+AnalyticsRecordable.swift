@@ -34,11 +34,11 @@ extension DependencyValues {
   
   private struct AnalyticsRecordableKey: DependencyKey {
     static var liveValue: any AnalyticsRecordable & Sendable {
-      ConsoleAnalyticsRecordable()
+      ConsoleAnalyticsRecorder()
     }
     
     static var testValue: any AnalyticsRecordable & Sendable {
-      FailingAnalyticsRecordable()
+      FailingAnalyticsRecorder()
     }
   }
 }
