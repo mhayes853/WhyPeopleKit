@@ -11,7 +11,7 @@ import WPAnalyticsCore
 /// ``WPMixpanelAnalytics``.
 ///
 /// ```swift
-/// // In Module A (Cannot import WPPostHogAnalytics)
+/// // In Module A (Cannot import WPMixpanelAnalytics)
 /// import WPAnalyticsCore
 ///
 /// public struct SetUserGroupEvent: Equatable, Sendable {
@@ -44,10 +44,6 @@ import WPAnalyticsCore
 ///     instance.setGroup(groupKey: self.type, groupID: self.id)
 ///     instance.getGroup(groupKey: self.type, groupID: self.id)
 ///       .set(properties: self.properties.mixpanelProperties)
-///     instance.people.trackCharge(
-///       amount: self.amount,
-///       properties: self.properties.mixpanelProperties
-///     )
 ///   }
 /// }
 /// ```
