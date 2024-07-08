@@ -8,7 +8,13 @@ extension DependencyValues {
   /// swift package.
   ///
   /// ```swift
-  /// // TODO: - Add this once the posthog client is done.
+  /// let model = withDependencies {
+  ///   $0.analyticsRecordable = .mixpanel
+  ///   // OR
+  ///   $0.analyticsRecordable = .postHog
+  /// } operation: {
+  ///   FeatureModel()
+  /// }
   /// ```
   ///
   /// In test contexts you can provide an instance using `TestAnalyticsRecorder` to inspect the

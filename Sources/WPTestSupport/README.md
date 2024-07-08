@@ -4,6 +4,8 @@ A collection of utilities for automated testing.
 
 ## Overview
 
+Ensure that this package is only linked to a unit/swift package test target, as Xcode will not be able to build your actual application code due to XCTest and Swift Testing imports.
+
 ### `TestFailable` Conformances
 
 WPFoundation defines the `TestFailable` protocol, which allows use of an arbitrary testing framework for explicitly failing the current test. This package ships with `SwiftTestingFailable` and `XCTestFailable` which use Swift Testing and XCTest respectively. Additionally, if you include this package as a dependency of your test target, the `failCurrentTest` function from WPFoundation will be able to automatically pick the `TestFailable` instance based on whether Swift Testing or XCTest is running.
@@ -40,7 +42,7 @@ final class FoodTruckTests: XCTestCase {
     expectation.expectedFulfillmentCount = n
     foodTruck.eventHandler = { event in
       if event == .baked(.cinnamonBun) {
-        bunBaked()
+        expectation.fulfill()
       }
     }
     foodTruck.bakeAsync(.cinnamonBun, count: n)

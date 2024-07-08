@@ -22,9 +22,9 @@ import WPAnalyticsCore
 ///
 /// extension AnaltyticsEvent {
 ///   public static func setUserGroup(
-///     type: Double,
+///     type: String,
 ///     id: String,
-///     properties: [String: AnalyticsEvent.Value?]
+///     properties: [String: AnalyticsEvent.Value?] = [:]
 ///   ) -> Self {
 ///     .custom(SetUserGroupEvent(type: type, id: id, properties: properties))
 ///   }
