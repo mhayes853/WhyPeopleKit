@@ -5,3 +5,5 @@ A collection of common dependency keys and values from Apple frameworks, and oth
 ## Dependency Values
 
 - `UIPasteboard`
+- `DeviceOutputVolume`
+- `AnalyticsRecordable`
