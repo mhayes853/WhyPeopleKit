@@ -26,7 +26,6 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.11.2"),
     .package(url: "https://github.com/pointfreeco/swift-clocks", from: "1.0.2"),
-    .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.0"),
     .package(url: "https://github.com/apple/swift-numerics", from: "1.0.2"),
     .package(url: "https://github.com/pointfreeco/swift-perception", from: "1.2.4"),
     .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.3.1"),
@@ -43,7 +42,6 @@ let package = Package(
       name: "WPDeviceVolume",
       dependencies: [
         "WPFoundation",
-        .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
         .product(name: "Perception", package: "swift-perception")
       ],
       resources: [.process("Resources")]

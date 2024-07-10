@@ -39,6 +39,10 @@ public struct FailingDeviceOutputVolume: DeviceOutputVolume, Sendable {
   /// The error that was thrown by the default value initialization.
   public let error: any Error
   
+  public init(error: any Error) {
+    self.error = error
+  }
+  
   public func subscribe(
     _ callback: @escaping (Result<DeviceOutputVolumeStatus, any Error>) -> Void
   ) -> DeviceOutputVolumeSubscription {

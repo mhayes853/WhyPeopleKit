@@ -1,7 +1,6 @@
 #if !os(watchOS)
 import AudioToolbox
 import os
-private import AsyncAlgorithms
 
 #if canImport(UIKit)
 import UIKit
