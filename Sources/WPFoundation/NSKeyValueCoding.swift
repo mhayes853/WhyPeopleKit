@@ -1,10 +1,11 @@
 import Foundation
 
-/// A formal protocol for `NSKeyValueCoding` on `NSObject`s.
-public protocol NSKeyValueCoding: NSObject {
-  func value(forKey key: String) -> Any?
-  func setValue(_ value: Any?, forKey key: String)
+/// A protocol to aid in writing shared abstractions between `UserDefaults` and
+/// `NSUbiquitousKeyValueStore`.
+public protocol NSDefaultsKeyValueStore: NSObject {
+  func object(forKey key: String) -> Any?
+  func set(_ value: Any?, forKey key: String)
 }
 
-extension UserDefaults: NSKeyValueCoding {}
-extension NSUbiquitousKeyValueStore: NSKeyValueCoding {}
+extension UserDefaults: NSDefaultsKeyValueStore {}
+extension NSUbiquitousKeyValueStore: NSDefaultsKeyValueStore {}
