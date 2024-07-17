@@ -3,7 +3,6 @@ extension Result where Success: ~Copyable {
   /// a success, or any thrown error as a failure.
   ///
   /// - Parameter body: A throwing closure to evaluate.
-  @_alwaysEmitIntoClient
   public init(catching body: () async throws(Failure) -> Success) async {
     do {
       self = .success(try await body())
