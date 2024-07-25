@@ -60,6 +60,22 @@ struct TimedConfirmationTests {
     }
     #expect(time < .seconds(1))
   }
+  
+  @Test("Raises Issue After Confirming More than Expected Count")
+  func raisesIssueOnOverconfirm() async {
+    await withKnownIssue {
+      await timedConfirmation(expectedCount: 0) { confirm in
+        let observer = NotificationCenter.default.addObserver(
+          forName: testNotification,
+          object: nil,
+          queue: nil
+        ) { _ in confirm() }
+        NotificationCenter.default.post(name: testNotification, object: nil)
+        NotificationCenter.default.post(name: testNotification, object: nil)
+        NotificationCenter.default.removeObserver(observer)
+      }
+    }
+  }
 }
 
 private let testNotification = Notification.Name("TimedConfirmationTestsNotification")

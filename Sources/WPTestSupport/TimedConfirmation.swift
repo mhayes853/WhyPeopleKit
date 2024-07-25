@@ -60,14 +60,14 @@ extension TimedConfirmation {
   fileprivate func run<T>(
     body: @Sendable @escaping (TimedConfirmation) async throws -> T
   ) async throws -> T {
-    let task = Task { UncheckedSendable(value: try await body(self)) }
+    let task = Task { UnsafeTransfer(value: try await body(self)) }
     try? await self.sleepTask.value
     task.cancel()
     return try await task.value.value
   }
 }
 
-private struct UncheckedSendable<T>: @unchecked Sendable {
+private struct UnsafeTransfer<T>: @unchecked Sendable {
   let value: T
 }
 
