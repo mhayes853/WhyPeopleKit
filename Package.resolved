@@ -1,13 +1,13 @@
 {
-  "originHash" : "edf6dfdc922520a2605494fddd0249f623f11db2b859a5a9fe4bb1f6623e19c1",
+  "originHash" : "2132fd66592412ce6465cc60e858c2eb41a9779f35de6e4cbaab637fbc50d770",
   "pins" : [
     {
       "identity" : "combine-schedulers",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/combine-schedulers",
       "state" : {
-        "revision" : "9dc9cbe4bc45c65164fa653a563d8d8db61b09bb",
-        "version" : "1.0.0"
+        "revision" : "9fa31f4403da54855f1e2aeaeff478f4f0e40b13",
+        "version" : "1.0.2"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-clocks",
       "state" : {
-        "revision" : "a8421d68068d8f45fbceb418fbf22c5dad4afd33",
-        "version" : "1.0.2"
+        "revision" : "3581e280bf0d90c3fb9236fb23e75a5d8c46b533",
+        "version" : "1.0.4"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-dependencies",
       "state" : {
-        "revision" : "00bc30ca03f98881329fab7f1bebef8eba472596",
-        "version" : "1.3.1"
+        "revision" : "cc26d06125dbc913c6d9e8a905a5db0b994509e0",
+        "version" : "1.3.5"
       }
     },
     {
@@ -76,10 +76,10 @@
     {
       "identity" : "swift-syntax",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-syntax",
+      "location" : "https://github.com/swiftlang/swift-syntax",
       "state" : {
-        "revision" : "303e5c5c36d6a558407d364878df131c3546fad8",
-        "version" : "510.0.2"
+        "revision" : "82a453c2dfa335c7e778695762438dfe72b328d2",
+        "version" : "600.0.0-prerelease-2024-07-24"
       }
     },
     {
@@ -87,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
       "state" : {
-        "revision" : "6f30bdba373bbd7fbfe241dddd732651f2fbd1e2",
-        "version" : "1.1.2"
+        "revision" : "357ca1e5dd31f613a1d43320870ebc219386a495",
+        "version" : "1.2.2"
       }
     }
   ],

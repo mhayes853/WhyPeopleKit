@@ -24,15 +24,20 @@ let package = Package(
     .library(name: "WPPostHogAnalytics", targets: ["WPPostHogAnalytics"])
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.0")),
+    .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
     .package(url: "https://github.com/apple/swift-numerics", from: "1.0.2"),
     .package(url: "https://github.com/pointfreeco/swift-perception", .upToNextMajor(from: "1.0.0")),
-    .package(url: "https://github.com/pointfreeco/swift-dependencies", .upToNextMajor(from: "1.0.0")),
+    .package(url: "https://github.com/pointfreeco/swift-dependencies", .upToNextMajor(from: "1.3.5")),
     .package(url: "https://github.com/mixpanel/mixpanel-swift", .upToNextMajor(from: "4.2.1")),
-    .package(url: "https://github.com/PostHog/posthog-ios", .upToNextMajor(from: "3.0.0"))
+    .package(url: "https://github.com/PostHog/posthog-ios", .upToNextMajor(from: "3.0.0")),
+    .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", .upToNextMajor(from: "1.2.2"))
   ],
   targets: [
-    .target(name: "WPFoundation", resources: [.process("Resources")]),
+    .target(
+      name: "WPFoundation",
+      dependencies: [.product(name: "IssueReporting", package: "xctest-dynamic-overlay")],
+      resources: [.process("Resources")]
+    ),
     .testTarget(
       name: "WPFoundationTests",
       dependencies: ["WPFoundation", "WPTestSupport"]
@@ -53,7 +58,13 @@ let package = Package(
         .product(name: "Numerics", package: "swift-numerics")
       ]
     ),
-    .target(name: "WPTestSupport", dependencies: ["WPFoundation"]),
+    .target(
+      name: "WPTestSupport",
+      dependencies: [
+        "WPFoundation",
+        .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+      ]
+    ),
     .testTarget(name: "WPTestSupportTests", dependencies: ["WPTestSupport"]),
     .target(name: "WPHaptics"),
     .target(
@@ -64,7 +75,13 @@ let package = Package(
         .product(name: "Dependencies", package: "swift-dependencies")
       ]
     ),
-    .target(name: "WPAnalyticsCore", dependencies: ["WPFoundation"]),
+    .target(
+      name: "WPAnalyticsCore",
+      dependencies: [
+        "WPFoundation",
+        .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+      ]
+    ),
     .testTarget(name: "WPAnalyticsCoreTests", dependencies: ["WPAnalyticsCore"]),
     .target(
       name: "WPMixpanelAnalytics",

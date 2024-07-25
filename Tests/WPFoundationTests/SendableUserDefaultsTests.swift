@@ -1,5 +1,6 @@
 import Testing
 import WPFoundation
+import WPTestSupport
 
 @Suite("SendableUserDefaults tests")
 struct SendableUserDefaultsTest {
@@ -36,19 +37,13 @@ struct SendableUserDefaultsTest {
     arguments: ["hello.world", "hello world", "123key"]
   )
   func observeNewInvalidFormat(key: String) async throws {
-    withKnownIssue {
+    withExpectedIssue {
       _ = self.userDefaults.values(forKey: key)
-    } matching: { issue in
-      issue.comments.contains(
-        """
-        An invalid key format was detected for SendableUserDefaults value observation:
-          
-          - Key: \(key)
-        
-        Key names which do not use the same format as swift variable names will not receive any \
-        KVO updates.
-        """
-      )
+    }
+    
+    withExpectedIssue {
+      let observation = self.userDefaults.observeValue(forKey: key) { _ in }
+      self.userDefaults.removeObservation(observation)
     }
   }
 }

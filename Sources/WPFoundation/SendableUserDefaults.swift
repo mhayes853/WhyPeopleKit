@@ -1,4 +1,5 @@
 import Foundation
+private import IssueReporting
 
 // MARK: - SendableUserDefaults
 
@@ -143,7 +144,7 @@ extension SendableUserDefaults {
   private func debugValidKeyCheck(_ key: String) {
 #if DEBUG
     if !key.contains(swiftVariableName) {
-      runtimeWarn(
+      reportIssue(
         """
         An invalid key format was detected for SendableUserDefaults value observation:
           

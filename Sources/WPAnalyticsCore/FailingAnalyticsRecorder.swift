@@ -1,4 +1,5 @@
 import WPFoundation
+private import IssueReporting
 
 // MARK: - FailingAnalyticsRecorder
 
@@ -7,7 +8,7 @@ public struct FailingAnalyticsRecorder: AnalyticsRecordable, Sendable {
   public init() {}
   
   public func record(event: AnalyticsEvent) {
-    failCurrentTest("[Analytics]: \(event).")
+    reportIssue("[Analytics]: \(event).")
   }
 }
 
