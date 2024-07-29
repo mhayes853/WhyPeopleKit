@@ -1,6 +1,7 @@
 #if !os(watchOS)
 import AudioToolbox
 import os
+import WPFoundation
 
 #if canImport(UIKit)
 import UIKit
@@ -176,9 +177,7 @@ private final class AudioToolboxPinger: Sendable {
   private let soundId: SystemSoundID
   
   init() {
-    guard let url = Bundle.module.url(forResource: "muted-sound", withExtension: "aiff") else {
-      fatalError("Unable to find muted-sound in bundle.")
-    }
+    let url = Bundle.module.assumingURL(forResource: "muted-sound", withExtension: "aiff")
     var _soundId: SystemSoundID = 0
     AudioServicesCreateSystemSoundID(url as CFURL, &_soundId)
     var respectSilentMode: UInt32 = 1
