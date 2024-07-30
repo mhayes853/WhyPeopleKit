@@ -3,7 +3,7 @@ import Foundation
 // MARK: - WebBrowserApp
 
 /// A web browser app used for opening URLs.
-public enum WebBrowserApp: String, Sendable {
+public enum WebBrowserApp: String, Sendable, Codable {
   case systemDefault
   case inAppSafari
   case firefox
