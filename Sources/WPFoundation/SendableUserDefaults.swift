@@ -98,7 +98,11 @@ extension SendableUserDefaults {
         let observation = self.userDefaults.observeValue(
           forKey: self.key,
           options: self.options
-        ) { continuation.yield($0) }
+        ) { value in
+          // NB: Safe - Stored UserDefaults Values are plist values, which are Sendable.
+          nonisolated(unsafe) let value = value
+          continuation.yield(value)
+        }
         continuation.onTermination = { @Sendable _ in
           self.userDefaults.removeObservation(observation)
         }

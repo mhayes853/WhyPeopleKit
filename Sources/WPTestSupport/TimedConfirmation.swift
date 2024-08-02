@@ -110,19 +110,13 @@ public func timedConfirmation<T>(
   _ comment: Comment? = nil,
   expectedCount: Int = 1,
   timeout: Duration = .milliseconds(50),
-  fileID: String = #fileID,
-  filePath: String = #filePath,
-  line: Int = #line,
-  column: Int = #column,
+  sourceLocation: SourceLocation = #_sourceLocation,
   body: @Sendable @escaping (TimedConfirmation) async throws -> T
 ) async rethrows -> T {
   try await confirmation(
     comment,
     expectedCount: expectedCount,
-    fileID: fileID,
-    filePath: filePath,
-    line: line,
-    column: column
+    sourceLocation: sourceLocation
   ) { confirm in
     let timedConfirmation = await TimedConfirmation(
       confirmation: confirm,
