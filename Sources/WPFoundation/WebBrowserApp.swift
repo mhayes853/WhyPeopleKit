@@ -83,7 +83,6 @@ import SafariServices
 
 extension WebBrowserApp {
   /// Returns an array of ``WebBrowserAppID``s that are supported on this device.
-  @MainActor
   public static var supportedApps: [WebBrowserApp] {
     let example = URL(string: "https://www.example.com")!
     let options: [WebBrowserApp] = [
@@ -99,11 +98,12 @@ extension WebBrowserApp {
       .opera,
       .operaGX
     ]
+    let application = MainActor.runSync { UIApplication.shared }
     return options.filter {
       guard let url = $0.deepLinkURL(for: example) else {
         return true // NB: inAppSafari is the only one to return nil, and it is always supported
       }
-      return UIApplication.shared.canOpenURL(url)
+      return application.canOpenURL(url)
     }
   }
 }
