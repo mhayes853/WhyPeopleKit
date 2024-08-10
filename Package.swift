@@ -30,7 +30,8 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/swift-dependencies", .upToNextMajor(from: "1.3.5")),
     .package(url: "https://github.com/mixpanel/mixpanel-swift", .upToNextMajor(from: "4.2.1")),
     .package(url: "https://github.com/PostHog/posthog-ios", .upToNextMajor(from: "3.0.0")),
-    .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", .upToNextMajor(from: "1.2.2"))
+    .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", .upToNextMajor(from: "1.2.2")),
+    .package(url: "https://github.com/pointfreeco/swift-navigation", .upToNextMajor(from: "2.0.0"))
   ],
   targets: [
     .target(
@@ -97,9 +98,17 @@ let package = Package(
         "WPAnalyticsCore",
         .product(name: "PostHog", package: "posthog-ios")
       ]
-    )
+    ),
+    .target(
+      name: "WPSwiftNavigation",
+      dependencies: [
+        .product(name: "SwiftUINavigation", package: "swift-navigation"),
+        .product(name: "UIKitNavigation", package: "swift-navigation")
+      ]
+    ),
+    .testTarget(name: "WPSwiftNavigationTests", dependencies: ["WPSwiftNavigation"])
   ],
-  swiftLanguageVersions: [.version("6")]
+  swiftLanguageModes: [.version("6")]
 )
 
 for target in package.targets {

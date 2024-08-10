@@ -49,7 +49,7 @@ extension DeviceOutputVolume where Self: Sendable {
     )
   }
   
-  func pingForMuteStatus<C: Clock>(
+  @_spi(Workaround) public func pingForMuteStatus<C: Clock>(
     interval: Duration,
     threshold: Duration,
     clock: C,

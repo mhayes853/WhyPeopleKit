@@ -13,8 +13,8 @@ extension AnalyticsEvent.Value {
     case let .double(d): d
     case let .date(d): d
     case let .url(u): u
-    case let .array(a): a.map(\.?.postHogValue)
-    case let .dict(d): d.mapValues(\.?.postHogValue)
+    case let .array(a): a.map { $0?.postHogValue }
+    case let .dict(d): d.mapValues { $0?.postHogValue }
     }
   }
 }
@@ -26,7 +26,7 @@ public typealias PostHogProperties = [String: Any]
 extension Dictionary where Key == String, Value == AnalyticsEvent.Value? {
   /// These properties as PostHog compatible properties.
   public var postHogProperties: PostHogProperties {
-    self.mapValues(\.?.postHogValue)
+    self.mapValues { $0?.postHogValue as Any }
   }
 }
 

@@ -1,4 +1,4 @@
-@testable import WPDeviceVolume
+@_spi(Workaround) import WPDeviceVolume
 import Clocks
 import Testing
 import os
