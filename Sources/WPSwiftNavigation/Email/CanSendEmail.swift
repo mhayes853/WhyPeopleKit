@@ -33,3 +33,24 @@ extension CanSendEmail {
 extension EnvironmentValues {
   @Entry public var canSendEmail = CanSendEmail()
 }
+
+// MARK: - UITraitCollection
+
+extension UITraitCollection {
+  @available(iOS 17.0, *)
+  public var canSendEmail: CanSendEmail {
+    self[CanSendEmailTraitDefinition.self]
+  }
+}
+
+@available(iOS 17.0, *)
+extension UIMutableTraits {
+  public var canSendEmail: CanSendEmail {
+    get { self[CanSendEmailTraitDefinition.self] }
+    set { self[CanSendEmailTraitDefinition.self] = newValue }
+  }
+}
+
+private struct CanSendEmailTraitDefinition: UITraitDefinition {
+  static let defaultValue = CanSendEmail()
+}
