@@ -62,9 +62,13 @@ private nonisolated(unsafe) let emailRegex = Regex {
   /$/
 }
 
+/// A data type representing a valid email address.
 public struct EmailAddress: Hashable, Sendable, Codable {
   public let rawValue: String
   
+  /// Attempts to create an email address by validating the specifed string.
+  ///
+  /// - Parameter email: An email string.
   public init?(_ email: String) {
     guard email.wholeMatch(of: emailRegex) != nil else { return nil }
     self.rawValue = email
@@ -82,6 +86,9 @@ extension EmailAddress: RawRepresentable {
 // MARK: - No Validation Init
 
 extension EmailAddress {
+  /// Inittializes an email address with the specified email string skipping validation.
+  ///
+  /// - Parameter email: An email string.
   public init(unsafeNoValidation email: String) {
     self.rawValue = email
   }

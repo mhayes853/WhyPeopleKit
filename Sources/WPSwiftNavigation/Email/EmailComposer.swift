@@ -6,6 +6,53 @@ import UIKitNavigation
 // MARK: - SwiftUI View Modifier
 
 extension View {
+  /// Presents an email composer based on ``EmailComposerState``.
+  ///
+  /// Before calling this modifier, make sure to use `@Environment(\.canSendEmail)` to check if the
+  /// user's device is capable of sending email through the system email composer.
+  ///
+  /// You can pass a callback closure to this modifier that listens for an ``EmailComposerResult``
+  /// detailing the result of the composition session.
+  ///
+  /// ```swift
+  /// struct EmailView: View {
+  ///   @Environment(\.canSendEmail) private var canSendEmail
+  ///   @State private var state: EmailComposerState?
+  ///
+  ///   var body: some View {
+  ///     Group {
+  ///       if self.canSendEmail() {
+  ///         Button("Send Email") {
+  ///           self.state = EmailComposerState(subject: "My cool email!")
+  ///         }
+  ///       } else {
+  ///         Link(
+  ///           "Reach out to us on our support page!",
+  ///           destination: URL(string: "https://www.example.com/support")!
+  ///         )
+  ///       }
+  ///     }
+  ///     .emailComposer(self.$state) { result in
+  ///       switch result {
+  ///       case .sent:
+  ///         // ...
+  ///       case .saved:
+  ///         // ...
+  ///       case .cancelled:
+  ///         // ...
+  ///       case let .failed(error):
+  ///         // ...
+  ///       }
+  ///     }
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - state: An ``EmailComposerState``.
+  ///   - onFinished: An optional callback closure to handle the result of the composition.
+  ///   - onDismiss: The closure to execute when dismissing the email composer.
+  /// - Returns: Some view.
   public func emailComposer(
     _ state: Binding<EmailComposerState?>,
     onFinished: ((EmailComposerResult) -> Void)? = nil,
@@ -49,6 +96,43 @@ private final class Model {
 // MARK: - UIViewController Present
 
 extension UIViewController {
+  /// Presents an email composer based on ``EmailComposerState``.
+  ///
+  /// Before calling this method, make sure to use ``UIKit/UITraitCollection/canSendEmail`` to
+  /// check if the user's device is capable of sending email through the system email composer.
+  ///
+  /// You can pass a callback closure to this modifier that method for an ``EmailComposerResult``
+  /// detailing the result of the composition session.
+  ///
+  /// ```swift
+  /// final class EmailController: UIViewController {
+  ///   @UIBinding private var state: EmailComposerState?
+  ///
+  ///   override func viewDidLoad() {
+  ///     super.viewDidLoad()
+  ///     if self.traitCollection.canSendEmail() {
+  ///       self.present(emailComposer: self.$state) { result in
+  ///         switch result {
+  ///         case .sent:
+  ///           // ...
+  ///         case .saved:
+  ///           // ...
+  ///         case .cancelled:
+  ///           // ...
+  ///         case let .failed(error):
+  ///           // ...
+  ///         }
+  ///       }
+  ///     }
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - state: An ``EmailComposerState``.
+  ///   - onFinished: An optional callback closure to handle the result of the composition.
+  ///   - onDismiss: The closure to execute when dismissing the email composer.
+  /// - Returns: An `ObservationToken`.
   @discardableResult
   public func present(
     emailComposer: UIBinding<EmailComposerState?>,
@@ -125,11 +209,19 @@ private final class EmailComposerDelegate: NSObject, MFMailComposeViewController
 // MARK: - MFMailComposeViewController Helpers
 
 extension MFMailComposeViewController {
+  /// A convenience initializer to create a mail compose controller from an ``EmailComposerState``.
+  ///
+  /// - Parameter state: An ``EmailComposerState``.
+  /// - Throws: If loading the attachment data from a `URL` fails.
   public convenience init(state: EmailComposerState) throws {
     self.init(nibName: nil, bundle: nil)
     try self.setState(state)
   }
   
+  /// Sets the contents of this controller to the specified ``EmailComposerState``
+  ///
+  /// - Parameter state: An ``EmailComposerState``.
+  /// - Throws: If loading the attachment data from a `URL` fails.
   public func setState(_ state: EmailComposerState) throws {
     if let subject = state.subject {
       self.setSubject(subject)
