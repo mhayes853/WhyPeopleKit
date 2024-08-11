@@ -21,7 +21,8 @@ let package = Package(
     .library(name: "WPDependencies", targets: ["WPDependencies"]),
     .library(name: "WPAnalyticsCore", targets: ["WPAnalyticsCore"]),
     .library(name: "WPMixpanelAnalytics", targets: ["WPMixpanelAnalytics"]),
-    .library(name: "WPPostHogAnalytics", targets: ["WPPostHogAnalytics"])
+    .library(name: "WPPostHogAnalytics", targets: ["WPPostHogAnalytics"]),
+    .library(name: "WPSwiftNavigation", targets: ["WPSwiftNavigation"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
@@ -107,8 +108,8 @@ let package = Package(
       ]
     ),
     .testTarget(name: "WPSwiftNavigationTests", dependencies: ["WPSwiftNavigation"])
-  ],
-  swiftLanguageModes: [.version("6")]
+  ]
+//  swiftLanguageModes: [.version("6")]
 )
 
 for target in package.targets {

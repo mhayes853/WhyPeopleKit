@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - EmailComposerState
 
-public struct EmailComposerState {
+public struct EmailComposerState: Hashable, Sendable {
   public var subject: String?
   public var toRecipients: [EmailAddress]?
   public var ccRecipients: [EmailAddress]?
@@ -55,7 +55,7 @@ public struct EmailComposerState {
 // MARK: - Attachment
 
 extension EmailComposerState {
-  public struct Attachment {
+  public struct Attachment: Hashable, Sendable {
     public var contents: Contents
     public var mimeType: MIMEType
     public var filename: String
@@ -75,7 +75,7 @@ extension EmailComposerState {
 }
 
 extension EmailComposerState.Attachment {
-  public enum Contents {
+  public enum Contents: Hashable, Sendable {
     case data(Data)
     case url(URL)
   }
