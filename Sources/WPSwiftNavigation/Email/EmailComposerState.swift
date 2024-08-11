@@ -13,11 +13,11 @@ public struct EmailComposerState {
   public var attachments: [Attachment]?
   
   public init(
-    subject: String?,
+    subject: String? = nil,
     toRecipients: [EmailAddress]? = nil,
     ccRecipients: [EmailAddress]? = nil,
     bccRecipients: [EmailAddress]? = nil,
-    messageBody: String?,
+    messageBody: String? = nil,
     isMessageBodyHTML: Bool = false,
     preferredSendingEmailAddress: EmailAddress? = nil,
     attachments: [Attachment]? = nil
@@ -33,11 +33,11 @@ public struct EmailComposerState {
   }
   
   public init(
-    subject: String?,
+    subject: String? = nil,
     toRecipients: [EmailAddress]? = nil,
     ccRecipients: [EmailAddress]? = nil,
     bccRecipients: [EmailAddress]? = nil,
-    htmlBody: String?,
+    htmlBody: String? = nil,
     preferredSendingEmailAddress: EmailAddress? = nil,
     attachments: [Attachment]? = nil
   ) {
@@ -78,5 +78,14 @@ extension EmailComposerState.Attachment {
   public enum Contents {
     case data(Data)
     case url(URL)
+  }
+}
+
+extension EmailComposerState.Attachment.Contents {
+  public func data() throws -> Data {
+    switch self {
+    case let .data(data): data
+    case let .url(url): try Data(contentsOf: url)
+    }
   }
 }

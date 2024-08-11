@@ -78,3 +78,11 @@ extension EmailAddress: RawRepresentable {
     self.init(rawValue)
   }
 }
+
+// MARK: - No Validation Init
+
+extension EmailAddress {
+  public init(unsafeNoValidation email: String) {
+    self.rawValue = email
+  }
+}
