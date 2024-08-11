@@ -57,8 +57,7 @@ extension UIViewController {
   ) -> ObservationToken {
     @UIBinding var composerController: EmailComposerController?
     let delegate = EmailComposerDelegate(emailComposer: emailComposer, onFinished: onFinished)
-    let observeToken = self.observe { [weak self] in
-      guard let self else { return }
+    let observeToken = self.observe {
       if let state = emailComposer.wrappedValue {
         do {
           let controller = try EmailComposerController(state: state)

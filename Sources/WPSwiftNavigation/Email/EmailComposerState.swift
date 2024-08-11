@@ -10,7 +10,7 @@ public struct EmailComposerState: Hashable, Sendable {
   public var messageBody: String?
   public var isMessageBodyHTML = false
   public var preferredSendingEmailAddress: EmailAddress?
-  public var attachments: [Attachment]?
+  public var attachments: [EmailComposerAttachment]?
   
   public init(
     subject: String? = nil,
@@ -20,7 +20,7 @@ public struct EmailComposerState: Hashable, Sendable {
     messageBody: String? = nil,
     isMessageBodyHTML: Bool = false,
     preferredSendingEmailAddress: EmailAddress? = nil,
-    attachments: [Attachment]? = nil
+    attachments: [EmailComposerAttachment]? = nil
   ) {
     self.subject = subject
     self.toRecipients = toRecipients
@@ -39,7 +39,7 @@ public struct EmailComposerState: Hashable, Sendable {
     bccRecipients: [EmailAddress]? = nil,
     htmlBody: String? = nil,
     preferredSendingEmailAddress: EmailAddress? = nil,
-    attachments: [Attachment]? = nil
+    attachments: [EmailComposerAttachment]? = nil
   ) {
     self.subject = subject
     self.toRecipients = toRecipients
@@ -49,43 +49,5 @@ public struct EmailComposerState: Hashable, Sendable {
     self.isMessageBodyHTML = true
     self.preferredSendingEmailAddress = preferredSendingEmailAddress
     self.attachments = attachments
-  }
-}
-
-// MARK: - Attachment
-
-extension EmailComposerState {
-  public struct Attachment: Hashable, Sendable {
-    public var contents: Contents
-    public var mimeType: MIMEType
-    public var filename: String
-    
-    public init(data: Data, mimeType: MIMEType, filename: String) {
-      self.contents = .data(data)
-      self.mimeType = mimeType
-      self.filename = filename
-    }
-    
-    public init(url: URL, mimeType: MIMEType, filename: String) {
-      self.contents = .url(url)
-      self.mimeType = mimeType
-      self.filename = filename
-    }
-  }
-}
-
-extension EmailComposerState.Attachment {
-  public enum Contents: Hashable, Sendable {
-    case data(Data)
-    case url(URL)
-  }
-}
-
-extension EmailComposerState.Attachment.Contents {
-  public func data() throws -> Data {
-    switch self {
-    case let .data(data): data
-    case let .url(url): try Data(contentsOf: url)
-    }
   }
 }

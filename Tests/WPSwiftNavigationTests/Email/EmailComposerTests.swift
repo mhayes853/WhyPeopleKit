@@ -19,12 +19,12 @@ struct EmailComposerTests {
       
       let state = EmailComposerState(
         attachments: [
-          EmailComposerState.Attachment(
+          EmailComposerAttachment(
             url: url,
             mimeType: .text,
             filename: "hello.txt"
           ),
-          EmailComposerState.Attachment(
+          EmailComposerAttachment(
             data: Data("world".utf8),
             mimeType: .text,
             filename: "world.txt"
@@ -40,12 +40,12 @@ struct EmailComposerTests {
     func `throws`() async throws {
       let state = EmailComposerState(
         attachments: [
-          EmailComposerState.Attachment(
+          EmailComposerAttachment(
             url: self.url,
             mimeType: .text,
             filename: "hello.txt"
           ),
-          EmailComposerState.Attachment(
+          EmailComposerAttachment(
             data: Data("world".utf8),
             mimeType: .text,
             filename: "world.txt"
