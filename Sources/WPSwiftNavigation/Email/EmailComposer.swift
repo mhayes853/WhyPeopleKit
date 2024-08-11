@@ -1,47 +1,52 @@
 import SwiftUI
 import MessageUI
 import SwiftNavigation
+import UIKitNavigation
 
-// MARK: - MFMailComposeViewController Helpers
+// MARK: - SwiftUI View Modifier
 
-extension MFMailComposeViewController {
-  public convenience init(state: EmailComposerState) throws {
-    self.init(nibName: nil, bundle: nil)
-    try self.setState(state)
-  }
-  
-  public func setState(_ state: EmailComposerState) throws {
-    if let subject = state.subject {
-      self.setSubject(subject)
-    }
-    if let toRecipients = state.toRecipients {
-      self.setToRecipients(toRecipients.map(\.rawValue))
-    }
-    if let ccRecipients = state.ccRecipients {
-      self.setCcRecipients(ccRecipients.map(\.rawValue))
-    }
-    if let bccRecipients = state.bccRecipients {
-      self.setBccRecipients(bccRecipients.map(\.rawValue))
-    }
-    if let messageBody = state.messageBody {
-      self.setMessageBody(messageBody, isHTML: state.isMessageBodyHTML)
-    }
-    if let preferredSendingEmailAddress = state.preferredSendingEmailAddress {
-      self.setPreferredSendingEmailAddress(preferredSendingEmailAddress.rawValue)
-    }
-    if let attachments = state.attachments {
-      for attachment in attachments {
-        self.addAttachmentData(
-          try attachment.contents.data(),
-          mimeType: attachment.mimeType.rawValue,
-          fileName: attachment.filename
-        )
-      }
-    }
+extension View {
+  public func emailComposer(
+    _ state: Binding<EmailComposerState?>,
+    onFinished: ((EmailComposerResult) -> Void)? = nil,
+    onDismiss: (() -> Void)? = nil
+  ) -> some View {
+    self.modifier(
+      EmailComposerModifier(state: state, onFinished: onFinished, onDismiss: onDismiss)
+    )
   }
 }
 
-// MARK: - Present
+private struct EmailComposerModifier: ViewModifier {
+  @Binding var state: EmailComposerState?
+  let onFinished: ((EmailComposerResult) -> Void)?
+  let onDismiss: (() -> Void)?
+  
+  @State private var model = Model()
+  
+  func body(content: Content) -> some View {
+    content.background {
+      UIViewControllerRepresenting {
+        @UIBindable var model = self.model
+        let controller = UIViewController()
+        controller.present(
+          emailComposer: $model.state,
+          onFinished: self.onFinished,
+          onDismiss: self.onDismiss
+        )
+        return controller
+      }
+    }
+    .bind(self.$state, to: self.$model.state)
+  }
+}
+
+@Perceptible
+private final class Model {
+  var state: EmailComposerState?
+}
+
+// MARK: - UIViewController Present
 
 extension UIViewController {
   @discardableResult
@@ -115,5 +120,44 @@ private final class EmailComposerDelegate: NSObject, MFMailComposeViewController
       }
     }
     self.emailComposer = nil
+  }
+}
+
+// MARK: - MFMailComposeViewController Helpers
+
+extension MFMailComposeViewController {
+  public convenience init(state: EmailComposerState) throws {
+    self.init(nibName: nil, bundle: nil)
+    try self.setState(state)
+  }
+  
+  public func setState(_ state: EmailComposerState) throws {
+    if let subject = state.subject {
+      self.setSubject(subject)
+    }
+    if let toRecipients = state.toRecipients {
+      self.setToRecipients(toRecipients.map(\.rawValue))
+    }
+    if let ccRecipients = state.ccRecipients {
+      self.setCcRecipients(ccRecipients.map(\.rawValue))
+    }
+    if let bccRecipients = state.bccRecipients {
+      self.setBccRecipients(bccRecipients.map(\.rawValue))
+    }
+    if let messageBody = state.messageBody {
+      self.setMessageBody(messageBody, isHTML: state.isMessageBodyHTML)
+    }
+    if let preferredSendingEmailAddress = state.preferredSendingEmailAddress {
+      self.setPreferredSendingEmailAddress(preferredSendingEmailAddress.rawValue)
+    }
+    if let attachments = state.attachments {
+      for attachment in attachments {
+        self.addAttachmentData(
+          try attachment.contents.data(),
+          mimeType: attachment.mimeType.rawValue,
+          fileName: attachment.filename
+        )
+      }
+    }
   }
 }
