@@ -38,6 +38,21 @@ public struct EmailComposerAttachment: Hashable, Sendable {
     self.mimeType = mimeType
     self.filename = filename
   }
+  
+  /// Attempts to create an attachment with a filesystem `URL` by recognizing its `MIMEType`.
+  ///
+  /// The data from `url` will be loaded just before presenting the email composer, and an error
+  /// result will be returned from the composer if the data cannot be loaded from `url`.
+  ///
+  /// - Parameters:
+  ///   - url: A filesystem `url`.
+  ///   - filename: The filename to use for the attachment in the email composer.
+  public init?(url: URL, filename: String) {
+    guard let mimeType = MIMEType(of: url) else { return nil }
+    self.contents = .url(url)
+    self.mimeType = mimeType
+    self.filename = filename
+  }
 }
 
 // MARK: - Contents
