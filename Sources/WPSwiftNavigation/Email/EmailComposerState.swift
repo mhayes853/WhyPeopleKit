@@ -1,4 +1,4 @@
-import Foundation
+import WPFoundation
 
 // MARK: - EmailComposerState
 

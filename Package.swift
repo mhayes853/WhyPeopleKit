@@ -103,6 +103,7 @@ let package = Package(
     .target(
       name: "WPSwiftNavigation",
       dependencies: [
+        "WPFoundation",
         .product(name: "SwiftUINavigation", package: "swift-navigation"),
         .product(name: "UIKitNavigation", package: "swift-navigation")
       ]

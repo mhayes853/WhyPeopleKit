@@ -1,6 +1,5 @@
-import Foundation
+import WPFoundation
 import Testing
-import WPSwiftNavigation
 
 @Suite("EmailAddress tests")
 struct EmailAddressTests {
