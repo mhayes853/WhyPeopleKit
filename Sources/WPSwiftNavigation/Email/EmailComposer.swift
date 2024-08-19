@@ -137,19 +137,17 @@ private struct EmailComposerModifier: ViewModifier {
   @State private var model = Model()
   
   func body(content: Content) -> some View {
-    content.background {
-      UIViewControllerRepresenting {
+    content.bind(self.$state, to: self.$model.state)
+      .onAppear {
         @UIBindable var model = self.model
-        let controller = UIViewController()
-        controller.present(
+        let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        let rootVc = scene?.windows.first(where: \.isKeyWindow)?.rootViewController
+        rootVc?.present(
           emailComposer: $model.state,
           onFinished: self.onFinished,
           onDismiss: self.onDismiss
         )
-        return controller
       }
-    }
-    .bind(self.$state, to: self.$model.state)
   }
 }
 
