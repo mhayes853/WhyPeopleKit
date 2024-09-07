@@ -28,7 +28,7 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
     .package(url: "https://github.com/apple/swift-numerics", from: "1.0.2"),
     .package(url: "https://github.com/pointfreeco/swift-perception", .upToNextMajor(from: "1.0.0")),
-    .package(url: "https://github.com/pointfreeco/swift-dependencies", .upToNextMajor(from: "1.3.5")),
+    .package(url: "https://github.com/pointfreeco/swift-dependencies", .upToNextMajor(from: "1.3.9")),
     .package(url: "https://github.com/mixpanel/mixpanel-swift", .upToNextMajor(from: "4.2.1")),
     .package(url: "https://github.com/PostHog/posthog-ios", .upToNextMajor(from: "3.0.0")),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", .upToNextMajor(from: "1.2.2")),
