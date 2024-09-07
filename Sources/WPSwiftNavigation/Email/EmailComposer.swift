@@ -138,15 +138,14 @@ private struct EmailComposerModifier: ViewModifier {
   
   func body(content: Content) -> some View {
     content.bind(self.$state, to: self.$model.state)
-      .onAppear {
-        @UIBindable var model = self.model
-        let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
-        let rootVc = scene?.windows.first(where: \.isKeyWindow)?.rootViewController
-        rootVc?.present(
-          emailComposer: $model.state,
-          onFinished: self.onFinished,
-          onDismiss: self.onDismiss
-        )
+      .background {
+        UIViewControllerRepresenting {
+          EmailComposerRepresentableController(
+            model: self.model,
+            onFinished: self.onFinished,
+            onDismiss: self.onDismiss
+          )
+        }
       }
   }
 }
@@ -154,6 +153,36 @@ private struct EmailComposerModifier: ViewModifier {
 @Perceptible
 private final class Model {
   var state: EmailComposerState?
+}
+
+private final class EmailComposerRepresentableController: UIViewController {
+  @UIBindable var model: Model
+  let onFinished: ((EmailComposerResult) -> Void)?
+  let onDismiss: (() -> Void)?
+  
+  init(
+    model: Model,
+    onFinished: ((EmailComposerResult) -> Void)?,
+    onDismiss: (() -> Void)?
+  ) {
+    self.model = model
+    self.onFinished = onFinished
+    self.onDismiss = onDismiss
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    self.present(
+      emailComposer: self.$model.state,
+      onFinished: self.onFinished,
+      onDismiss: self.onDismiss
+    )
+  }
 }
 
 // MARK: - UIViewController Present
@@ -201,7 +230,7 @@ extension UIViewController {
     emailComposer: UIBinding<EmailComposerState?>,
     onFinished: ((EmailComposerResult) -> Void)? = nil,
     onDismiss: (() -> Void)? = nil
-  ) -> ObservationToken {
+  ) -> ObserveToken {
     @UIBinding var composerController: EmailComposerController?
     let delegate = EmailComposerDelegate(emailComposer: emailComposer, onFinished: onFinished)
     let observeToken = self.observe {
@@ -225,7 +254,7 @@ extension UIViewController {
     } content: {
       $0
     }
-    let token = ObservationToken {
+    let token = ObserveToken {
       observeToken.cancel()
       presentToken.cancel()
     }
