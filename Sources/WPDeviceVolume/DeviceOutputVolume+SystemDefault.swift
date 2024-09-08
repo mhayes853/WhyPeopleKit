@@ -8,7 +8,7 @@ extension DeviceOutputVolume where Self == SystemDefaultDeviceOutputVolume {
     try CoreAudioDeviceOutputVolume()
   }
 }
-#elseif os(watchOS)
+#elseif !canImport(_WPDeviceVolumeMuteSound)
 /// The default ``DeviceOutputVolume`` for this device.
 public typealias SystemDefaultDeviceOutputVolume = AVAudioSessionDeviceOutputVolume
 

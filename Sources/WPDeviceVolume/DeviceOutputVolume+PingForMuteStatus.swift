@@ -1,11 +1,9 @@
-#if !os(watchOS)
+#if canImport(_WPDeviceVolumeMuteSound)
 import AudioToolbox
 import os
 import WPFoundation
-
-#if canImport(UIKit)
 import UIKit
-#endif
+import _WPDeviceVolumeMuteSound
 
 // MARK: - Extension
 
@@ -177,9 +175,8 @@ private final class AudioToolboxPinger: Sendable {
   private let soundId: SystemSoundID
   
   init() {
-    let url = Bundle.module.assumingURL(forResource: "muted-sound", withExtension: "aiff")
     var _soundId: SystemSoundID = 0
-    AudioServicesCreateSystemSoundID(url as CFURL, &_soundId)
+    AudioServicesCreateSystemSoundID(mutedSoundURL as CFURL, &_soundId)
     var respectSilentMode: UInt32 = 1
     AudioServicesSetProperty(
       kAudioServicesPropertyIsUISound,
@@ -198,9 +195,7 @@ private final class AudioToolboxPinger: Sendable {
   }
   
   func ping() async {
-#if canImport(UIKit)
     guard await UIApplication.shared.applicationState == .active else { return }
-#endif
     await withUnsafeContinuation { continuation in
       AudioServicesPlaySystemSoundWithCompletion(
         self.soundId,

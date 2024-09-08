@@ -3,7 +3,7 @@ import Clocks
 import Testing
 import os
 
-#if !os(watchOS)
+#if canImport(_WPDeviceVolumeMuteSound)
 
 @Suite("DeviceOutputVolume+PingForMuteStatus tests")
 struct DeviceOutputVolumePingForMuteStatusTests {

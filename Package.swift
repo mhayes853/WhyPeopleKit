@@ -48,8 +48,13 @@ let package = Package(
       name: "WPDeviceVolume",
       dependencies: [
         "WPFoundation",
+        .targetItem(name: "_WPDeviceVolumeMuteSound", condition: .when(platforms: [.iOS])),
         .product(name: "Perception", package: "swift-perception")
-      ],
+      ]
+    ),
+    .target(
+      name: "_WPDeviceVolumeMuteSound",
+      dependencies: ["WPFoundation"],
       resources: [.process("Resources")]
     ),
     .testTarget(
