@@ -2,6 +2,7 @@
 import Clocks
 import Testing
 import os
+import Synchronization
 
 #if canImport(_WPDeviceVolumeMuteSound)
 
@@ -15,7 +16,8 @@ struct DeviceOutputVolumePingForMuteStatusTests {
       interval: .seconds(1),
       threshold: .milliseconds(200),
       clock: clock,
-      ping: { try? await clock.sleep(for: sleepTime.duration) }
+      ping: { try? await clock.sleep(for: sleepTime.duration) },
+      isInBackground: { false }
     )
     let task = Task {
       try await deviceVolume.statusUpdates.prefix(3).reduce([Bool]()) { acc, status in
@@ -44,7 +46,8 @@ struct DeviceOutputVolumePingForMuteStatusTests {
       interval: .seconds(1),
       threshold: .milliseconds(200),
       clock: clock,
-      ping: { try? await clock.sleep(for: sleepTime.duration) }
+      ping: { try? await clock.sleep(for: sleepTime.duration) },
+      isInBackground: { false }
     )
     let task = Task {
       try await deviceVolume.statusUpdates.prefix(4)
@@ -94,7 +97,8 @@ struct DeviceOutputVolumePingForMuteStatusTests {
       interval: .seconds(1),
       threshold: .milliseconds(200),
       clock: clock,
-      ping: { try? await clock.sleep(for: .milliseconds(100)) }
+      ping: { try? await clock.sleep(for: .milliseconds(100)) },
+      isInBackground: { false }
     )
     let task1 = Task {
       try await deviceVolume.statusUpdates.first(where: { _ in true })
@@ -116,7 +120,8 @@ struct DeviceOutputVolumePingForMuteStatusTests {
       interval: .seconds(1),
       threshold: .milliseconds(200),
       clock: clock,
-      ping: { try? await clock.sleep(for: .milliseconds(100)) }
+      ping: { try? await clock.sleep(for: .milliseconds(100)) },
+      isInBackground: { false }
     )
     Task {
       try await deviceVolume.statusUpdates.first(where: { _ in true })
@@ -138,7 +143,8 @@ struct DeviceOutputVolumePingForMuteStatusTests {
       ping: {
         try? await clock.sleep(for: .milliseconds(100))
         pingCount.withLock { $0 += 1 }
-      }
+      },
+      isInBackground: { false }
     )
     async let status = deviceVolume.statusUpdates.first(where: { _ in true })
     await clock.advance(by: .milliseconds(100))
@@ -147,6 +153,31 @@ struct DeviceOutputVolumePingForMuteStatusTests {
     await clock.advance(by: .seconds(1))
     await clock.advance(by: .milliseconds(100))
     pingCount.withLock { #expect($0 == 1) }
+  }
+  
+  @Test("Stops Pinging When in the Background")
+  func stopsBackgroundPinging() async throws {
+    let clock = TestClock()
+    let isInBackground = OSAllocatedUnfairLock(initialState: false)
+    let pingCount = OSAllocatedUnfairLock(initialState: 0)
+    let deviceVolume = NoopDeviceOutputVolume().pingForMuteStatus(
+      interval: .seconds(1),
+      threshold: .milliseconds(200),
+      clock: clock,
+      ping: {
+        try? await clock.sleep(for: .milliseconds(100))
+        pingCount.withLock { $0 += 1 }
+      },
+      isInBackground: { isInBackground.withLock { $0 } }
+    )
+    let token = deviceVolume.subscribe { _ in }
+    await clock.advance(by: .milliseconds(100))
+    pingCount.withLock { #expect($0 == 1) }
+    isInBackground.withLock { $0 = true }
+    await clock.advance(by: .seconds(1))
+    await clock.advance(by: .milliseconds(100))
+    pingCount.withLock { #expect($0 == 1) }
+    token.cancel()
   }
 }
 

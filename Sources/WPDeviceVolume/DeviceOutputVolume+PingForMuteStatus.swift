@@ -43,7 +43,8 @@ extension DeviceOutputVolume where Self: Sendable {
       interval: interval,
       threshold: threshold,
       clock: clock,
-      ping: pinger.ping
+      ping: pinger.ping,
+      isInBackground: { await UIApplication.shared.applicationState != .active }
     )
   }
   
@@ -51,14 +52,16 @@ extension DeviceOutputVolume where Self: Sendable {
     interval: Duration,
     threshold: Duration,
     clock: C,
-    ping: @Sendable @escaping () async -> Void
+    ping: @Sendable @escaping () async -> Void,
+    isInBackground: @Sendable @escaping () async -> Bool
   ) -> _PingForMuteStatusDeviceVolume<Self, C> where C.Duration == Duration {
     _PingForMuteStatusDeviceVolume(
       interval: interval,
       threshold: threshold,
       clock: clock,
       base: self,
-      ping: ping
+      ping: ping,
+      isInBackground: isInBackground
     )
   }
 }
@@ -75,19 +78,22 @@ public final class _PingForMuteStatusDeviceVolume<
   private let base: Base
   private let ping: @Sendable () async -> Void
   private let pingState = OSAllocatedUnfairLock(initialState: PingState())
+  private let isInBackground: @Sendable () async -> Bool
   
   init(
     interval: Duration,
     threshold: Duration,
     clock: C,
     base: Base,
-    ping: @Sendable @escaping () async -> Void
+    ping: @Sendable @escaping () async -> Void,
+    isInBackground: @Sendable @escaping () async -> Bool
   ) {
     self.interval = interval
     self.threshold = threshold
     self.clock = clock
     self.base = base
     self.ping = ping
+    self.isInBackground = isInBackground
   }
 }
 
@@ -163,6 +169,7 @@ extension _PingForMuteStatusDeviceVolume: DeviceOutputVolume {
   }
   
   private func pingForMuteStatus() async {
+    guard !(await self.isInBackground()) else { return }
     let time = await self.clock.measure { await self.ping() }
     let isMuted = time < self.threshold
     self.pingState.withLock { $0.emit(isMuted: isMuted) }
@@ -195,7 +202,6 @@ private final class AudioToolboxPinger: Sendable {
   }
   
   func ping() async {
-    guard await UIApplication.shared.applicationState == .active else { return }
     await withUnsafeContinuation { continuation in
       AudioServicesPlaySystemSoundWithCompletion(
         self.soundId,
