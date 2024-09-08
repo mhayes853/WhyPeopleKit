@@ -342,7 +342,7 @@ extension UIViewController {
     emailComposer: UIBinding<EmailComposerState?>,
     onFinished: ((EmailComposerResult) -> Void)? = nil,
     onDismiss: (() -> Void)? = nil
-  ) -> ObservationToken {
+  ) -> ObserveToken {
     fatalError()
   }
 }
