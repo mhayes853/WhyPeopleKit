@@ -177,7 +177,7 @@ private final class EmailComposerRepresentableController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.present(
+    UIApplication.shared.topMostViewController?.present(
       emailComposer: self.$model.state,
       onFinished: self.onFinished,
       onDismiss: self.onDismiss
