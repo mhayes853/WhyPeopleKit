@@ -21,6 +21,9 @@ public struct UUIDV7: RawRepresentable {
 // MARK: - Date
 
 extension UUIDV7 {
+  /// The date embedded in this UUID.
+  ///
+  /// The date is comprised of the first 48 bits of this UUID in compliance with RFC 9562.
   @inlinable
   public var date: Date {
     let t1 = UInt64(self.rawValue.uuid.0) << 40
@@ -36,10 +39,16 @@ extension UUIDV7 {
 // MARK: - Time Initializers
 
 extension UUIDV7 {
+  /// Creates a UUID with the specified `Date`.
+  ///
+  /// - Parameter date: The `Date` to embed in this UUID.
   public init(_ date: Date = Date()) {
     self.init(date.timeIntervalSince1970)
   }
   
+  /// Creates a UUID with the specified unix epoch.
+  ///
+  /// - Parameter timeInterval: The `TimeInterval` since 00:00:00 UTC on 1 January 1970.
   public init(_ timeInterval: TimeInterval) {
     var bytes = UUID_NULL
     let fd = open("/dev/urandom", O_RDONLY)
@@ -48,10 +57,26 @@ extension UUIDV7 {
     self.init(timeInterval, &bytes)
   }
   
+  /// Creates a UUID with the specified `Date` and an integer that acts as the random data.
+  ///
+  /// This initializer is convenient for creating deterministic UUIDs. 2 UUIDs with the same date
+  /// and integer creating using this initializer will be equal.
+  ///
+  /// - Parameters:
+  ///   - date: The `Date` to embed in this UUID.
+  ///   - integer: An integer to use in the random data part of this UUID.
   public init(_ date: Date, _ integer: UInt32) {
     self.init(date.timeIntervalSince1970, integer)
   }
   
+  /// Creates a UUID with the specified unix expoch and an integer that acts as the random data.
+  ///
+  /// This initializer is convenient for creating deterministic UUIDs. 2 UUIDs with the same
+  /// unix epoch and integer creating using this initializer will be equal.
+  ///
+  /// - Parameters:
+  ///   - timeInterval: The `TimeInterval` since 00:00:00 UTC on 1 January 1970.
+  ///   - integer: An integer to use in the random data part of this UUID.
   public init(_ timeInterval: TimeInterval, _ integer: UInt32) {
     var bytes = UUID_NULL
     let byteCount = Int(ceil(Double(integer.bitWidth - integer.leadingZeroBitCount) / 8.0))
