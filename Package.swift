@@ -42,7 +42,11 @@ let package = Package(
     ),
     .testTarget(
       name: "WPFoundationTests",
-      dependencies: ["WPFoundation", "WPTestSupport"]
+      dependencies: [
+        "WPFoundation",
+        "WPTestSupport",
+        .product(name: "IssueReportingTestSupport", package: "xctest-dynamic-overlay")
+      ]
     ),
     .target(
       name: "WPDeviceVolume",

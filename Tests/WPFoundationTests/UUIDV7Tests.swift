@@ -1,5 +1,6 @@
 import WPFoundation
 import Testing
+import IssueReporting
 
 @Suite("UUIDV7 tests")
 struct UUIDV7Tests {
@@ -80,5 +81,79 @@ struct UUIDV7Tests {
   func fromUUIDTValid(uuid: UUID) async throws {
     let uuid2 = try #require(UUIDV7(uuid: uuid.uuid)?.uuid)
     #expect(UUID(uuid: uuid2) == uuid)
+  }
+  
+  @Test(
+    "From Date",
+    arguments: [
+      (Date(staticISO8601: "2024-09-09T22:37:05+0000"), "0191D8EE-F668"),
+      (Date(staticISO8601: "2024-09-09T22:41:15+0000"), "0191D8F2-C6F8"),
+      (Date(staticISO8601: "2060-10-04T21:27:19+0000"), "029ADCB1-7ED8"),
+      (Date(staticISO8601: "1993-05-20T10:40:43+0000"), "00ABCDEF-A7F8")
+    ]
+  )
+  func fromDate(date: Date, prefix: String) async throws {
+    let uuid = UUIDV7(date)
+    #expect(uuid.uuidString.starts(with: prefix))
+    let pattern = /^[0-9A-F]{8}-[0-9A-F]{4}-7[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/
+    #expect(uuid.uuidString.wholeMatch(in: pattern) != nil)
+  }
+  
+  @Test(
+    "From Date and Deterministic Integer",
+    arguments: [
+      (0, "0191D8EE-F668-7000-8000-000000000000"),
+      (1, "0191D8EE-F668-7000-8000-000000000001"),
+      (10, "0191D8EE-F668-7000-8000-00000000000A"),
+      (40, "0191D8EE-F668-7000-8000-000000000028"),
+      (27822, "0191D8EE-F668-7000-8000-00000000AE6C")
+    ]
+  )
+  func fromDateInteger(integer: UInt32, uuidString: String) async throws {
+    let uuid = UUIDV7(Date(staticISO8601: "2024-09-09T22:37:05+0000"), integer)
+    #expect(uuid == UUIDV7(uuidString: uuidString))
+  }
+  
+  @Test(
+    "Stores Date",
+    arguments: [
+      Date(staticISO8601: "2024-09-09T22:37:05+0000"),
+      Date(staticISO8601: "2024-09-09T22:41:15+0000"),
+      Date(staticISO8601: "2060-10-04T21:27:19+0000"),
+      Date(staticISO8601: "1993-05-20T10:40:43+0000")
+    ]
+  )
+  func date(date: Date) async throws {
+    let uuid = UUIDV7(date)
+    #expect(uuid.date == date)
+  }
+  
+  @Test("2 Random Instances are Not Equal")
+  func randomNotEqual() async throws {
+    let (u1, u2) = (UUIDV7(), UUIDV7())
+    #expect(u1 != u2)
+  }
+  
+  @Test("2 Same Dated Instances are Not Equal")
+  func datedNotEqual() async throws {
+    let date = Date()
+    let (u1, u2) = (UUIDV7(date), UUIDV7(date))
+    #expect(u1 != u2)
+  }
+  
+  @Test("Comparable")
+  func comparable() async throws {
+    var u1 = UUIDV7(Date(staticISO8601: "2024-09-09T22:37:05+0000"))
+    var u2 = UUIDV7(Date(staticISO8601: "2024-09-09T22:41:15+0000"))
+    #expect(u2 > u1)
+    #expect(u1 < u2)
+    
+    u2 = UUIDV7(Date(staticISO8601: "1993-05-20T10:40:43+0000"), 1000)
+    #expect(u2 < u1)
+    #expect(u1 > u2)
+    
+    u1 = UUIDV7(Date(staticISO8601: "1993-05-20T10:40:43+0000"), 1001)
+    #expect(u2 < u1)
+    #expect(u1 > u2)
   }
 }
