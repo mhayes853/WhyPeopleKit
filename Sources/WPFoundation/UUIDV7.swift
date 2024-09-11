@@ -2,6 +2,7 @@ import Foundation
 #if canImport(AppIntents)
 import AppIntents
 #endif
+import os
 
 // MARK: - UUIDV7
 
@@ -38,24 +39,99 @@ extension UUIDV7 {
   }
 }
 
+// MARK: - Monotonically Increasing Initializer
+
+extension UUIDV7 {
+  /// Creates a UUID with the current date as the timestamp.
+  ///
+  /// This initializer will always generate monotonically increasing UUIDs. This means that this property:
+  /// ```swift
+  /// let u1 = UUIDV7()
+  /// let u2 = UUIDV7()
+  /// assert(u2 > u1) // Always true
+  /// ```
+  /// Is always true, even when the device's system clock is manually moved backwards.
+  ///
+  /// The 12 random bits that comprise of the `rand_a` field from RFC 9562 are replaced by a 12 bit
+  /// counter as outlined by section 6.2 of the RFC.
+  public init() {
+    self.init(systemNow: Date())
+  }
+  
+  init(systemNow: Date) {
+    let (millis, sequence) = MonotonicityState.current.withLock {
+      $0.nextMillisWithSequence(timeIntervalSince1970: systemNow.timeIntervalSince1970)
+    }
+    var bytes = randomUUIDBytes()
+    withUnsafePointer(to: sequence.bigEndian) { ptr in
+      ptr.withMemoryRebound(to: (UInt8, UInt8).self, capacity: 1) {
+        bytes.6 = $0.pointee.0
+        bytes.7 = $0.pointee.1
+      }
+    }
+    self.init(millis, &bytes)
+  }
+  
+  private struct MonotonicityState: Sendable {
+    static let current = OSAllocatedUnfairLock(initialState: MonotonicityState())
+    
+    private var previousTimestamp = UInt64(0)
+    private var sequence = UInt16(0)
+    private var offset = UInt64(0)
+    
+    private init() {}
+    
+    mutating func nextMillisWithSequence(
+      timeIntervalSince1970 timeInterval: TimeInterval
+    ) -> (UInt64, UInt16) {
+      var currentMillis = UInt64(timeInterval * 1000) + self.offset
+      if self.previousTimestamp == currentMillis {
+        self.sequence &+= 1
+        if self.sequence > 0xFFF {
+          self.sequence = 0
+          currentMillis &+= 1
+        }
+        self.previousTimestamp = currentMillis
+      } else if currentMillis < self.previousTimestamp {
+        self.sequence &+= 1
+        self.offset = self.previousTimestamp - currentMillis
+        currentMillis = self.previousTimestamp
+        if self.sequence > 0xFFF {
+          self.sequence = 0
+          currentMillis &+= 1
+        }
+        self.previousTimestamp = currentMillis
+      } else {
+        self.previousTimestamp = currentMillis
+        self.offset = 0
+        self.sequence = 0
+      }
+      return (currentMillis, self.sequence)
+    }
+  }
+}
+
 // MARK: - Time Initializers
 
 extension UUIDV7 {
   /// Creates a UUID with the specified `Date`.
   ///
+  /// This initializer does not implement sub-millisecond monotonicity, use ``init()`` instead if
+  /// sub-millisecond monotonicity is needed.
+  ///
   /// - Parameter date: The `Date` to embed in this UUID.
-  public init(_ date: Date = Date()) {
+  public init(_ date: Date) {
     self.init(timeIntervalSince1970: date.timeIntervalSince1970)
   }
   
   /// Creates a UUID with the specified unix epoch.
-  /// 
+  ///
+  /// This initializer does not implement sub-millisecond monotonicity, use ``init()`` instead if
+  /// sub-millisecond monotonicity is needed.
+  ///
   /// - Parameter timeInterval: The `TimeInterval` since 00:00:00 UTC on 1 January 1970.
   public init(timeIntervalSince1970 timeInterval: TimeInterval) {
-    var bytes = UUID_NULL
-    let fd = open("/dev/urandom", O_RDONLY)
-    read(fd, &bytes, MemoryLayout<uuid_t>.size)
-    close(fd)
+    var bytes = randomUUIDBytes()
     self.init(timeInterval, &bytes)
   }
   
@@ -63,6 +139,9 @@ extension UUIDV7 {
   ///
   /// This initializer is convenient for creating deterministic UUIDs. 2 UUIDs with the same date
   /// and integer creating using this initializer will be equal.
+  ///
+  /// This initializer does not implement sub-millisecond monotonicity, use ``init()`` instead if
+  /// sub-millisecond monotonicity is needed.
   ///
   /// - Parameters:
   ///   - date: The `Date` to embed in this UUID.
@@ -75,7 +154,10 @@ extension UUIDV7 {
   /// 
   /// This initializer is convenient for creating deterministic UUIDs. 2 UUIDs with the same
   /// unix epoch and integer creating using this initializer will be equal.
-  /// 
+  ///
+  /// This initializer does not implement sub-millisecond monotonicity, use ``init()`` instead if
+  /// sub-millisecond monotonicity is needed.
+  ///
   /// - Parameters:
   ///   - timeInterval: The `TimeInterval` since 00:00:00 UTC on 1 January 1970.
   ///   - integer: An integer to use in the random data part of this UUID.
@@ -92,7 +174,11 @@ extension UUIDV7 {
   }
   
   private init(_ timeInterval: TimeInterval, _ bytes: inout uuid_t) {
-    withUnsafePointer(to: UInt64(timeInterval * 1000).bigEndian) {
+    self.init(UInt64(timeInterval * 1000), &bytes)
+  }
+  
+  private init(_ timeMillis: UInt64, _ bytes: inout uuid_t) {
+    withUnsafePointer(to: timeMillis.bigEndian) {
       let ptr = UnsafeRawPointer($0).advanced(by: 2)
         .assumingMemoryBound(to: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8).self)
       bytes.0 = ptr.pointee.0
@@ -225,3 +311,13 @@ extension UUIDV7: Comparable {
 
 extension UUIDV7: Hashable {}
 extension UUIDV7: Sendable {}
+
+// MARK: - Random UUID Bytes
+
+private func randomUUIDBytes() -> uuid_t {
+  var bytes = UUID_NULL
+  let fd = open("/dev/urandom", O_RDONLY)
+  read(fd, &bytes, MemoryLayout<uuid_t>.size)
+  close(fd)
+  return bytes
+}
