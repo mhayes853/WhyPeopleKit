@@ -8,7 +8,7 @@ import AppIntents
 /// An RFC 9562 compliant UUID Version 7.
 @dynamicMemberLookup
 public struct UUIDV7: RawRepresentable {
-  /// The underlying Foundation UUID of this UUID.
+  /// This UUID as a Foundation UUID.
   public let rawValue: UUID
   
   public init?(rawValue: UUID) {
@@ -22,17 +22,19 @@ public struct UUIDV7: RawRepresentable {
 
 extension UUIDV7 {
   /// The date embedded in this UUID.
-  ///
-  /// The date is comprised of the first 48 bits of this UUID in compliance with RFC 9562.
-  @inlinable
   public var date: Date {
+    Date(timeIntervalSince1970: self.timeIntervalSince1970)
+  }
+  
+  /// The timestamp embedded in this UUID.
+  public var timeIntervalSince1970: TimeInterval {
     let t1 = UInt64(self.rawValue.uuid.0) << 40
     let t2 = UInt64(self.rawValue.uuid.1) << 32
     let t3 = UInt64(self.rawValue.uuid.2) << 24
     let t4 = UInt64(self.rawValue.uuid.3) << 16
     let t5 = UInt64(self.rawValue.uuid.4) << 8
     let t6 = UInt64(self.rawValue.uuid.5)
-    return Date(timeIntervalSince1970: TimeInterval(t1 | t2 | t3 | t4 | t5 | t6) / 1000)
+    return TimeInterval(t1 | t2 | t3 | t4 | t5 | t6) / 1000
   }
 }
 
@@ -43,13 +45,13 @@ extension UUIDV7 {
   ///
   /// - Parameter date: The `Date` to embed in this UUID.
   public init(_ date: Date = Date()) {
-    self.init(date.timeIntervalSince1970)
+    self.init(timeIntervalSince1970: date.timeIntervalSince1970)
   }
   
   /// Creates a UUID with the specified unix epoch.
-  ///
+  /// 
   /// - Parameter timeInterval: The `TimeInterval` since 00:00:00 UTC on 1 January 1970.
-  public init(_ timeInterval: TimeInterval) {
+  public init(timeIntervalSince1970 timeInterval: TimeInterval) {
     var bytes = UUID_NULL
     let fd = open("/dev/urandom", O_RDONLY)
     read(fd, &bytes, MemoryLayout<uuid_t>.size)
@@ -66,18 +68,18 @@ extension UUIDV7 {
   ///   - date: The `Date` to embed in this UUID.
   ///   - integer: An integer to use in the random data part of this UUID.
   public init(_ date: Date, _ integer: UInt32) {
-    self.init(date.timeIntervalSince1970, integer)
+    self.init(timeIntervalSince1970: date.timeIntervalSince1970, integer)
   }
   
   /// Creates a UUID with the specified unix expoch and an integer that acts as the random data.
-  ///
+  /// 
   /// This initializer is convenient for creating deterministic UUIDs. 2 UUIDs with the same
   /// unix epoch and integer creating using this initializer will be equal.
-  ///
+  /// 
   /// - Parameters:
   ///   - timeInterval: The `TimeInterval` since 00:00:00 UTC on 1 January 1970.
   ///   - integer: An integer to use in the random data part of this UUID.
-  public init(_ timeInterval: TimeInterval, _ integer: UInt32) {
+  public init(timeIntervalSince1970 timeInterval: TimeInterval, _ integer: UInt32) {
     var bytes = UUID_NULL
     let byteCount = Int(ceil(Double(integer.bitWidth - integer.leadingZeroBitCount) / 8.0))
     withUnsafeMutablePointer(to: &bytes) { ptr in
@@ -104,6 +106,13 @@ extension UUIDV7 {
     bytes.8 = (bytes.8 & 0x3F) | 0x80
     self.rawValue = UUID(uuid: bytes)
   }
+}
+
+// MARK: - Now
+
+extension UUIDV7 {
+  /// Returns a ``UUIDV7`` initialized to the current date and time.
+  public static var now: Self { Self() }
 }
 
 // MARK: - Basic Initializers
