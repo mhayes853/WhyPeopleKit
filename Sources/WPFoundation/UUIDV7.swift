@@ -84,7 +84,7 @@ extension UUIDV7 {
     mutating func nextMillisWithSequence(
       timeIntervalSince1970 timeInterval: TimeInterval
     ) -> (UInt64, UInt16) {
-      var currentMillis = UInt64(timeInterval * 1000) + self.offset
+      var currentMillis = UInt64(timeInterval * 1000) &+ self.offset
       if self.previousTimestamp == currentMillis {
         self.sequence &+= 1
         if self.sequence > 0xFFF {
@@ -178,8 +178,8 @@ extension UUIDV7 {
   }
   
   private init(_ timeMillis: UInt64, _ bytes: inout uuid_t) {
-    withUnsafePointer(to: timeMillis.bigEndian) {
-      let ptr = UnsafeRawPointer($0).advanced(by: 2)
+    withUnsafePointer(to: timeMillis.bigEndian) { ptr in
+      let ptr = UnsafeRawPointer(ptr).advanced(by: 2)
         .assumingMemoryBound(to: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8).self)
       bytes.0 = ptr.pointee.0
       bytes.1 = ptr.pointee.1
