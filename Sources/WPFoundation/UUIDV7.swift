@@ -87,25 +87,19 @@ extension UUIDV7 {
       var currentMillis = UInt64(timeInterval * 1000) &+ self.offset
       if self.previousTimestamp == currentMillis {
         self.sequence &+= 1
-        if self.sequence > 0xFFF {
-          self.sequence = 0
-          currentMillis &+= 1
-        }
-        self.previousTimestamp = currentMillis
       } else if currentMillis < self.previousTimestamp {
         self.sequence &+= 1
         self.offset = self.previousTimestamp - currentMillis
         currentMillis = self.previousTimestamp
-        if self.sequence > 0xFFF {
-          self.sequence = 0
-          currentMillis &+= 1
-        }
-        self.previousTimestamp = currentMillis
       } else {
-        self.previousTimestamp = currentMillis
         self.offset = 0
         self.sequence = 0
       }
+      if self.sequence > 0xFFF {
+        self.sequence = 0
+        currentMillis &+= 1
+      }
+      self.previousTimestamp = currentMillis
       return (currentMillis, self.sequence)
     }
   }
