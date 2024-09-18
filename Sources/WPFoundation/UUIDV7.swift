@@ -1,8 +1,9 @@
 import Foundation
-#if canImport(AppIntents)
-import AppIntents
-#endif
 import os
+
+#if canImport(AppIntents)
+  import AppIntents
+#endif
 
 // MARK: - UUIDV7
 
@@ -11,7 +12,7 @@ import os
 public struct UUIDV7: RawRepresentable {
   /// This UUID as a Foundation UUID.
   public let rawValue: UUID
-  
+
   public init?(rawValue: UUID) {
     let variant = rawValue.uuid.8 >> 6
     guard rawValue.version == 7, variant == 0b10 else { return nil }
@@ -26,7 +27,7 @@ extension UUIDV7 {
   public var date: Date {
     Date(timeIntervalSince1970: self.timeIntervalSince1970)
   }
-  
+
   /// The timestamp embedded in this UUID.
   public var timeIntervalSince1970: TimeInterval {
     let t1 = UInt64(self.rawValue.uuid.0) << 40
@@ -57,7 +58,7 @@ extension UUIDV7 {
   public init() {
     self.init(systemNow: Date())
   }
-  
+
   init(systemNow: Date) {
     let (millis, sequence) = MonotonicityState.current.withLock {
       $0.nextMillisWithSequence(timeIntervalSince1970: systemNow.timeIntervalSince1970)
@@ -71,16 +72,16 @@ extension UUIDV7 {
     }
     self.init(millis, &bytes)
   }
-  
+
   private struct MonotonicityState: Sendable {
     static let current = OSAllocatedUnfairLock(initialState: MonotonicityState())
-    
+
     private var previousTimestamp = UInt64(0)
     private var sequence = UInt16(0)
     private var offset = UInt64(0)
-    
+
     private init() {}
-    
+
     mutating func nextMillisWithSequence(
       timeIntervalSince1970 timeInterval: TimeInterval
     ) -> (UInt64, UInt16) {
@@ -117,7 +118,7 @@ extension UUIDV7 {
   public init(_ date: Date) {
     self.init(timeIntervalSince1970: date.timeIntervalSince1970)
   }
-  
+
   /// Creates a UUID with the specified unix epoch.
   ///
   /// This initializer does not implement sub-millisecond monotonicity, use ``init()`` instead if
@@ -128,7 +129,7 @@ extension UUIDV7 {
     var bytes = randomUUIDBytes()
     self.init(timeInterval, &bytes)
   }
-  
+
   /// Creates a UUID with the specified `Date` and an integer that acts as the random data.
   ///
   /// This initializer is convenient for creating deterministic UUIDs. 2 UUIDs with the same date
@@ -143,9 +144,9 @@ extension UUIDV7 {
   public init(_ date: Date, _ integer: UInt32) {
     self.init(timeIntervalSince1970: date.timeIntervalSince1970, integer)
   }
-  
+
   /// Creates a UUID with the specified unix expoch and an integer that acts as the random data.
-  /// 
+  ///
   /// This initializer is convenient for creating deterministic UUIDs. 2 UUIDs with the same
   /// unix epoch and integer creating using this initializer will be equal.
   ///
@@ -166,11 +167,11 @@ extension UUIDV7 {
     }
     self.init(timeInterval, &bytes)
   }
-  
+
   private init(_ timeInterval: TimeInterval, _ bytes: inout uuid_t) {
     self.init(UInt64(timeInterval * 1000), &bytes)
   }
-  
+
   private init(_ timeMillis: UInt64, _ bytes: inout uuid_t) {
     withUnsafePointer(to: timeMillis.bigEndian) { ptr in
       let ptr = UnsafeRawPointer(ptr).advanced(by: 2)
@@ -207,7 +208,7 @@ extension UUIDV7 {
   public init?(_ uuid: UUID) {
     self.init(rawValue: uuid)
   }
-  
+
   /// Attempts to create a ``UUIDV7`` from a Foundation `uuid_t`.
   ///
   /// The Foundation UUID must be compliant with RFC 9562 UUID Version 7.
@@ -217,7 +218,7 @@ extension UUIDV7 {
   public init?(uuid: uuid_t) {
     self.init(UUID(uuid: uuid))
   }
-  
+
   /// Attempts to create a ``UUIDV7`` from a UUID String.
   ///
   /// The UUID String must be compliant with RFC 9562 UUID Version 7.
@@ -258,17 +259,17 @@ extension UUIDV7: Decodable {
 // MARK: - EntityIdentifierConvertible
 
 #if canImport(AppIntents)
-extension UUIDV7: EntityIdentifierConvertible {
-  @inlinable
-  public var entityIdentifierString: String {
-    self.rawValue.entityIdentifierString
+  extension UUIDV7: EntityIdentifierConvertible {
+    @inlinable
+    public var entityIdentifierString: String {
+      self.rawValue.entityIdentifierString
+    }
+
+    @inlinable
+    public static func entityIdentifier(for entityIdentifierString: String) -> UUIDV7? {
+      UUID.entityIdentifier(for: entityIdentifierString).flatMap(Self.init(rawValue:))
+    }
   }
-  
-  @inlinable
-  public static func entityIdentifier(for entityIdentifierString: String) -> UUIDV7? {
-    UUID.entityIdentifier(for: entityIdentifierString).flatMap(Self.init(rawValue:))
-  }
-}
 #endif
 
 // MARK: - CustomStringConvertible

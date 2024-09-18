@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 /// A data type representing a MIME type.
 public struct MIMEType: RawRepresentable, Hashable, Sendable, Codable {
   public let rawValue: String
-  
+
   public init(rawValue: String) {
     self.rawValue = rawValue
   }

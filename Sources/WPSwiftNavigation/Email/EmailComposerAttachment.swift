@@ -11,7 +11,7 @@ public struct EmailComposerAttachment: Hashable, Sendable {
   public var contents: Contents
   public var mimeType: MIMEType
   public var filename: String
-  
+
   /// Creates an attachment with data.
   ///
   /// - Parameters:
@@ -23,7 +23,7 @@ public struct EmailComposerAttachment: Hashable, Sendable {
     self.mimeType = mimeType
     self.filename = filename
   }
-  
+
   /// Creates an attachment with a filesystem `URL`.
   ///
   /// The data from `url` will be loaded just before presenting the email composer, and an error
@@ -38,7 +38,7 @@ public struct EmailComposerAttachment: Hashable, Sendable {
     self.mimeType = mimeType
     self.filename = filename
   }
-  
+
   /// Attempts to create an attachment with a filesystem `URL` by recognizing its `MIMEType`.
   ///
   /// The data from `url` will be loaded just before presenting the email composer, and an error

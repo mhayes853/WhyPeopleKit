@@ -37,12 +37,12 @@ extension DependencyValues {
     get { self[AnalyticsRecordableKey.self] }
     set { self[AnalyticsRecordableKey.self] = newValue }
   }
-  
+
   private struct AnalyticsRecordableKey: DependencyKey {
     static var liveValue: any AnalyticsRecordable & Sendable {
       ConsoleAnalyticsRecorder()
     }
-    
+
     static var testValue: any AnalyticsRecordable & Sendable {
       FailingAnalyticsRecorder()
     }

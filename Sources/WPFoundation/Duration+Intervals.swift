@@ -10,8 +10,7 @@ extension Duration {
   public static func minutes(_ minutes: some BinaryInteger) -> Self {
     .seconds(minutes * 60)
   }
-  
-  
+
   /// Construct a `Duration` given a number of hours represented as a `BinaryInteger`.
   ///
   /// ```swift
@@ -23,8 +22,7 @@ extension Duration {
   public static func hours(_ hours: some BinaryInteger) -> Self {
     .minutes(hours * 60)
   }
-  
-  
+
   /// Construct a `Duration` given a number of days represented as a `BinaryInteger`.
   ///
   /// ```swift
@@ -36,8 +34,7 @@ extension Duration {
   public static func days(_ days: some BinaryInteger) -> Self {
     .hours(days * 24)
   }
-  
-  
+
   /// Construct a `Duration` given a number of weeks represented as a `BinaryInteger`.
   ///
   /// ```swift

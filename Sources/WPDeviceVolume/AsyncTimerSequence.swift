@@ -11,31 +11,32 @@
 
 struct AsyncTimerSequence<C: Clock>: AsyncSequence, Sendable {
   public typealias Element = C.Instant
-  
+
   struct Iterator: AsyncIteratorProtocol, Sendable {
     var clock: C?
     let interval: C.Instant.Duration
     let tolerance: C.Instant.Duration?
     var last: C.Instant?
-    
+
     init(interval: C.Instant.Duration, tolerance: C.Instant.Duration?, clock: C) {
       self.clock = clock
       self.interval = interval
       self.tolerance = tolerance
     }
-    
+
     func nextDeadline(_ clock: C) -> C.Instant {
       let now = clock.now
       let last = self.last ?? now
       let next = last.advanced(by: interval)
       if next < now {
         return last.advanced(
-          by: interval * Int(((next.duration(to: now)) / interval).rounded(.up)))
+          by: interval * Int(((next.duration(to: now)) / interval).rounded(.up))
+        )
       } else {
         return next
       }
     }
-    
+
     mutating func next() async -> C.Instant? {
       guard let clock = clock else {
         return nil
@@ -52,17 +53,17 @@ struct AsyncTimerSequence<C: Clock>: AsyncSequence, Sendable {
       return now
     }
   }
-  
+
   let clock: C
   let interval: C.Instant.Duration
   let tolerance: C.Instant.Duration?
-  
+
   init(interval: C.Instant.Duration, tolerance: C.Instant.Duration? = nil, clock: C) {
     self.clock = clock
     self.interval = interval
     self.tolerance = tolerance
   }
-  
+
   func makeAsyncIterator() -> Iterator {
     Iterator(interval: interval, tolerance: tolerance, clock: clock)
   }

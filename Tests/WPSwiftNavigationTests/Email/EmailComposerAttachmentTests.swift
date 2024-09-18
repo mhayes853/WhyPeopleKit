@@ -1,6 +1,6 @@
-import WPSwiftNavigation
-import WPFoundation
 import Testing
+import WPFoundation
+import WPSwiftNavigation
 
 @Suite("EmailComposerAttachment tests")
 struct EmailComposerAttachmentTests {

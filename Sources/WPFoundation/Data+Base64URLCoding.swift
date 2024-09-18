@@ -22,7 +22,8 @@ extension Data {
   /// Returns nil when the input is not recognized as valid Base-64.
   /// - parameter base64URLEncoded: The string to parse.
   public init?(base64URLEncoded: String) {
-    var base64Encoded = base64URLEncoded
+    var base64Encoded =
+      base64URLEncoded
       .replacingOccurrences(of: "-", with: "+")
       .replacingOccurrences(of: "_", with: "/")
     let byteLength = Double(base64Encoded.lengthOfBytes(using: .utf8))

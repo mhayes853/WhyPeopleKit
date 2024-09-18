@@ -1,5 +1,5 @@
-import Perception
 import AVFoundation
+import Perception
 import SwiftUI
 
 // MARK: - DeviceOutputVolumeModel
@@ -39,18 +39,18 @@ import SwiftUI
 public final class DeviceOutputVolumeModel {
   /// The current ``DeviceOutputVolumeStatus``.
   public private(set) var status = DeviceOutputVolumeStatus(outputVolume: 0)
-  
+
   /// An error if one occurred when observing the ``DeviceOutputVolume``.
   ///
   /// If this value is non-nil, then ``status`` will no longer be updated.
   public private(set) var error: (any Error)?
-  
+
   @PerceptionIgnored private var task: Task<Void, Never>?
-  
+
   deinit {
     Task { @MainActor [task] in task?.cancel() }
   }
-  
+
   /// Initializes this model with an escaping closure to create the ``DeviceOutputVolume`` instance
   /// to observe.
   ///

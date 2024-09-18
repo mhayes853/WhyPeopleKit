@@ -4,13 +4,13 @@
 public struct DeviceOutputVolumeStatus: Hashable, Sendable {
   /// The amount of volume in in the range [0, 1].
   public var outputVolume: Double
-  
+
   /// Whether or not the device is muted through hardware or software means.
   ///
   /// watchOS does not have a mechanism to detect if the device is globally muted, so this property
   /// is always false.
   public var isMuted: Bool
-  
+
   /// Iniitializes a ``DeviceOutputVolumeStatus`` instance.
   ///
   /// - Parameters:
@@ -21,7 +21,7 @@ public struct DeviceOutputVolumeStatus: Hashable, Sendable {
     self.outputVolume = outputVolume
     self.isMuted = isMuted
   }
-  
+
   /// Iniitializes a ``DeviceOutputVolumeStatus`` instance.
   ///
   /// - Parameters:
@@ -37,7 +37,7 @@ extension DeviceOutputVolumeStatus {
   public var hasVolume: Bool {
     self.outputVolume > 0
   }
-  
+
   /// Returns true if the device does not have volume, or if it is muted.
   public var isSilent: Bool {
     !self.hasVolume || self.isMuted
@@ -84,18 +84,18 @@ extension DeviceOutputVolume {
 /// is automatically invoked when the subscription is deallocated.
 public final class DeviceOutputVolumeSubscription: Sendable {
   private let onCancel: @Sendable () -> Void
-  
+
   /// Initializes a subscription with a closure that runs when the subscription is cancelled.
-  /// 
+  ///
   /// - Parameter onCancel: A closure to cleanup any resources used by the subscription.
   public init(onCancel: @Sendable @escaping () -> Void) {
     self.onCancel = onCancel
   }
-  
+
   deinit {
     self.cancel()
   }
-  
+
   /// Cancels this subscription.
   public func cancel() {
     self.onCancel()

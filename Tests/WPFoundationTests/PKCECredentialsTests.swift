@@ -20,7 +20,7 @@ struct PKCECredentialsTests {
     #expect(credentials.codeVerifier == verifier)
     #expect(credentials.codeChallenge == verifier)
   }
-  
+
   @Test(
     "SHA256 code challenge initialization",
     arguments: [
@@ -37,14 +37,14 @@ struct PKCECredentialsTests {
     #expect(credentials.codeVerifier == verifier)
     #expect(credentials.codeChallenge == challenge)
   }
-  
+
   @Test("Random initialization generates random instances")
   func random() throws {
     let c1 = try PKCECredentials()
     let c2 = try PKCECredentials()
     #expect(c1 != c2)
   }
-  
+
   @Test("Random initialization stays within RFC7636 character length limits.")
   func randomVerifierLength() throws {
     for _ in 0..<100 {

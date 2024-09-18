@@ -1,6 +1,6 @@
-import WPFoundation
 import Foundation
 import Testing
+import WPFoundation
 
 @Suite("Data+Base64URLCoding tests")
 struct DataBase64URLCodingTests {
@@ -19,7 +19,7 @@ struct DataBase64URLCodingTests {
     let encodedString = Data(plain.utf8).base64URLEncodedString()
     #expect(encodedString == expected)
   }
-  
+
   @Test(
     "String Decoding",
     arguments: [

@@ -10,7 +10,7 @@ public struct TimedConfirmation: Sendable {
   private let expectedCount: Int
   private let count = OSAllocatedUnfairLock(initialState: 0)
   private let sleepTask: Task<Void, Error>
-  
+
   fileprivate init(
     confirmation: Confirmation,
     expectedCount: Int,
@@ -41,7 +41,7 @@ extension TimedConfirmation {
       }
     }
   }
-  
+
   /// Confirm this confirmation.
   ///
   /// - Parameters:

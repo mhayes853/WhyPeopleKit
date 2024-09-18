@@ -1,12 +1,12 @@
-import Security
 import Foundation
+import Security
 
 // MARK: - SecError
 
 /// An error type for error codes returned from the Security framework.
 public struct SecError: Error, Hashable, Sendable {
   public let code: OSStatus
-  
+
   public init(code: OSStatus) {
     self.code = code
   }

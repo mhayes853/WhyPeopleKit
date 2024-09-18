@@ -1,6 +1,6 @@
-import WPDeviceVolume
 import ConcurrencyExtras
 import Testing
+import WPDeviceVolume
 
 @MainActor
 @Suite("DeviceOutputVolumeModel tests")
@@ -13,13 +13,13 @@ struct DeviceOutputVolumeModelTests {
     continuation.yield(status)
     await Task.megaYield()
     #expect(model.status == status)
-    
+
     status = DeviceOutputVolumeStatus(outputVolume: 0.2)
     continuation.yield(status)
     await Task.megaYield()
     #expect(model.status == status)
   }
-  
+
   @Test("Forwards Error from DeviceOutputVolume")
   func forwardsError() async {
     let (stream, continuation) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()

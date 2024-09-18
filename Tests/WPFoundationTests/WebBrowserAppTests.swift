@@ -1,5 +1,5 @@
-import WPFoundation
 import Testing
+import WPFoundation
 
 @Suite("WebBrowserApp tests")
 struct WebBrowserAppTests {
@@ -9,7 +9,10 @@ struct WebBrowserAppTests {
       (WebBrowserApp.inAppSafari, nil),
       (WebBrowserApp.systemDefault, URL(string: "https://www.google.com")!),
       (WebBrowserApp.firefox, URL(string: "firefox://open-url?url=https://www.google.com")!),
-      (WebBrowserApp.firefoxFocus, URL(string: "firefox-focus://open-url?url=https://www.google.com")!),
+      (
+        WebBrowserApp.firefoxFocus,
+        URL(string: "firefox-focus://open-url?url=https://www.google.com")!
+      ),
       (WebBrowserApp.opera, URL(string: "touch-https://www.google.com")!),
       (WebBrowserApp.operaGX, URL(string: "opera-gx://open-url?url=https://www.google.com")!),
       (WebBrowserApp.brave, URL(string: "brave://open-url?url=https://www.google.com")!),

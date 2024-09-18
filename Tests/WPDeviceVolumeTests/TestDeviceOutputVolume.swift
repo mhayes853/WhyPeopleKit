@@ -2,7 +2,7 @@ import WPDeviceVolume
 
 struct TestDeviceOutputVolume: DeviceOutputVolume {
   let statusUpdates: AsyncThrowingStream<DeviceOutputVolumeStatus, Error>
-  
+
   func subscribe(
     _ callback: @escaping @Sendable (Result<DeviceOutputVolumeStatus, any Error>) -> Void
   ) -> DeviceOutputVolumeSubscription {

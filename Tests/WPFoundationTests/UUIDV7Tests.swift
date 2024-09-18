@@ -1,6 +1,7 @@
-@testable import WPFoundation
-import Testing
 import IssueReporting
+import Testing
+
+@testable import WPFoundation
 
 @Suite("UUIDV7 tests")
 struct UUIDV7Tests {
@@ -18,7 +19,7 @@ struct UUIDV7Tests {
   func fromUUIDInvalid(uuid: UUID) async throws {
     #expect(UUIDV7(uuid) == nil)
   }
-  
+
   @Test(
     "From UUID Valid",
     arguments: [
@@ -32,7 +33,7 @@ struct UUIDV7Tests {
   func fromUUIDValid(uuid: UUID) async throws {
     #expect(UUIDV7(uuid)?.rawValue == uuid)
   }
-  
+
   @Test(
     "From UUID String Invalid",
     arguments: [
@@ -46,7 +47,7 @@ struct UUIDV7Tests {
   func fromUUIDStringInvalid(uuid: String) async throws {
     #expect(UUIDV7(uuidString: uuid) == nil)
   }
-  
+
   @Test(
     "From UUID String Valid",
     arguments: [
@@ -59,7 +60,7 @@ struct UUIDV7Tests {
   func fromUUIDStringValid(uuid: String) async throws {
     #expect(UUIDV7(uuidString: uuid)?.uuidString == uuid)
   }
-  
+
   @Test(
     "From uuid_t Invalid",
     arguments: [
@@ -70,7 +71,7 @@ struct UUIDV7Tests {
   func fromUUIDTInvalid(uuid: UUID) async throws {
     #expect(UUIDV7(uuid: uuid.uuid) == nil)
   }
-  
+
   @Test(
     "From uuid_t Valid",
     arguments: [
@@ -82,7 +83,7 @@ struct UUIDV7Tests {
     let uuid2 = try #require(UUIDV7(uuid: uuid.uuid)?.uuid)
     #expect(UUID(uuid: uuid2) == uuid)
   }
-  
+
   @Test(
     "From Date",
     arguments: [
@@ -98,7 +99,7 @@ struct UUIDV7Tests {
     let pattern = /^[0-9A-F]{8}-[0-9A-F]{4}-7[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/
     #expect(uuid.uuidString.wholeMatch(in: pattern) != nil)
   }
-  
+
   @Test(
     "From Date and Deterministic Integer",
     arguments: [
@@ -113,7 +114,7 @@ struct UUIDV7Tests {
     let uuid = UUIDV7(Date(staticISO8601: "2024-09-09T22:37:05+0000"), integer)
     #expect(uuid == UUIDV7(uuidString: uuidString))
   }
-  
+
   @Test(
     "Stores Date",
     arguments: [
@@ -127,36 +128,36 @@ struct UUIDV7Tests {
     let uuid = UUIDV7(date)
     #expect(uuid.date == date)
   }
-  
+
   @Test("2 Random Instances are Not Equal")
   func randomNotEqual() async throws {
     let (u1, u2) = (UUIDV7(), UUIDV7())
     #expect(u1 != u2)
   }
-  
+
   @Test("2 Same Dated Instances are Not Equal")
   func datedNotEqual() async throws {
     let date = Date()
     let (u1, u2) = (UUIDV7(date), UUIDV7(date))
     #expect(u1 != u2)
   }
-  
+
   @Test("Comparable")
   func comparable() async throws {
     var u1 = UUIDV7(Date(staticISO8601: "2024-09-09T22:37:05+0000"))
     var u2 = UUIDV7(Date(staticISO8601: "2024-09-09T22:41:15+0000"))
     #expect(u2 > u1)
     #expect(u1 < u2)
-    
+
     u2 = UUIDV7(Date(staticISO8601: "1993-05-20T10:40:43+0000"), 1000)
     #expect(u2 < u1)
     #expect(u1 > u2)
-    
+
     u1 = UUIDV7(Date(staticISO8601: "1993-05-20T10:40:43+0000"), 1001)
     #expect(u2 < u1)
     #expect(u1 > u2)
   }
-  
+
   @Test("Monotonically Increases when Generated Randomly")
   func monotonicallyIncreasing() async throws {
     var u1 = UUIDV7()
@@ -167,7 +168,7 @@ struct UUIDV7Tests {
       u1 = u2
     }
   }
-  
+
   @Test("Monotonically Increases when System Time is Moved Backwards")
   func monotonicallyIncreasingWhenBackwards() async throws {
     let date = Date()
@@ -179,7 +180,7 @@ struct UUIDV7Tests {
     #expect(u1 < u2)
     #expect(u2 < u3)
   }
-  
+
   @Test("Monotonically Increases when System Time Fluctuates")
   func monotonicallyIncreasingWhenFluctuating() async throws {
     let date = Date()
@@ -192,7 +193,7 @@ struct UUIDV7Tests {
       u1 = u2
     }
   }
-  
+
   @Test("Monotonically Increases when Jump in System Time")
   func monotonicallyIncreasesWhenJump() async throws {
     let date = Date()

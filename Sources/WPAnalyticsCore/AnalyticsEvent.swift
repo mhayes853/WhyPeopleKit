@@ -3,7 +3,7 @@ import WPFoundation
 // MARK: - AnalyticsEvent
 
 /// A type for a payload that can be recorded by an analytics platform.
-/// 
+///
 /// This type contains a few cases which are deemed necessary for any analytics platform, and uses
 /// the ``custom(_:)`` case when tapping into features specific to the analytics platform.
 public enum AnalyticsEvent: Sendable {
@@ -16,19 +16,19 @@ public enum AnalyticsEvent: Sendable {
   ///   - name: The name of the event.
   ///   - properties: The properties associated with the event.
   case event(name: String, properties: [String: Value?])
-  
+
   /// An event for identifying the current user.
   ///
   /// - Parameters:
   ///   - distinctId: A string that uniquely identifies the current user.
   case identify(distinctId: String)
-  
+
   /// An event for opting in and out of analytics tracking.
   case opt(OptInStatus)
-  
+
   /// An event for associating properties with the current user.
   case setUserProperties([String: Value?])
-  
+
   /// An event for defining custom events.
   ///
   /// You can use this case to define events that tap into functionallity particular to a specific
@@ -36,7 +36,7 @@ public enum AnalyticsEvent: Sendable {
   /// this type.
   ///
   /// Any event passed into this case must be both `Sendable` and `Equatable`. To avoid equality
-  /// conflicts, you'll want to create a dedicated type for each kind of custom event in your 
+  /// conflicts, you'll want to create a dedicated type for each kind of custom event in your
   /// application.
   ///
   /// ```swift
@@ -147,27 +147,27 @@ extension AnalyticsEvent.Value {
   public static func integer(_ i: Int) -> Self {
     .integer(Int64(i))
   }
-  
+
   @inlinable
   public static func unsignedInteger(_ i: UInt) -> Self {
     .unsignedInteger(UInt64(i))
   }
-  
+
   @inlinable
   public static func integer(_ i: Int16) -> Self {
     .integer(Int64(i))
   }
-  
+
   @inlinable
   public static func unsignedInteger(_ i: UInt16) -> Self {
     .unsignedInteger(UInt64(i))
   }
-  
+
   @inlinable
   public static func integer(_ i: Int8) -> Self {
     .integer(Int64(i))
   }
-  
+
   @inlinable
   public static func unsignedInteger(_ i: UInt8) -> Self {
     .unsignedInteger(UInt64(i))
@@ -181,7 +181,7 @@ extension AnalyticsEvent.Value {
   public static func float(_ f: Float16) -> Self {
     .double(Double(f))
   }
-  
+
   @inlinable
   public static func float(_ f: Float) -> Self {
     .double(Double(f))

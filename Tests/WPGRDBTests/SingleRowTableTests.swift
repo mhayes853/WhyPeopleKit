@@ -1,12 +1,12 @@
-import WPGRDB
 import Testing
+import WPGRDB
 
 @Suite("SingleRowTable tests")
 struct SingleRowTableTests {
   @Suite("SingleRowTableRecord tests")
   struct SingleRowRecordTests {
     private let queue = try! DatabaseQueue()
-    
+
     init() async throws {
       try await self.queue.write { db in
         try db.create(table: "test") { table in
@@ -15,7 +15,7 @@ struct SingleRowTableTests {
         }
       }
     }
-    
+
     @Test("Can Update Non-Inserted Record")
     func updatesNonInserted() async throws {
       let record = try await self.queue.write { db in
@@ -25,7 +25,7 @@ struct SingleRowTableTests {
       #expect(record == TestRecord(text: "Foo"))
     }
   }
-  
+
   @Suite("TableDefinition+SingleRowTableID tests")
   struct TableDefinitionSingleRowTableIDTests {
     @Test("Accepts Single Insert")
@@ -43,7 +43,7 @@ struct SingleRowTableTests {
         #expect(strings == ["hello"])
       }
     }
-    
+
     @Test("Rejects Multiple Inserts")
     func rejectsMultipleInserts() async throws {
       let queue = try DatabaseQueue()
@@ -60,7 +60,7 @@ struct SingleRowTableTests {
         }
       }
     }
-    
+
     @Test("Replaces on Conflict")
     func replacesConflict() async throws {
       let queue = try DatabaseQueue()
@@ -82,7 +82,7 @@ struct SingleRowTableTests {
 
 private struct TestRecord: Hashable, Sendable, Codable, SingleRowTableRecord {
   static let databaseTableName = "test"
-  
+
   private(set) var id = 1
   var text = ""
 }

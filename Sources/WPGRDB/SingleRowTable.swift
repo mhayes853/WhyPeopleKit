@@ -13,14 +13,14 @@ extension SingleRowTableRecord {
       try Self().insert(db)
     }
   }
-  
+
   /// Returns the sole record from the database.
   ///
   /// - Parameter db: A database connection.
   public static func find(_ db: Database) throws -> Self {
     try Self.fetchOne(db) ?? Self()
   }
-  
+
   /// Performs an update on the sole record from the database.
   ///
   /// - Parameters:

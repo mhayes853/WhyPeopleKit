@@ -1,5 +1,5 @@
-import WPAnalyticsCore
 import Testing
+import WPAnalyticsCore
 
 @Suite("AnalyticsEvent tests")
 struct AnalyticsEventTests {
@@ -10,13 +10,15 @@ struct AnalyticsEventTests {
       (.identify(distinctId: "user"), .identify(distinctId: "user")),
       (.setUserProperties(["hello": "world"]), .setUserProperties(["hello": "world"])),
       (.opt(.in), .opt(.in)),
-      (AnalyticsEvent.custom(CustomEvent(number: 1)), AnalyticsEvent.custom(CustomEvent(number: 1)))
+      (
+        AnalyticsEvent.custom(CustomEvent(number: 1)), AnalyticsEvent.custom(CustomEvent(number: 1))
+      )
     ]
   )
   func equal(e1: AnalyticsEvent, e2: AnalyticsEvent) {
     #expect(e1 == e2)
   }
-  
+
   @Test(
     "Equatable, Non-Equal Values",
     arguments: [

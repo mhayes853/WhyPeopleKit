@@ -1,5 +1,5 @@
-import WPFoundation
 import Testing
+import WPFoundation
 
 @Suite("StringProtocol+Characters tests")
 struct StringProtocolCharactersTests {
@@ -19,7 +19,7 @@ struct StringProtocolCharactersTests {
   func capitalizeFirst(string: String, expected: String) {
     #expect(string.firstCharacterCapitalized == expected)
   }
-  
+
   @Test(
     "Character Before Index, Non Empty Returns Character Before or Nil",
     arguments: [
@@ -33,7 +33,7 @@ struct StringProtocolCharactersTests {
     let index = try #require(string.firstIndex { $0 == char })
     #expect(string.character(before: index) == before)
   }
-  
+
   @Test(
     "Character After Index, Non Empty Returns Character Before or Nil",
     arguments: [

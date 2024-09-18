@@ -22,7 +22,7 @@ extension Bundle {
     }
     return url
   }
-  
+
   /// Returns a URL of a resource in this bundle assuming that it exists.
   ///
   /// If the resource does not exist, this function will raise a fatal error.
@@ -47,7 +47,7 @@ extension Bundle {
     }
     return url
   }
-  
+
   private func notFoundError(
     name: StaticString?,
     ext: StaticString?,
@@ -60,7 +60,9 @@ extension Bundle {
     case let (.none, _, subdirectory?):
       fatalError("No resource found in subdirectory \(subdirectory) of this bundle.")
     case let (name?, ext?, subdirectory?):
-      fatalError("Resource \(name).\(ext) not found in subdirectory \(subdirectory) of this bundle.")
+      fatalError(
+        "Resource \(name).\(ext) not found in subdirectory \(subdirectory) of this bundle."
+      )
     case let (name?, .none, subdirectory?):
       fatalError("Resource \(name) not found in subdirectory \(subdirectory) of this bundle.")
     case let (name?, ext?, .none):

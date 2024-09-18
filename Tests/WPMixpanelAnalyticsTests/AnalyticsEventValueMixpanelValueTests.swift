@@ -1,6 +1,6 @@
-import WPMixpanelAnalytics
 import Testing
 import WPFoundation
+import WPMixpanelAnalytics
 
 @Suite("AnalyticsEventValue+MixpanelValue tests")
 struct AnalyticsEventValueMixpanelValueTests {

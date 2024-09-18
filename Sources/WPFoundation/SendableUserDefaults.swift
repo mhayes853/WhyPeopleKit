@@ -25,7 +25,7 @@ extension SendableUserDefaults {
   public struct Observation: Sendable {
     fileprivate let observer: Observer
   }
-  
+
   /// Observes a value for a specified key in an update closure.
   ///
   /// The key must be formatted like a swift variable name. Otherwise, value updates will not be
@@ -54,14 +54,14 @@ extension SendableUserDefaults {
     self.addObserver(observer, forKeyPath: key, options: options, context: nil)
     return Observation(observer: observer)
   }
-  
+
   /// Cancels an observation from ``observeValue(forKey:options:_:)``.
   ///
   /// - Parameter observation: An ``Observation``.
   public func removeObservation(_ observation: Observation) {
     self.removeObserver(observation.observer, forKeyPath: observation.observer.key)
   }
-  
+
   fileprivate final class Observer: NSObject, Sendable {
     let key: String
     private let onUpdate: @Sendable (Any?) -> Void
@@ -92,7 +92,7 @@ extension SendableUserDefaults {
     let key: String
     let options: NSKeyValueObservingOptions
     let userDefaults: SendableUserDefaults
-    
+
     public func makeAsyncIterator() -> AsyncStream<Any?>.Iterator {
       AsyncStream { continuation in
         let observation = self.userDefaults.observeValue(
@@ -110,7 +110,7 @@ extension SendableUserDefaults {
       .makeAsyncIterator()
     }
   }
-  
+
   /// An asynchronous sequence of updates to the value for a specified key.
   ///
   /// The key must be formatted like a swift variable name. Otherwise, value updates will not be
@@ -140,25 +140,25 @@ extension SendableUserDefaults {
 // MARK: - Valid Key Check
 
 #if DEBUG
-// NB: It shouldn't be possible for regex literals to be non-thread-safe.
-nonisolated(unsafe) private let swiftVariableName = /^[a-zA-Z_$][\w$]*$/
+  // NB: It shouldn't be possible for regex literals to be non-thread-safe.
+  nonisolated(unsafe) private let swiftVariableName = /^[a-zA-Z_$][\w$]*$/
 #endif
 
 extension SendableUserDefaults {
   private func debugValidKeyCheck(_ key: String) {
-#if DEBUG
-    if !key.contains(swiftVariableName) {
-      reportIssue(
-        """
-        An invalid key format was detected for SendableUserDefaults value observation:
-          
-          - Key: \(key)
-        
-        Key names which do not use the same format as swift variable names will not receive any \
-        KVO updates.
-        """
-      )
-    }
-#endif
+    #if DEBUG
+      if !key.contains(swiftVariableName) {
+        reportIssue(
+          """
+          An invalid key format was detected for SendableUserDefaults value observation:
+            
+            - Key: \(key)
+
+          Key names which do not use the same format as swift variable names will not receive any \
+          KVO updates.
+          """
+        )
+      }
+    #endif
   }
 }

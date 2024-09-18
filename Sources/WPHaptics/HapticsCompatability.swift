@@ -1,7 +1,7 @@
 import SwiftUI
 
 #if canImport(CoreHaptics)
-import CoreHaptics
+  import CoreHaptics
 #endif
 
 // MARK: - HapticsCompatability
@@ -10,10 +10,10 @@ import CoreHaptics
 public struct HapticsCompatability: Hashable, Sendable {
   /// Whether or not the device supports haptic feedback.
   public let supportsFeedback: Bool
-  
+
   /// Whether or not the device supports custom sound effects alongside haptic feedback.
   public let supportsCustomAudio: Bool
-  
+
   public init(supportsFeedback: Bool, supportsCustomAudio: Bool) {
     self.supportsFeedback = supportsFeedback
     self.supportsCustomAudio = supportsCustomAudio
@@ -34,15 +34,15 @@ extension HapticsCompatability {
 extension HapticsCompatability {
   /// The ``HapticsCompatability`` for the current hardware.
   public static var currentForHardware: Self {
-#if canImport(CoreHaptics)
-    let capabilities = CHHapticEngine.capabilitiesForHardware()
-    return Self(
-      supportsFeedback: capabilities.supportsHaptics,
-      supportsCustomAudio: capabilities.supportsAudio
-    )
-#else
-    Self(supportsFeedback: true, supportsCustomAudio: false)
-#endif
+    #if canImport(CoreHaptics)
+      let capabilities = CHHapticEngine.capabilitiesForHardware()
+      return Self(
+        supportsFeedback: capabilities.supportsHaptics,
+        supportsCustomAudio: capabilities.supportsAudio
+      )
+    #else
+      Self(supportsFeedback: true, supportsCustomAudio: false)
+    #endif
   }
 }
 

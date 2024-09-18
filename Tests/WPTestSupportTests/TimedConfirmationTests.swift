@@ -1,5 +1,5 @@
-import Testing
 import Foundation
+import Testing
 import WPTestSupport
 
 @Suite("TimedConfirmation tests")
@@ -18,7 +18,7 @@ struct TimedConfirmationTests {
       NotificationCenter.default.removeObserver(observer)
     }
   }
-  
+
   @Test("Raises Issue After Timeout")
   func raisesTimeoutIssue() async {
     let clock = ContinuousClock()
@@ -39,7 +39,7 @@ struct TimedConfirmationTests {
     let expectedTimeRange = Duration.milliseconds(150)...Duration.milliseconds(250)
     #expect(expectedTimeRange.contains(time))
   }
-  
+
   @Test("Raises Issue After Timeout, When Body Runs Longer Than Timeout")
   func raisesTimeoutIssueOnLongBody() async {
     let clock = ContinuousClock()
@@ -60,7 +60,7 @@ struct TimedConfirmationTests {
     }
     #expect(time < .seconds(1))
   }
-  
+
   @Test("Raises Issue After Confirming More than Expected Count")
   func raisesIssueOnOverconfirm() async {
     await withKnownIssue {

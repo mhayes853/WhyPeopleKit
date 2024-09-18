@@ -1,5 +1,5 @@
-import WPAnalyticsCore
 import Testing
+import WPAnalyticsCore
 
 @Suite("TestAnalyticsRecorder tests")
 struct TestAnalyticsRecorderTests {

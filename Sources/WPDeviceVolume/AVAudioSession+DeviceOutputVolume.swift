@@ -10,7 +10,7 @@ import AVFoundation
 @available(macOS, unavailable)
 public final class AVAudioSessionDeviceOutputVolume: Sendable {
   public let session: AVAudioSession
-  
+
   /// Attempts to initialize an ``AVAudioSessionDeviceOutputVolume`` by setting the specified
   /// `AVAudioSession` to active.
   ///
@@ -36,7 +36,7 @@ extension AVAudioSessionDeviceOutputVolume: DeviceOutputVolume {
     let state = RemoveDuplicatesState(callback)
     let observer = self.session.observe(
       \.outputVolume,
-       options: [.initial, .new]
+      options: [.initial, .new]
     ) { session, _ in
       let status = DeviceOutputVolumeStatus(outputVolume: Double(session.outputVolume))
       state.emit { $0 = status }

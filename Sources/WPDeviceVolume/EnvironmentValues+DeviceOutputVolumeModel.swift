@@ -7,7 +7,7 @@ extension EnvironmentValues {
     get { self[DeviceOutputVolumeModelKey.self] }
     set { self[DeviceOutputVolumeModelKey.self] = newValue }
   }
-  
+
   @MainActor
   private struct DeviceOutputVolumeModelKey: @preconcurrency EnvironmentKey {
     static let defaultValue = DeviceOutputVolumeModel.default

@@ -1,5 +1,5 @@
-import Mixpanel
 import Foundation
+import Mixpanel
 import WPAnalyticsCore
 
 // MARK: - Event Type
@@ -45,7 +45,7 @@ extension Dictionary where Key == String, Value == AnalyticsEvent.Value {
 
 // MARK: - Optional Type
 
-extension Optional<AnalyticsEvent.Value> {
+extension AnalyticsEvent.Value? {
   /// This value as a `MixpanelType`.
   ///
   /// If this value is nil, then `NSNull` is returned.

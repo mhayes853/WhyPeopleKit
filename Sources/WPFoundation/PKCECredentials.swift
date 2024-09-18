@@ -1,6 +1,6 @@
+import CryptoKit
 import Foundation
 import Security
-import CryptoKit
 
 // MARK: - Credentials
 
@@ -10,7 +10,7 @@ public struct PKCECredentials: Hashable, Sendable {
   public let codeVerifier: String
   public let codeChallenge: String
   public let challengeMethod: CodeChallengeMethod
-  
+
   /// Initiializes a ``PKCECredentials`` instance from a specified code verifier.
   ///
   /// - Parameters:

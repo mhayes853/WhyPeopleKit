@@ -25,7 +25,7 @@ extension StringProtocol {
     guard index > self.startIndex else { return nil }
     return self[self.index(before: index)]
   }
-  
+
   /// Returns the character of the index immediately after the specified index.
   ///
   /// This string must be non-empty.

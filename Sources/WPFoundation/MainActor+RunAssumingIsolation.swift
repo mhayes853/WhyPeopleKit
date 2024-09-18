@@ -39,7 +39,7 @@ extension MainActor {
   /// - Returns: the return value of the `operation`
   /// - Throws: rethrows the `Error` thrown by the operation if it threw
   @_alwaysEmitIntoClient
-  @_unavailableFromAsync(message: "await the call to the @MainActor closure directly")
+  @_unavailableFromAsync(message:"await the call to the @MainActor closure directly")
   public static func runAssumingIsolation<T: Sendable>(
     _ operation: @MainActor () throws -> T,
     file: StaticString = #fileID,

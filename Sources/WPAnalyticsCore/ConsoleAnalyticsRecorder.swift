@@ -3,11 +3,11 @@
 /// An ``AnalyticsRecordable`` conformance that logs events to the console.
 public struct ConsoleAnalyticsRecorder: AnalyticsRecordable, Sendable {
   public init() {}
-  
+
   public func record(event: AnalyticsEvent) {
-#if DEBUG
-    print("[Analytics]: \(event).")
-#endif
+    #if DEBUG
+      print("[Analytics]: \(event).")
+    #endif
   }
 }
 
@@ -32,7 +32,7 @@ extension AnalyticsRecordable {
 public struct _WithConsoleLoggingRecordable<Base: AnalyticsRecordable>: AnalyticsRecordable {
   let base: Base
   let console = ConsoleAnalyticsRecorder()
-  
+
   public func record(event: AnalyticsEvent) {
     self.base.record(event: event)
     self.console.record(event: event)

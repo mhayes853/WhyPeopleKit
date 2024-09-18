@@ -1,5 +1,5 @@
-import WPFoundation
 import Testing
+import WPFoundation
 
 @Suite("EmailAddress tests")
 struct EmailAddressTests {
@@ -38,7 +38,7 @@ struct EmailAddressTests {
   func valid(email: String) {
     #expect(EmailAddress(email)?.rawValue == email)
   }
-  
+
   @Test(
     "Invalid Emails",
     arguments: [

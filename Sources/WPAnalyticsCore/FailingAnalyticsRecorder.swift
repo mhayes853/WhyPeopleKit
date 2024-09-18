@@ -1,12 +1,12 @@
-import WPFoundation
 private import IssueReporting
+import WPFoundation
 
 // MARK: - FailingAnalyticsRecorder
 
 /// An ``AnalyticsRecordable`` conformance that fails the current test when an event is recorded.
 public struct FailingAnalyticsRecorder: AnalyticsRecordable, Sendable {
   public init() {}
-  
+
   public func record(event: AnalyticsEvent) {
     reportIssue("[Analytics]: \(event).")
   }

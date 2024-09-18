@@ -11,7 +11,7 @@ extension CGRect {
     var generator = SystemRandomNumberGenerator()
     return self.randomPoint(using: &generator)
   }
-  
+
   /// A random point in this rect.
   ///
   /// - Parameter generator: The random number generator to use when selecting the random point.
@@ -27,7 +27,7 @@ extension CGRect {
 // MARK: - Random Squares
 
 extension CGSize {
-  
+
   /// Returns a random size with an equal width and height.
   ///
   /// - Parameter range: The range in which to create a random value. Must be finite.
@@ -37,7 +37,7 @@ extension CGSize {
     var generator = SystemRandomNumberGenerator()
     return .randomSquare(in: range, using: &generator)
   }
-  
+
   /// Returns a random size with an equal width and height.
   ///
   /// - Parameters:

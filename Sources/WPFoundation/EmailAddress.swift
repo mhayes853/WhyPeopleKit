@@ -65,7 +65,7 @@ private nonisolated(unsafe) let emailRegex = Regex {
 /// A data type representing a valid email address.
 public struct EmailAddress: Hashable, Sendable, Codable {
   public let rawValue: String
-  
+
   /// Attempts to create an email address by validating the specifed string.
   ///
   /// - Parameter email: An email string.

@@ -133,7 +133,7 @@ public struct EmailComposerState: Hashable, Sendable {
   public var isMessageBodyHTML = false
   public var preferredSendingEmailAddress: EmailAddress?
   public var attachments: [EmailComposerAttachment]?
-  
+
   /// Creates an email composer state.
   ///
   /// - Parameters:
@@ -164,7 +164,7 @@ public struct EmailComposerState: Hashable, Sendable {
     self.preferredSendingEmailAddress = preferredSendingEmailAddress
     self.attachments = attachments
   }
-  
+
   /// Creates an email composer state with an HTML body.
   ///
   /// - Parameters:

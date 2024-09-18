@@ -1,5 +1,5 @@
-import WPFoundation
 import Testing
+import WPFoundation
 
 @Suite("MIMEType tests")
 struct MIMETypeTests {
