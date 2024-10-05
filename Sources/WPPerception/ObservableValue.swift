@@ -1,5 +1,6 @@
 // MARK: - ObservableValue
 
+/// A protocol to mark a value type as observable to be used in conjunction with ``ObservedValue``.
 public protocol ObservableValue {}
 
 // MARK: - Box

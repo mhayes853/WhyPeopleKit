@@ -2,6 +2,146 @@ import Perception
 
 // MARK: - ObservedValue
 
+/// A utility class for efficiently observing value types using `Perceptible` and `Observable`.
+///
+/// # Overview
+///
+/// Value types cannot use the `@Perceptible` or `@Observable` macro, and this often creates
+/// problems when using value types within `@Perceptible` or `@Observable` classes.
+///
+/// For instance, let's say we have a large value type called `Preferences` that is used for
+/// reading application preferences in many areas throughout an application, and we use it inside
+/// an `@Perceptible` model like so:
+/// ```swift
+/// struct Preferences {
+///   var isAnalyticsEnabled = true
+///   var isDarkModeEnabled = true
+///   // Many more properties...
+/// }
+///
+/// @Perceptible
+/// final class PreferencesModel {
+///   var preferences = Preferences()
+/// }
+/// ```
+///
+/// Since it contains the app's preferences, `PreferencesModel` is used by many views and is passed
+/// through the environment. However, any single view only needs to access 1 or a small subset of
+/// properties of the `Preferences`. Let's say we have 2 views, the first contains a toggle for
+/// analytics, and the second contains a toggle for dark mode.
+/// ```swift
+/// struct AnalyticsView: View {
+///   @Environment(PreferencesModel.self) var model
+///
+///   var body: some View {
+///     @Bindable var model = self.model
+///     VStack {
+///       // 🔴 This toggle will cause the body of DarkModeView to recompute even though we're
+///       // only changing isAnalyticsEnabled!
+///       Toggle(isOn: $model.preferences.isAnalyticsEnabled) {
+///         Text("Is Analytics Enabled")
+///       }
+///     }
+///   }
+/// }
+///
+/// struct DarkModeView: View {
+///   @Environment(PreferencesModel.self) var model
+///
+///   var body: some View {
+///     @Bindable var model = self.model
+///     VStack {
+///       // 🔴 This toggle will cause the body of AnalyticsView to recompute even though we're
+///       // only changing isDarkModeEnabled!
+///       Toggle(isOn: $model.preferences.isDarkModeEnabled) {
+///         Text("Is Dark Mode Enabled")
+///       }
+///     }
+///   }
+/// }
+/// ```
+///
+/// The reason this phenomenon occurs is because the `@Perceptible` and `@Observable` macro have no
+/// way of detecting access to a single property of `Preferences`. Rather, they only detect the
+/// access to `Preferences` as a whole because it is a value type.
+///
+/// To get around this, you can use ``ObservedValue`` and the ``ObservableValue`` protocol. First,
+/// conform your value type to the ``ObservableValue`` protocol.
+/// ```swift
+/// struct Preferences: ObservableValue {
+///   var isAnalyticsEnabled = true
+///   var isDarkModeEnabled = true
+///   // Many more properties...
+/// }
+/// ```
+///
+/// Next, leverage ``ObservedValue`` inside your model class.
+/// ```swift
+/// @Perceptible
+/// final class BetterPreferencesModel {
+///   var preferences = ObservedValue(Preferences())
+/// }
+/// ```
+///
+/// And finally, connect it with the view.
+/// ```swift
+/// struct BetterAnalyticsView: View {
+///   @Environment(BetterPreferencesModel.self) var model
+///
+///   var body: some View {
+///     @Bindable var model = self.model
+///     VStack {
+///       // ✅ This toggle will only cause this view's body to recompute.
+///       Toggle(isOn: $model.preferences.isAnalyticsEnabled) {
+///         Text("Is Analytics Enabled")
+///       }
+///     }
+///   }
+/// }
+///
+/// struct BetterDarkModeView: View {
+///   @Environment(BetterPreferencesModel.self) var model
+///
+///   var body: some View {
+///     @Bindable var model = self.model
+///     VStack {
+///       // ✅ This toggle will only cause this view's body to recompute.
+///       Toggle(isOn: $model.preferences.isDarkModeEnabled) {
+///         Text("Is Dark Mode Enabled")
+///       }
+///     }
+///   }
+/// }
+/// ```
+///
+/// # Sharing an ObservedValue
+///
+/// You can also use ``ObservedValue`` to communicate value type changes from a parent to child
+/// model, since ``ObservedValue`` is a reference type.
+/// ```swift
+/// // ✅ When the preferences change in ChildModel, those changes will be reflected in ParentModel.
+///
+/// @Perceptible
+/// final class ParentModel {
+///   var preferences: ObservedValue<Preferences>
+///   var childModel: ChildModel
+///
+///   init() {
+///     let preferences = ObservedValue(Preferences())
+///     self.preferences = preferences
+///     self.childModel = ChildModel(preferences: preferences)
+///   }
+/// }
+///
+/// @Perceptible
+/// final class ChildModel {
+///   var preferences: ObservedValue<Preferences>
+///
+///   init(preferences: ObservedValue<Preferences>) {
+///     self.preferences = preferences
+///   }
+/// }
+/// ```
 @Perceptible
 @dynamicMemberLookup
 public final class ObservedValue<Value: ObservableValue> {
@@ -15,6 +155,12 @@ public final class ObservedValue<Value: ObservableValue> {
   
   @PerceptionIgnored private var observedPaths = Set<WritableKeyPath<Value, Box>>()
   
+  /// Creates an observed value.
+  ///
+  /// - Parameters:
+  ///   - value: The initial value.
+  ///   - willSet: A closure to run as the willSet of the underlying value.
+  ///   - didSet: A closure to run as the didSet of the underlying value.
   public init(
     _ value: Value,
     willSet: ((_ newValue: Value, _ oldValue: Value) -> Void)? = nil,
@@ -29,6 +175,12 @@ public final class ObservedValue<Value: ObservableValue> {
 // MARK: - Value
 
 extension ObservedValue {
+  /// The underlying value of this observed value.
+  ///
+  /// Only access this property if you need access to the entire value. If you only need to access
+  /// a subset of properties from the entire value, prefer to use the dynamic member lookup
+  /// capabilities of this observed value instead. Otherwise, you risk unnecessary observation
+  /// changes that result from mutations to properties unrelated to those you've accessed.
   public var value: Value {
     get {
       self.access(keyPath: \.value)
@@ -63,6 +215,7 @@ extension ObservedValue {
 // MARK: - Dynamic Member Lookup
 
 extension ObservedValue {
+  /// Returns a value for the specified key path to the underlying value.
   public subscript<R>(dynamicMember keyPath: WritableKeyPath<Value, R>) -> R {
     get {
       self.access(keyPath: self.modelKeyPath(for: keyPath))
