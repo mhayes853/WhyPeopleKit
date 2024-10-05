@@ -247,3 +247,91 @@ extension ObservedValue {
     return (\ObservedValue<Value>._value).appending(path: keyPath)
   }
 }
+
+// MARK: - Identifiable
+
+// TODO: - Should this perform an access?
+
+extension ObservedValue: Identifiable where Value: Identifiable {
+  public var id: Value.ID {
+    self._value.id
+  }
+}
+
+// MARK: - Equatable
+
+extension ObservedValue: Equatable where Value: Equatable {
+  public static func == (lhs: ObservedValue<Value>, rhs: ObservedValue<Value>) -> Bool {
+    lhs._value == rhs._value
+  }
+}
+
+// MARK: - Hashable
+
+extension ObservedValue: Hashable where Value: Hashable {
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self._value)
+  }
+}
+
+// MARK: - Comparable
+
+extension ObservedValue: Comparable where Value: Comparable {
+  public static func < (lhs: ObservedValue<Value>, rhs: ObservedValue<Value>) -> Bool {
+    lhs._value < rhs._value
+  }
+}
+
+// MARK: - Encodable
+
+extension ObservedValue: Encodable where Value: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(self._value)
+  }
+}
+
+// MARK: - Decodable
+
+extension ObservedValue: Decodable where Value: Decodable {
+  public convenience init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    self.init(try container.decode(Value.self))
+  }
+}
+
+// MARK: - Strideable
+
+extension ObservedValue: Strideable where Value: Strideable {
+  public func distance(to other: ObservedValue<Value>) -> Value.Stride {
+    self._value.distance(to: other._value)
+  }
+  
+  public func advanced(by n: Value.Stride) -> ObservedValue<Value> {
+    ObservedValue(self._value.advanced(by: n))
+  }
+}
+
+// MARK: - CustomStringConvertible
+
+extension ObservedValue: CustomStringConvertible where Value: CustomStringConvertible {
+  public var description: String {
+    self._value.description
+  }
+}
+
+// MARK: - CustomDebugStringConvertible
+
+extension ObservedValue: CustomDebugStringConvertible where Value: CustomDebugStringConvertible {
+  public var debugDescription: String {
+    self._value.debugDescription
+  }
+}
+
+// MARK: - CustomReflectable
+
+extension ObservedValue: CustomReflectable where Value: CustomReflectable {
+  public var customMirror: Mirror {
+    Mirror(reflecting: self._value)
+  }
+}
