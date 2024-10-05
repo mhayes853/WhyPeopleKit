@@ -127,7 +127,12 @@ let package = Package(
         .product(name: "GRDB", package: "GRDB.swift")
       ]
     ),
-    .testTarget(name: "WPGRDBTests", dependencies: ["WPGRDB"])
+    .testTarget(name: "WPGRDBTests", dependencies: ["WPGRDB"]),
+    .target(
+      name: "WPPerception",
+      dependencies: [.product(name: "Perception", package: "swift-perception")]
+    ),
+    .testTarget(name: "WPPerceptionTests", dependencies: ["WPPerception"])
   ]
 //  swiftLanguageModes: [.version("6")]
 )
