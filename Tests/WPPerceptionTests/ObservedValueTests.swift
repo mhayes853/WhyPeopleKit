@@ -67,6 +67,49 @@ struct ObservedValueTests {
       model.value = Preferences()
     }
   }
+  
+  @Test("Observation, Assign Through Value, Updates Individual Value")
+  func updatesIndividualValueThroughValue() async throws {
+    let model = ObservedValue(Preferences(likeCounter: 100))
+    await confirmation { confirm in
+      withPerceptionTracking {
+        _ = model.likeCounter
+      } onChange: {
+        confirm()
+      }
+      model.value.likeCounter += 1
+    }
+  }
+  
+  @Test("Will Set")
+  func willSet() async throws {
+    await confirmation { confirm in
+      let model = ObservedValue(
+        Preferences(likeCounter: 0),
+        willSet: { newValue, value in
+          #expect(newValue == Preferences(likeCounter: 1))
+          #expect(value == Preferences(likeCounter: 0))
+          confirm()
+        }
+      )
+      model.likeCounter += 1
+    }
+  }
+  
+  @Test("Did Set")
+  func didSet() async throws {
+    await confirmation { confirm in
+      let model = ObservedValue(
+        Preferences(likeCounter: 0),
+        didSet: { oldValue, value in
+          #expect(oldValue == Preferences(likeCounter: 0))
+          #expect(value == Preferences(likeCounter: 1))
+          confirm()
+        }
+      )
+      model.likeCounter += 1
+    }
+  }
 }
 
 private struct Preferences: Hashable, Sendable, ObservableValue {

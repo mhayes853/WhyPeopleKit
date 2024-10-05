@@ -1,4 +1,8 @@
+// MARK: - ObservableValue
+
 public protocol ObservableValue {}
+
+// MARK: - Box
 
 struct Box {
   fileprivate let value: Any

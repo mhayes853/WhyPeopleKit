@@ -1,11 +1,34 @@
 import Perception
 
+// MARK: - ObservedValue
+
 @Perceptible
 @dynamicMemberLookup
 public final class ObservedValue<Value: ObservableValue> {
-  @PerceptionIgnored private var _value: Value
+  private let willSet: ((Value, Value) -> Void)?
+  private let didSet: ((Value, Value) -> Void)?
+  
+  @PerceptionIgnored private var _value: Value {
+    willSet { self.willSet?(newValue, self._value) }
+    didSet { self.didSet?(oldValue, self._value) }
+  }
+  
   @PerceptionIgnored private var observedPaths = Set<WritableKeyPath<Value, Box>>()
   
+  public init(
+    _ value: Value,
+    willSet: ((_ newValue: Value, _ oldValue: Value) -> Void)? = nil,
+    didSet: ((_ oldValue: Value, _ newValue: Value) -> Void)? = nil
+  ) {
+    self._value = value
+    self.willSet = willSet
+    self.didSet = didSet
+  }
+}
+
+// MARK: - Value
+
+extension ObservedValue {
   public var value: Value {
     get {
       self.access(keyPath: \.value)
@@ -34,10 +57,6 @@ public final class ObservedValue<Value: ObservableValue> {
       }
       yield &self._value
     }
-  }
-  
-  public init(_ value: Value) {
-    self._value = value
   }
 }
 
