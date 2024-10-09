@@ -9,7 +9,7 @@ public struct TimedConfirmation: Sendable {
   private let confirmation: Confirmation
   private let expectedCount: Int
   private let count = OSAllocatedUnfairLock(initialState: 0)
-  private let sleepTask: Task<Void, Error>
+  private var sleepTask: Task<Void, Error>
 
   fileprivate init(
     confirmation: Confirmation,
@@ -18,7 +18,13 @@ public struct TimedConfirmation: Sendable {
   ) async {
     self.confirmation = confirmation
     self.expectedCount = expectedCount
-    self.sleepTask = Task { try await Task.sleep(for: timeout) }
+    if #available(iOS 18, macOS 15, tvOS 18, watchOS 11, *) {
+      self.sleepTask = Task(executorPreference: TimedConfirmationExecutor.shared) {
+        try await Task.sleep(for: timeout)
+      }
+    } else {
+      self.sleepTask = Task { try await Task.sleep(for: timeout) }
+    }
   }
 }
 
@@ -60,6 +66,17 @@ extension TimedConfirmation {
   fileprivate func run<T>(
     body: @Sendable @escaping (TimedConfirmation) async throws -> T
   ) async throws -> T {
+    if #available(iOS 18, macOS 15, tvOS 18, watchOS 11, *) {
+      return try await withTaskExecutorPreference(TimedConfirmationExecutor.shared) {
+        try await self._run(body: body)
+      }
+    }
+    return try await self._run(body: body)
+  }
+
+  private func _run<T>(
+    body: @Sendable @escaping (TimedConfirmation) async throws -> T
+  ) async throws -> T {
     let task = Task { UnsafeTransfer(value: try await body(self)) }
     try? await self.sleepTask.value
     task.cancel()
@@ -69,6 +86,32 @@ extension TimedConfirmation {
 
 private struct UnsafeTransfer<T>: @unchecked Sendable {
   let value: T
+}
+
+// MARK: - TaskExecutor
+
+// NB: Use a custom executor to prevent timeout test failures due to the cooperative thread-pool
+// being starved.
+@available(iOS 18, macOS 15, tvOS 18, watchOS 11, *)
+private final class TimedConfirmationExecutor: TaskExecutor {
+  static let shared = TimedConfirmationExecutor()
+
+  private let queue = DispatchQueue(
+    label: "whypeoplekit.timed.confirmation.executor",
+    qos: .userInteractive,
+    attributes: .concurrent
+  )
+
+  func enqueue(_ job: consuming ExecutorJob) {
+    let job = UnownedJob(job)
+    self.queue.async(flags: .enforceQoS) {
+      job.runSynchronously(on: self.asUnownedTaskExecutor())
+    }
+  }
+
+  func asUnownedTaskExecutor() -> UnownedTaskExecutor {
+    UnownedTaskExecutor(ordinary: self)
+  }
 }
 
 // MARK: - timedConfirmation

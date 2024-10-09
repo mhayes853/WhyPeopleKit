@@ -4,18 +4,20 @@ import WPTestSupport
 
 @Suite("TimedConfirmation tests")
 struct TimedConfirmationTests {
+  private let notificationCenter = NotificationCenter()
+
   @Test("Waits for Confirmation To Be Confirmed From Synchronous Function Call")
   func waitsForConfirmation() async {
     await timedConfirmation(expectedCount: 3) { confirm in
-      let observer = NotificationCenter.default.addObserver(
+      let observer = self.notificationCenter.addObserver(
         forName: testNotification,
         object: nil,
         queue: nil
       ) { _ in confirm() }
-      NotificationCenter.default.post(name: testNotification, object: nil)
-      NotificationCenter.default.post(name: testNotification, object: nil)
-      NotificationCenter.default.post(name: testNotification, object: nil)
-      NotificationCenter.default.removeObserver(observer)
+      self.notificationCenter.post(name: testNotification, object: nil)
+      self.notificationCenter.post(name: testNotification, object: nil)
+      self.notificationCenter.post(name: testNotification, object: nil)
+      self.notificationCenter.removeObserver(observer)
     }
   }
 
@@ -25,14 +27,14 @@ struct TimedConfirmationTests {
     let time = await clock.measure {
       await withKnownIssue {
         await timedConfirmation(expectedCount: 3, timeout: .milliseconds(200)) { confirm in
-          let observer = NotificationCenter.default.addObserver(
+          let observer = self.notificationCenter.addObserver(
             forName: testNotification,
             object: nil,
             queue: nil
           ) { _ in confirm() }
-          NotificationCenter.default.post(name: testNotification, object: nil)
-          NotificationCenter.default.post(name: testNotification, object: nil)
-          NotificationCenter.default.removeObserver(observer)
+          self.notificationCenter.post(name: testNotification, object: nil)
+          self.notificationCenter.post(name: testNotification, object: nil)
+          self.notificationCenter.removeObserver(observer)
         }
       }
     }
@@ -46,15 +48,15 @@ struct TimedConfirmationTests {
     let time = await clock.measure {
       await withKnownIssue {
         await timedConfirmation(expectedCount: 3) { confirm in
-          let observer = NotificationCenter.default.addObserver(
+          let observer = self.notificationCenter.addObserver(
             forName: testNotification,
             object: nil,
             queue: nil
           ) { _ in confirm() }
-          NotificationCenter.default.post(name: testNotification, object: nil)
-          NotificationCenter.default.post(name: testNotification, object: nil)
+          self.notificationCenter.post(name: testNotification, object: nil)
+          self.notificationCenter.post(name: testNotification, object: nil)
           try? await Task.sleep(for: .seconds(5))
-          NotificationCenter.default.removeObserver(observer)
+          self.notificationCenter.removeObserver(observer)
         }
       }
     }
@@ -65,14 +67,14 @@ struct TimedConfirmationTests {
   func raisesIssueOnOverconfirm() async {
     await withKnownIssue {
       await timedConfirmation(expectedCount: 0) { confirm in
-        let observer = NotificationCenter.default.addObserver(
+        let observer = self.notificationCenter.addObserver(
           forName: testNotification,
           object: nil,
           queue: nil
         ) { _ in confirm() }
-        NotificationCenter.default.post(name: testNotification, object: nil)
-        NotificationCenter.default.post(name: testNotification, object: nil)
-        NotificationCenter.default.removeObserver(observer)
+        self.notificationCenter.post(name: testNotification, object: nil)
+        self.notificationCenter.post(name: testNotification, object: nil)
+        self.notificationCenter.removeObserver(observer)
       }
     }
   }
