@@ -42,7 +42,8 @@ let package = Package(
     ),
     .package(url: "https://github.com/pointfreeco/swift-navigation", .upToNextMajor(from: "2.0.0")),
     .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "6.0.0")),
-    .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3")
+    .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
+    .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.6")
   ],
   targets: [
     .target(
@@ -92,7 +93,9 @@ let package = Package(
       name: "WPHapticsTests",
       dependencies: [
         "WPHaptics",
-        .product(name: "CustomDump", package: "swift-custom-dump")
+        "WPSnapshotTesting",
+        .product(name: "CustomDump", package: "swift-custom-dump"),
+        .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")
       ]
     ),
     .target(
@@ -147,7 +150,14 @@ let package = Package(
       name: "WPPerception",
       dependencies: [.product(name: "Perception", package: "swift-perception")]
     ),
-    .testTarget(name: "WPPerceptionTests", dependencies: ["WPPerception"])
+    .testTarget(name: "WPPerceptionTests", dependencies: ["WPPerception"]),
+    .target(
+      name: "WPSnapshotTesting",
+      dependencies: [
+        "WPHaptics",
+        .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+      ]
+    )
   ]
   //  swiftLanguageModes: [.version("6")]
 )

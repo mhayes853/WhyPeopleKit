@@ -1,7 +1,9 @@
 import CustomDump
 import Foundation
+import InlineSnapshotTesting
 import Testing
 import WPHaptics
+import WPSnapshotTesting
 
 @Suite("AHAPPattern tests")
 struct AHAPPatternTests {
@@ -119,6 +121,11 @@ struct AHAPPatternTests {
 
     let pattern = try AHAPPattern(from: data)
     expectNoDifference(pattern, .test)
+  }
+
+  @Test("Data Snapshot")
+  func snapshot() throws {
+    assertSnapshot(of: AHAPPattern.test, as: .ahap)
   }
 
   @Test("Throws When Invalid Data Decoded")

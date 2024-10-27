@@ -22,8 +22,21 @@ extension AHAPPattern: Codable {
 // MARK: - Data Functions
 
 extension AHAPPattern {
-  public func data() -> Data {
-    try! JSONEncoder().encode(self)
+  public enum DataOutputFormat {
+    case prettyJson
+    case json
+
+    fileprivate var encoder: JSONEncoder {
+      let encoder = JSONEncoder()
+      if self == .prettyJson {
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+      }
+      return encoder
+    }
+  }
+
+  public func data(format: DataOutputFormat = .json) -> Data {
+    try! format.encoder.encode(self)
   }
 
   public init(from data: Data) throws {
@@ -266,10 +279,7 @@ extension AHAPPattern.AudioCustomEvent: Decodable {
     self.waveformPath = try container.decode(String.self, forKey: .waveformPath)
     self.parameters = try container.decode(AHAPPattern.AudioParameters.self, forKey: .parameters)
     self.waveformLoopEnabled =
-      try container.decodeIfPresent(
-        Bool.self,
-        forKey: .waveformLoopEnabled
-      ) ?? false
+      try container.decodeIfPresent(Bool.self, forKey: .waveformLoopEnabled) ?? false
     self.waveformUseVolumeEnvelope =
       try container.decodeIfPresent(Bool.self, forKey: .waveformUseVolumeEnvelope) ?? false
   }
@@ -325,10 +335,7 @@ extension AHAPPattern.AudioContinuousEvent: Decodable {
     self.waveformPath = try container.decode(String.self, forKey: .waveformPath)
     self.parameters = try container.decode(AHAPPattern.AudioParameters.self, forKey: .parameters)
     self.waveformLoopEnabled =
-      try container.decodeIfPresent(
-        Bool.self,
-        forKey: .waveformLoopEnabled
-      ) ?? false
+      try container.decodeIfPresent(Bool.self, forKey: .waveformLoopEnabled) ?? false
     self.waveformUseVolumeEnvelope =
       try container.decodeIfPresent(Bool.self, forKey: .waveformUseVolumeEnvelope) ?? false
   }
@@ -367,9 +374,9 @@ public protocol _AHAPEventParameters<ID>: Codable, Hashable, Sendable,
 
 extension _AHAPEventParameters {
   public func encode(to encoder: any Encoder) throws {
-    let parameters = self.entries.map { (key, value) in
-      SerializedParameter(id: key.rawValue, value: value)
-    }
+    let parameters = self.entries
+      .map { (key, value) in SerializedParameter(id: key.rawValue, value: value) }
+      .sorted { $0.id < $1.id }
     try parameters.encode(to: encoder)
   }
 
@@ -394,6 +401,19 @@ extension _AHAPEventParameters {
   public init(dictionaryLiteral elements: (ID, Double)...) {
     self.init()
     self.entries = [ID: Double](uniqueKeysWithValues: elements)
+  }
+}
+
+extension _AHAPEventParameters {
+  public subscript(id: ID) -> Double? {
+    get { self.entries[id] }
+    set {
+      if let newValue {
+        self.entries[id] = newValue
+      } else {
+        self.entries.removeValue(forKey: id)
+      }
+    }
   }
 }
 
