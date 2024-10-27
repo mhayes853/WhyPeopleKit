@@ -134,6 +134,16 @@ struct AHAPPatternTests {
       try AHAPPattern(from: Data("BAD".utf8))
     }
   }
+
+  @Test("To and From Contents of URL")
+  func contentsOfURL() throws {
+    let pattern = AHAPPattern.test
+    let url = URL.documentsDirectory.appending(path: "test.ahap")
+    try pattern.write(to: url)
+    let newPattern = try AHAPPattern(contentsOf: url)
+    #expect(pattern == newPattern)
+    try FileManager.default.removeItem(at: url)
+  }
 }
 
 extension AHAPPattern {
