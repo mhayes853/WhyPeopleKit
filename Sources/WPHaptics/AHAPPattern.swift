@@ -9,30 +9,41 @@ import Foundation
 ///
 /// This type conforms to Hashable, Sendable, and Codable, which allows AHAP patterns to be easily
 /// compared for equality, passed between threads, and parsed from raw data unlike the types
-/// specified by the CoreHaptics framework. You can also use ``data(format:)`` and ``init(from:)``
+/// specified by the CoreHaptics framework. You can also use ``data(format:)`` and ``init(from:)-7365y``
 /// to export and convert a pattern from raw AHAP data as well.
 public struct AHAPPattern: Hashable, Sendable {
   /// The numerical version of this pattern.
   public var version: Int
-  
+
   /// The elements in this pattern.
-  public var pattern: [Element]
-  
+  public var elements: [Element]
+
   /// Creates an AHAP pattern.
   ///
   /// - Parameters:
   ///   - version: The numerical version of this pattern.
-  ///   - pattern: The elements in this pattern.
-  public init(version: Int = 1, pattern: [AHAPPattern.Element]) {
+  ///   - elements: The elements in this pattern.
+  public init(version: Int = 1, _ elements: [AHAPPattern.Element]) {
     self.version = version
-    self.pattern = pattern
+    self.elements = elements
+  }
+}
+
+extension AHAPPattern {
+  /// Creates an AHAP pattern.
+  ///
+  /// - Parameters:
+  ///   - version: The numerical version of this pattern.
+  ///   - elements: The elements in this pattern.
+  public init(version: Int = 1, _ elements: Element...) {
+    self.init(version: version, Array(elements))
   }
 }
 
 extension AHAPPattern: Codable {
   private enum CodingKeys: String, CodingKey {
     case version = "Version"
-    case pattern = "Pattern"
+    case elements = "Pattern"
   }
 }
 
@@ -43,7 +54,7 @@ extension AHAPPattern {
   public enum DataOutputFormat {
     /// A format that outputs prettyfied json with lexographically ordered keys.
     case prettyJson
-    
+
     /// A format that outputs raw unformatted json.
     case json
   }
@@ -58,7 +69,7 @@ extension AHAPPattern {
     }
     return try! encoder.encode(self)
   }
-  
+
   /// Attempts to create a pattern from raw AHAP data.
   ///
   /// - Parameter data: Raw AHAP formatted data.
@@ -83,7 +94,7 @@ extension AHAPPattern {
   ) throws {
     try self.data(format: format).write(to: url, options: options)
   }
-  
+
   /// Attempts to create a pattern from the raw AHAP data from the specified `URL`.
   ///
   /// - Parameters:
@@ -104,21 +115,62 @@ extension AHAPPattern {
     /// Events can either be continuous or transient. Continuous events play for a specified
     /// duration whilst transient events play instantaneuously.
     case event(Event)
-    
+
     /// A pattern element for a parameter curve.
     ///
-    /// Paramater curves allow interpolations of parameter values over a specified length of time
+    /// Parameter curves allow interpolations of parameter values over a specified length of time
     /// during an event using control points in the same way that key frames are used to
     /// interpolate points between animations. For instantly changing a parameter value at a
     /// certain point in time, use ``dynamicParameter(_:)``.
     case parameterCurve(ParameterCurve)
-    
+
     /// A pattern element for a dynamic parameter.
     ///
     /// Dyanmic parameters instantly change the parameter value at a specified time during an
     /// event. If you want to interpolate the value over time instead of changing it instantly, use
     /// ``parameterCurve(_:)``.
     case dynamicParameter(DynamicParameter)
+  }
+}
+
+extension AHAPPattern.Element {
+  /// Creates a parameter curve pattern element.
+  ///
+  /// Parameter curves allow interpolations of parameter values over a specified length of time
+  /// during an event using control points in the same way that key frames are used to
+  /// interpolate points between animations. For instantly changing a parameter value at a
+  /// certain point in time, use ``dynamicParameter(id:time:value:)``.
+  ///
+  /// - Parameters:
+  ///   - id: The parameter is of this parameter curve.
+  ///   - time: The time at which this parameter curve starts in a pattern.
+  ///   - controlPoints: The control points of this parameter curve.
+  /// - Returns: A patten element.
+  public static func parameterCurve(
+    id: AHAPPattern.CurvableParameterID,
+    time: Double,
+    controlPoints: [AHAPPattern.ParameterCurve.ControlPoint]
+  ) -> Self {
+    .parameterCurve(AHAPPattern.ParameterCurve(id: id, time: time, controlPoints: controlPoints))
+  }
+
+  /// Creates a dynamic parameter pattern element.
+  ///
+  /// Dyanmic parameters instantly change the parameter value at a specified time during an
+  /// event. If you want to interpolate the value over time instead of changing it instantly, use
+  /// ``parameterCurve(id:time:controlPoints:)``.
+  ///
+  /// - Parameters:
+  ///   - id: The parameter id of this dynamic parameter.
+  ///   - time: The time at which this parameter takes effect in a pattern.
+  ///   - value: The value to set the parameter to.
+  /// - Returns: A patten element.
+  public static func dynamicParameter(
+    id: AHAPPattern.DynamicParameterID,
+    time: Double,
+    value: Double
+  ) -> Self {
+    .dynamicParameter(AHAPPattern.DynamicParameter(id: id, time: time, value: value))
   }
 }
 
@@ -180,7 +232,7 @@ extension AHAPPattern {
     /// This event is mostly useful for providing instant feedback from user actions such as
     /// tapping a button.
     case hapticTransient(HapticTransientEvent)
-    
+
     /// A continuous haptic event.
     ///
     /// Continuous haptic events play haptic feedback for a specified duration of time. For
@@ -191,18 +243,129 @@ extension AHAPPattern {
     ///
     /// The maximum playback time of a continuous haptic event is 30 seconds.
     case hapticContinuous(HapticContinuousEvent)
-    
+
     /// A custom audio event.
     ///
     /// Custom audio events play a waveform of your choosing for its entire duration. For
     /// looping a sound effect for a specified duration of time, use ``audioContinuous(_:)``.
     case audioCustom(AudioCustomEvent)
-    
+
     /// A continuous audio event.
     ///
     /// Continuous audio events can loop a sound effect for a specified duration of time. For
     /// playing a waveform in its entirety without looping, use ``audioCustom(_:)``.
     case audioContinuous(AudioContinuousEvent)
+  }
+}
+
+extension AHAPPattern.Event {
+  /// Creates a transient haptic event.
+  ///
+  /// Transient haptic events play haptic feedback instantaneously in time. For playing haptic
+  /// feedback for a specified duration, use ``hapticContinuous(time:duration:parameters:)``.
+  ///
+  /// This event is mostly useful for providing instant feedback from user actions such as
+  /// tapping a button.
+  ///
+  /// - Parameters:
+  ///   - time: The time this event plays at relative to other events in a pattern.
+  ///   - parameters: The parameters of this event.
+  /// - Returns: A transient haptic event.
+  public static func hapticTransient(
+    time: Double,
+    parameters: AHAPPattern.HapticParameters
+  ) -> Self {
+    .hapticTransient(AHAPPattern.HapticTransientEvent(time: time, parameters: parameters))
+  }
+
+  /// Creates a continuous haptic event.
+  ///
+  /// Continuous haptic events play haptic feedback for a specified duration of time. For
+  /// instantaneously playing haptic feedback, use ``hapticTransient(time:parameters:)``.
+  ///
+  /// This event is mostly useful for non-direct feedback actions such as holding down a UI
+  /// element during an animation, or for adding emphasis to a collision of 2 or more objects.
+  ///
+  /// The maximum playback time of a continuous haptic event is 30 seconds.
+  ///
+  /// - Parameters:
+  ///   - time: The time this event plays at relative to other events in a pattern.
+  ///   - duration: The duration of how long this event plays for.
+  ///   - parameters: The parameters of this event.
+  /// - Returns: A continuous haptic event.
+  public static func hapticContinuous(
+    time: Double,
+    duration: Double,
+    parameters: AHAPPattern.HapticParameters
+  ) -> Self {
+    .hapticContinuous(
+      AHAPPattern.HapticContinuousEvent(time: time, duration: duration, parameters: parameters)
+    )
+  }
+
+  /// Creates a custom audio event.
+  ///
+  /// Custom audio events play a waveform of your choosing for its entire duration. For
+  /// looping a sound effect for a specified duration of time, use
+  ///  ``audioContinuous(time:duration:waveformPath:waveformLoopEnabled:waveformUseVolumeEnvelope:parameters:)``.
+  ///
+  /// - Parameters:
+  ///   - time: The time this event plays at relative to other events in a pattern.
+  ///   - waveformPath: The file path of the waveform.
+  ///   - waveformLoopEnabled: Whether or not to loop the waveform.
+  ///   - waveformUseVolumeEnvelope: Whether or not the waveform audio fades in and out with an envelope.
+  ///   - parameters: The parameters of this event.
+  /// - Returns: A custom audio event.
+  public static func audioCustom(
+    time: Double,
+    waveformPath: String,
+    waveformLoopEnabled: Bool = false,
+    waveformUseVolumeEnvelope: Bool = false,
+    parameters: AHAPPattern.AudioParameters = AHAPPattern.AudioParameters()
+  ) -> Self {
+    .audioCustom(
+      AHAPPattern.AudioCustomEvent(
+        time: time,
+        waveformPath: waveformPath,
+        waveformLoopEnabled: waveformLoopEnabled,
+        waveformUseVolumeEnvelope: waveformUseVolumeEnvelope,
+        parameters: parameters
+      )
+    )
+  }
+
+  /// Creates a continuous audio event.
+  ///
+  /// Continuous audio events can loop a sound effect for a specified duration of time. For
+  /// playing a waveform in its entirety without looping, use
+  /// ``audioCustom(time:waveformPath:waveformLoopEnabled:waveformUseVolumeEnvelope:parameters:)``.
+  ///
+  /// - Parameters:
+  ///   - time: The time this event plays at relative to other events in a pattern.
+  ///   - duration: The duration of how long this event plays for.
+  ///   - waveformPath: The file path of the waveform.
+  ///   - waveformLoopEnabled: Whether or not to loop the waveform.
+  ///   - waveformUseVolumeEnvelope: Whether or not the waveform audio fades in and out with an envelope.
+  ///   - parameters: The parameters of this event.
+  /// - Returns: A continuous audio event.
+  public static func audioContinuous(
+    time: Double,
+    duration: Double,
+    waveformPath: String,
+    waveformLoopEnabled: Bool = false,
+    waveformUseVolumeEnvelope: Bool = false,
+    parameters: AHAPPattern.AudioParameters = AHAPPattern.AudioParameters()
+  ) -> Self {
+    .audioContinuous(
+      AHAPPattern.AudioContinuousEvent(
+        time: time,
+        duration: duration,
+        waveformPath: waveformPath,
+        waveformLoopEnabled: waveformLoopEnabled,
+        waveformUseVolumeEnvelope: waveformUseVolumeEnvelope,
+        parameters: parameters
+      )
+    )
   }
 }
 
@@ -264,7 +427,7 @@ extension AHAPPattern {
     /// This event type is mostly useful for providing instant feedback from user actions such as
     /// tapping a button.
     case hapticTransient = "HapticTransient"
-    
+
     /// A continuous haptic event type.
     ///
     /// Continuous haptic events play haptic feedback for a specified duration of time. For
@@ -275,13 +438,13 @@ extension AHAPPattern {
     ///
     /// The maximum playback time of a continuous haptic event is 30 seconds.
     case hapticContinuous = "HapticContinuous"
-    
+
     /// A custom audio event type.
     ///
     /// Custom audio events play a waveform of your choosing for its entire duration. For
     /// looping a sound effect for a specified duration of time, use ``audioContinuous``.
     case audioContinuous = "AudioContinuous"
-    
+
     /// A continuous audio event type.
     ///
     /// Continuous audio events can loop a sound effect for a specified duration of time. For
@@ -302,13 +465,13 @@ extension AHAPPattern {
   /// tapping a button.
   public struct HapticTransientEvent: Hashable, Sendable {
     private var eventType = EventType.hapticTransient
-    
+
     /// The time this event plays at relative to other events in a pattern.
     public var time: Double
-    
+
     /// The parameters of this event.
     public var parameters: HapticParameters
-    
+
     /// Creates a haptic transient event.
     ///
     /// - Parameters:
@@ -343,16 +506,16 @@ extension AHAPPattern {
   /// The maximum playback time of a continuous haptic event is 30 seconds.
   public struct HapticContinuousEvent: Hashable, Sendable {
     private var eventType = EventType.hapticContinuous
-    
+
     /// The time this event plays at relative to other events in a pattern.
     public var time: Double
-    
+
     /// The duration of how long this event plays for.
     public var duration: Double
-    
+
     /// The parameters of this event.
     public var parameters: HapticParameters
-    
+
     /// Creates a haptic continuous event.
     ///
     /// - Parameters:
@@ -399,7 +562,7 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from 0.0 (weak) to 1.0 (strong).
     case hapticIntensity = "HapticIntensity"
-    
+
     /// The sharpness of a haptic event.
     ///
     /// The sharpness specifies how the vibration of a haptic event is dispersed in the area of a
@@ -409,7 +572,7 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from 0.0 (round) to 1.0 (focused).
     case hapticSharpness = "HapticSharpness"
-    
+
     /// The attack time of a haptic event.
     ///
     /// The attack time of an event refers to the duration (in seconds) of build-up before an event
@@ -417,7 +580,7 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from -1.0 (exponential decrease) to 1.0 (exponential increase).
     case attackTime = "AttackTime"
-    
+
     /// The decay time of a haptic event.
     ///
     /// The attack time of an event refers to the duration (in seconds) of burn-down after an
@@ -425,14 +588,14 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from -1.0 (exponential decrease) to 1.0 (exponential increase).
     case decayTime = "DecayTime"
-    
+
     /// The release time (in seconds) of a haptic event.
     ///
     /// The release time adds a fade-out effect to the haptic event.
     ///
     /// This parameter value must be 0 or greater.
     case releaseTime = "ReleaseTime"
-    
+
     /// Whether or not to sustain a haptic event for its entire duration.
     ///
     /// When true, the haptic pattern stays at full strength between the ``attackTime`` and the
@@ -451,22 +614,22 @@ extension AHAPPattern {
   /// looping a sound effect for a specified duration of time, use ``AudioContinuousEvent``
   public struct AudioCustomEvent: Hashable, Sendable {
     private var eventType = EventType.audioCustom
-    
+
     /// The time this event plays at relative to other events in a pattern.
     public var time: Double
-    
+
     /// The file path of the waveform.
     public var waveformPath: String
-    
+
     /// Whether or not to loop the waveform.
     public var waveformLoopEnabled = false
-    
+
     /// Whether or not the waveform audio fades in and out with an envelope.
     public var waveformUseVolumeEnvelope = false
-    
+
     /// The parameters of this event.
     public var parameters = AudioParameters()
-    
+
     /// Creates an audio custom event.
     ///
     /// - Parameters:
@@ -521,25 +684,25 @@ extension AHAPPattern {
   /// playing a waveform in its entirety without looping, use ``AudioCustomEvent``
   public struct AudioContinuousEvent: Hashable, Sendable {
     private var eventType = EventType.audioContinuous
-    
+
     /// The time this event plays at relative to other events in a pattern.
     public var time: Double
-    
+
     /// The duration of how long this event plays for.
     public var duration: Double
-    
+
     /// Whether or not to loop the waveform.
     public var waveformLoopEnabled = false
-    
+
     /// The file path of the waveform.
     public var waveformPath: String
-    
+
     /// Whether or not the waveform audio fades in and out with an envelope.
     public var waveformUseVolumeEnvelope = false
-    
+
     /// The parameters of this event.
     public var parameters = AudioParameters()
-    
+
     /// Creates an audio continuous event.
     ///
     /// - Parameters:
@@ -612,18 +775,18 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from 0.0 (silent) to 1.0 (maximum volume).
     case audioVolume = "AudioVolume"
-    
+
     /// The pitch of an audio event.
     ///
     /// This parameter value ranges from -1.0 (lowest pitch) to 1.0 (highest pitch).
     case audioPitch = "AudioPitch"
-    
+
     /// The stereo panning of an audio event.
     ///
     /// This parameter value ranges from -1.0 (panned hard left) to 1.0 (panned hard right). The
     /// default value is 0.0 (center panned).
     case audioPan = "AudioPan"
-    
+
     /// The high-frequency content of an audio event.
     ///
     /// This parameter value ranges from 0.0 (maximum high-frequency reduction) to 1.0 (no
@@ -641,7 +804,7 @@ public protocol _AHAPEventParameters<ID>: Codable, Hashable, Sendable,
 
   /// A dictionary of parameter ids to values.
   var entries: [ID: Double] { get set }
-  
+
   /// Creates an empty set of parameters.
   init()
 }
@@ -707,13 +870,13 @@ extension AHAPPattern {
   public struct ParameterCurve: Hashable, Sendable {
     /// The parameter is of this parameter curve.
     public var id: CurvableParameterID
-    
+
     /// The time at which this parameter curve starts in a pattern.
     public var time: Double
-    
+
     /// The control points of this parameter curve.
     public var controlPoints: [ControlPoint]
-    
+
     /// Creates a parameter curve.
     ///
     /// - Parameters:
@@ -753,7 +916,7 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from 0.0 (weak) to 1.0 (strong).
     case hapticIntensityControl = "HapticIntensityControl"
-    
+
     /// The sharpness of a haptic event.
     ///
     /// The sharpness specifies how the vibration of a haptic event is dispersed in the area of a
@@ -763,24 +926,24 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from 0.0 (round) to 1.0 (focused).
     case hapticSharpnessControl = "HapticSharpnessControl"
-    
+
     /// The volume of an audio event.
     ///
     /// This parameter value ranges from 0.0 (silent) to 1.0 (maximum volume).
     case audioVolumeControl = "AudioVolumeControl"
-    
+
     /// The stereo panning of an audio event.
     ///
     /// This parameter value ranges from -1.0 (panned hard left) to 1.0 (panned hard right). The
     /// default value is 0.0 (center panned).
     case audioPanControl = "AudioPanControl"
-    
+
     /// The high-frequency content of an audio event.
     ///
     /// This parameter value ranges from 0.0 (maximum high-frequency reduction) to 1.0 (no
     /// high-frequency reduction). The default value is 1.0.
     case audioBrightnessControl = "AudioBrightnessControl"
-    
+
     /// The pitch of an audio event.
     ///
     /// This parameter value ranges from -1.0 (lowest pitch) to 1.0 (highest pitch).
@@ -799,10 +962,10 @@ extension AHAPPattern.ParameterCurve {
   public struct ControlPoint: Hashable, Sendable {
     /// The time at which this control point takes full effect.
     public var time: Double
-    
+
     /// The parameter value at the point in time that this contol point takes full effect.
     public var value: Double
-    
+
     /// Creates a control point.
     ///
     /// - Parameters:
@@ -812,6 +975,18 @@ extension AHAPPattern.ParameterCurve {
       self.time = time
       self.value = value
     }
+  }
+}
+
+extension AHAPPattern.ParameterCurve.ControlPoint {
+  /// Creates a control point.
+  ///
+  /// - Parameters:
+  ///   - time: The time at which this control point takes full effect.
+  ///   - value: The parameter value at the point in time that this contol point takes full effect.
+  /// - Returns: A control point.
+  public static func point(time: Double, value: Double) -> Self {
+    Self(time: time, value: value)
   }
 }
 
@@ -833,13 +1008,13 @@ extension AHAPPattern {
   public struct DynamicParameter: Hashable, Sendable {
     /// The parameter id of this dynamic parameter.
     public var id: DynamicParameterID
-    
+
     /// The time at which this parameter takes effect in a pattern.
     public var time: Double
-    
+
     /// The value to set the parameter to.
     public var value: Double
-    
+
     /// Creates a dynamic parameter.
     ///
     /// - Parameters:
@@ -875,7 +1050,7 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from 0.0 (weak) to 1.0 (strong).
     case hapticIntensityControl = "HapticIntensityControl"
-    
+
     /// The sharpness of a haptic event.
     ///
     /// The sharpness specifies how the vibration of a haptic event is dispersed in the area of a
@@ -885,7 +1060,7 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from 0.0 (round) to 1.0 (focused).
     case hapticSharpnessControl = "HapticSharpnessControl"
-    
+
     /// The attack time of a haptic event.
     ///
     /// The attack time of an event refers to the duration (in seconds) of build-up before an event
@@ -893,7 +1068,7 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from -1.0 (exponential decrease) to 1.0 (exponential increase).
     case hapticAttackTimeControl = "HapticAttackTimeControl"
-    
+
     /// The decay time of a haptic event.
     ///
     /// The attack time of an event refers to the duration (in seconds) of burn-down after an
@@ -901,48 +1076,48 @@ extension AHAPPattern {
     ///
     /// This parameter value ranges from -1.0 (exponential decrease) to 1.0 (exponential increase).
     case hapticDecayTimeControl = "HapticDecayTimeControl"
-    
+
     /// The release time (in seconds) of a haptic event.
     ///
     /// The release time adds a fadeout effect to the haptic event.
     ///
     /// This parameter value must be 0 or greater.
     case hapticReleaseTimeControl = "HapticReleaseTimeControl"
-    
+
     /// The volume of an audio event.
     ///
     /// This parameter value ranges from 0.0 (silent) to 1.0 (maximum volume).
     case audioVolumeControl = "AudioVolumeControl"
-    
+
     /// The stereo panning of an audio event.
     ///
     /// This parameter value ranges from -1.0 (panned hard left) to 1.0 (panned hard right). The
     /// default value is 0.0 (center panned).
     case audioPanControl = "AudioPanControl"
-    
+
     /// The high-frequency content of an audio event.
     ///
     /// This parameter value ranges from 0.0 (maximum high-frequency reduction) to 1.0 (no
     /// high-frequency reduction). The default value is 1.0.
     case audioBrightnessControl = "AudioBrightnessControl"
-    
+
     /// The pitch of an audio event.
     ///
     /// This parameter value ranges from -1.0 (lowest pitch) to 1.0 (highest pitch).
     case audioPitchControl = "AudioPitchControl"
-    
+
     /// The attack time of an audio event.
     ///
     /// The attack time of an event refers to the duration (in seconds) of build-up before the
     /// audio signal amplitude reaches its peak value.
     case audioAttackTimeControl = "AudioAttackTimeControl"
-    
+
     /// The decay time of an audio event.
     ///
     /// The attack time of an event refers to the duration (in seconds) of burn-down after the
     /// audio signal amplitude reaches its peak value.
     case audioDecayTimeControl = "AudioDecayTimeControl"
-    
+
     /// The release time (in seconds) of an audio event.
     ///
     /// The release time adds a fade-out effect to the audio signal.

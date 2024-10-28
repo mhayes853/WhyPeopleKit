@@ -148,49 +148,33 @@ struct AHAPPatternTests {
 
 extension AHAPPattern {
   fileprivate static let test = Self(
-    pattern: [
-      .event(
-        .hapticTransient(
-          HapticTransientEvent(time: 0, parameters: [.hapticIntensity: 0.5, .hapticSharpness: 0.5])
-        )
-      ),
-      .event(
-        .hapticContinuous(
-          HapticContinuousEvent(
-            time: 0,
-            duration: 2,
-            parameters: [.hapticIntensity: 0.5, .hapticSharpness: 0.5]
-          )
-        )
-      ),
-      .event(
-        .audioCustom(
-          AudioCustomEvent(time: 0.5, waveformPath: "coins", parameters: [.audioVolume: 0.3])
-        )
-      ),
-      .parameterCurve(
-        ParameterCurve(
-          id: .hapticIntensityControl,
-          time: 0,
-          controlPoints: [
-            ParameterCurve.ControlPoint(time: 0, value: 0),
-            ParameterCurve.ControlPoint(time: 0.1, value: 1),
-            ParameterCurve.ControlPoint(time: 2, value: 0.5)
-          ]
-        )
-      ),
-      .parameterCurve(
-        ParameterCurve(
-          id: .hapticSharpnessControl,
-          time: 2,
-          controlPoints: [
-            ParameterCurve.ControlPoint(time: 0, value: 0),
-            ParameterCurve.ControlPoint(time: 0.1, value: 1),
-            ParameterCurve.ControlPoint(time: 2, value: 0.5)
-          ]
-        )
-      ),
-      .dynamicParameter(DynamicParameter(id: .audioVolumeControl, time: 0.5, value: 0.8))
-    ]
+    .event(.hapticTransient(time: 0, parameters: [.hapticIntensity: 0.5, .hapticSharpness: 0.5])),
+    .event(
+      .hapticContinuous(
+        time: 0,
+        duration: 2,
+        parameters: [.hapticIntensity: 0.5, .hapticSharpness: 0.5]
+      )
+    ),
+    .event(.audioCustom(time: 0.5, waveformPath: "coins", parameters: [.audioVolume: 0.3])),
+    .parameterCurve(
+      id: .hapticIntensityControl,
+      time: 0,
+      controlPoints: [
+        .point(time: 0, value: 0),
+        .point(time: 0.1, value: 1),
+        .point(time: 2, value: 0.5)
+      ]
+    ),
+    .parameterCurve(
+      id: .hapticSharpnessControl,
+      time: 2,
+      controlPoints: [
+        .point(time: 0, value: 0),
+        .point(time: 0.1, value: 1),
+        .point(time: 2, value: 0.5)
+      ]
+    ),
+    .dynamicParameter(id: .audioVolumeControl, time: 0.5, value: 0.8)
   )
 }
