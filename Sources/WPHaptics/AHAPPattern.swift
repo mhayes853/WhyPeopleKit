@@ -539,7 +539,7 @@ extension AHAPPattern.HapticContinuousEvent: Codable {
 
 extension AHAPPattern {
   /// Parameters for use in haptic events.
-  public struct HapticParameters: _AHAPEventParameters {
+  public struct HapticParameters: AHAPPattern.EventParameters {
     public var entries = [HapticParameterID: Double]()
     public init() {}
   }
@@ -760,7 +760,7 @@ extension AHAPPattern.AudioContinuousEvent: Decodable {
 
 extension AHAPPattern {
   /// Parameters for use in audio events.
-  public struct AudioParameters: _AHAPEventParameters {
+  public struct AudioParameters: AHAPPattern.EventParameters {
     public var entries = [AudioParameterID: Double]()
     public init() {}
   }
@@ -797,19 +797,25 @@ extension AHAPPattern {
 
 // MARK: - Event Parameters
 
-public protocol _AHAPEventParameters<ID>: Codable, Hashable, Sendable,
-  ExpressibleByDictionaryLiteral
-{
-  associatedtype ID: Hashable, RawRepresentable where ID.RawValue == String
+extension AHAPPattern {
+  /// A protocol for a set of parameters for a pattern event.
+  ///
+  /// You should not need to conform to this protocol, rather you can use it as a generic
+  /// constraint on code that generically uses ``HapticParameters`` and ``AudioParameters``.
+  public protocol EventParameters<ID>: Codable, Hashable, Sendable,
+    ExpressibleByDictionaryLiteral
+  {
+    associatedtype ID: Hashable, RawRepresentable where ID.RawValue == String
 
-  /// A dictionary of parameter ids to values.
-  var entries: [ID: Double] { get set }
+    /// A dictionary of parameter ids to values.
+    var entries: [ID: Double] { get set }
 
-  /// Creates an empty set of parameters.
-  init()
+    /// Creates an empty set of parameters.
+    init()
+  }
 }
 
-extension _AHAPEventParameters {
+extension AHAPPattern.EventParameters {
   public func encode(to encoder: any Encoder) throws {
     let parameters = self.entries
       .map { (key, value) in SerializedParameter(id: key.rawValue, value: value) }
@@ -827,7 +833,7 @@ extension _AHAPEventParameters {
   }
 }
 
-extension _AHAPEventParameters {
+extension AHAPPattern.EventParameters {
   /// Creates a set of parameters from the specified entries.
   ///
   /// - Parameter entries: A dictionary of parameter ids to parameter values.
@@ -837,14 +843,14 @@ extension _AHAPEventParameters {
   }
 }
 
-extension _AHAPEventParameters {
+extension AHAPPattern.EventParameters {
   public init(dictionaryLiteral elements: (ID, Double)...) {
     self.init()
     self.entries = [ID: Double](uniqueKeysWithValues: elements)
   }
 }
 
-extension _AHAPEventParameters {
+extension AHAPPattern.EventParameters {
   /// The parameter value for the specified parameter id.
   public subscript(id: ID) -> Double? {
     get { self.entries[id] }
