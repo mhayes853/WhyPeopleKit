@@ -23,7 +23,7 @@ public struct AHAPPattern: Hashable, Sendable {
   /// - Parameters:
   ///   - version: The numerical version of this pattern.
   ///   - elements: The elements in this pattern.
-  public init(version: Int = 1, _ elements: [AHAPPattern.Element]) {
+  public init(version: Int = 1, elements: [AHAPPattern.Element]) {
     self.version = version
     self.elements = elements
   }
@@ -36,7 +36,7 @@ extension AHAPPattern {
   ///   - version: The numerical version of this pattern.
   ///   - elements: The elements in this pattern.
   public init(version: Int = 1, _ elements: Element...) {
-    self.init(version: version, Array(elements))
+    self.init(version: version, elements: Array(elements))
   }
 }
 
@@ -331,6 +331,7 @@ extension AHAPPattern.Event {
         waveformPath: waveformPath,
         waveformLoopEnabled: waveformLoopEnabled,
         waveformUseVolumeEnvelope: waveformUseVolumeEnvelope,
+        duration: duration,
         parameters: parameters
       )
     )
