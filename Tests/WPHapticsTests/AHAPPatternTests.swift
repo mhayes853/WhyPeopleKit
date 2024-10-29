@@ -144,6 +144,21 @@ struct AHAPPatternTests {
     #expect(pattern == newPattern)
     try FileManager.default.removeItem(at: url)
   }
+
+  @Test("Encode then Decode Custom Audio Event")
+  func encodeThenDecodeCustomAudio() throws {
+    let event = AHAPPattern.AudioCustomEvent(
+      time: 0,
+      waveformPath: "test.caf",
+      waveformLoopEnabled: false,
+      waveformUseVolumeEnvelope: false,
+      duration: 2.2,
+      parameters: AHAPPattern.AudioParameters()
+    )
+    let data = try JSONEncoder().encode(event)
+    let decodedEvent = try JSONDecoder().decode(AHAPPattern.AudioCustomEvent.self, from: data)
+    #expect(event == decodedEvent)
+  }
 }
 
 extension AHAPPattern {

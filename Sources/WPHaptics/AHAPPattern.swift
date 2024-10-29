@@ -314,6 +314,7 @@ extension AHAPPattern.Event {
   ///   - waveformPath: The file path of the waveform.
   ///   - waveformLoopEnabled: Whether or not to loop the waveform.
   ///   - waveformUseVolumeEnvelope: Whether or not the waveform audio fades in and out with an envelope.
+  ///   - duration: The duration of how long this event plays for.
   ///   - parameters: The parameters of this event.
   /// - Returns: A custom audio event.
   public static func audioCustom(
@@ -321,6 +322,7 @@ extension AHAPPattern.Event {
     waveformPath: String,
     waveformLoopEnabled: Bool = false,
     waveformUseVolumeEnvelope: Bool = false,
+    duration: Double? = nil,
     parameters: AHAPPattern.AudioParameters = AHAPPattern.AudioParameters()
   ) -> Self {
     .audioCustom(
@@ -343,16 +345,12 @@ extension AHAPPattern.Event {
   /// - Parameters:
   ///   - time: The time this event plays at relative to other events in a pattern.
   ///   - duration: The duration of how long this event plays for.
-  ///   - waveformPath: The file path of the waveform.
-  ///   - waveformLoopEnabled: Whether or not to loop the waveform.
   ///   - waveformUseVolumeEnvelope: Whether or not the waveform audio fades in and out with an envelope.
   ///   - parameters: The parameters of this event.
   /// - Returns: A continuous audio event.
   public static func audioContinuous(
     time: Double,
     duration: Double,
-    waveformPath: String,
-    waveformLoopEnabled: Bool = false,
     waveformUseVolumeEnvelope: Bool = false,
     parameters: AHAPPattern.AudioParameters = AHAPPattern.AudioParameters()
   ) -> Self {
@@ -360,8 +358,6 @@ extension AHAPPattern.Event {
       AHAPPattern.AudioContinuousEvent(
         time: time,
         duration: duration,
-        waveformPath: waveformPath,
-        waveformLoopEnabled: waveformLoopEnabled,
         waveformUseVolumeEnvelope: waveformUseVolumeEnvelope,
         parameters: parameters
       )
@@ -627,6 +623,9 @@ extension AHAPPattern {
     /// Whether or not the waveform audio fades in and out with an envelope.
     public var waveformUseVolumeEnvelope = false
 
+    /// The duration of how long this event plays for.
+    public var duration: Double?
+
     /// The parameters of this event.
     public var parameters = AudioParameters()
 
@@ -637,12 +636,14 @@ extension AHAPPattern {
     ///   - waveformPath: The file path of the waveform.
     ///   - waveformLoopEnabled: Whether or not to loop the waveform.
     ///   - waveformUseVolumeEnvelope: Whether or not the waveform audio fades in and out with an envelope.
+    ///   - duration: The duration of how long this event plays for.
     ///   - parameters: The parameters of this event.
     public init(
       time: Double,
       waveformPath: String,
       waveformLoopEnabled: Bool = false,
       waveformUseVolumeEnvelope: Bool = false,
+      duration: Double? = nil,
       parameters: AudioParameters = AudioParameters()
     ) {
       self.time = time
@@ -654,13 +655,15 @@ extension AHAPPattern {
 }
 
 extension AHAPPattern.AudioCustomEvent: Encodable {
-  private enum CodingKeys: String, CodingKey {
-    case eventType = "EventType"
-    case time = "Time"
-    case waveformPath = "EventWaveformPath"
-    case waveformLoopEnabled = "EventWaveformLoopEnabled"
-    case waveformUseVolumeEnvelope = "EventWaveformUseVolumeEnvelope"
-    case parameters = "EventParameters"
+  public func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(self.eventType, forKey: .eventType)
+    try container.encode(self.time, forKey: .time)
+    try container.encode(self.waveformPath, forKey: .waveformPath)
+    try container.encode(self.waveformLoopEnabled, forKey: .waveformLoopEnabled)
+    try container.encode(self.waveformUseVolumeEnvelope, forKey: .waveformUseVolumeEnvelope)
+    try container.encode(self.parameters, forKey: .parameters)
+    try container.encodeIfPresent(self.duration, forKey: .duration)
   }
 }
 
@@ -674,6 +677,18 @@ extension AHAPPattern.AudioCustomEvent: Decodable {
       try container.decodeIfPresent(Bool.self, forKey: .waveformLoopEnabled) ?? false
     self.waveformUseVolumeEnvelope =
       try container.decodeIfPresent(Bool.self, forKey: .waveformUseVolumeEnvelope) ?? false
+  }
+}
+
+extension AHAPPattern.AudioCustomEvent {
+  private enum CodingKeys: String, CodingKey {
+    case eventType = "EventType"
+    case time = "Time"
+    case duration = "EventDuration"
+    case waveformPath = "EventWaveformPath"
+    case waveformLoopEnabled = "EventWaveformLoopEnabled"
+    case waveformUseVolumeEnvelope = "EventWaveformUseVolumeEnvelope"
+    case parameters = "EventParameters"
   }
 }
 
@@ -693,12 +708,6 @@ extension AHAPPattern {
     /// The duration of how long this event plays for.
     public var duration: Double
 
-    /// Whether or not to loop the waveform.
-    public var waveformLoopEnabled = false
-
-    /// The file path of the waveform.
-    public var waveformPath: String
-
     /// Whether or not the waveform audio fades in and out with an envelope.
     public var waveformUseVolumeEnvelope = false
 
@@ -710,22 +719,16 @@ extension AHAPPattern {
     /// - Parameters:
     ///   - time: The time this event plays at relative to other events in a pattern.
     ///   - duration: The duration of how long this event plays for.
-    ///   - waveformPath: The file path of the waveform.
-    ///   - waveformLoopEnabled: Whether or not to loop the waveform.
     ///   - waveformUseVolumeEnvelope: Whether or not the waveform audio fades in and out with an envelope.
     ///   - parameters: The parameters of this event.
     public init(
       time: Double,
       duration: Double,
-      waveformPath: String,
-      waveformLoopEnabled: Bool = false,
       waveformUseVolumeEnvelope: Bool = false,
       parameters: AudioParameters = AudioParameters()
     ) {
       self.time = time
       self.duration = duration
-      self.waveformLoopEnabled = waveformLoopEnabled
-      self.waveformPath = waveformPath
       self.waveformUseVolumeEnvelope = waveformUseVolumeEnvelope
       self.parameters = parameters
     }
@@ -737,8 +740,6 @@ extension AHAPPattern.AudioContinuousEvent: Encodable {
     case eventType = "EventType"
     case time = "Time"
     case duration = "EventDuration"
-    case waveformLoopEnabled = "EventWaveformLoopEnabled"
-    case waveformPath = "EventWaveformPath"
     case waveformUseVolumeEnvelope = "EventWaveformUseVolumeEnvelope"
     case parameters = "EventParameters"
   }
@@ -749,10 +750,7 @@ extension AHAPPattern.AudioContinuousEvent: Decodable {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.time = try container.decode(Double.self, forKey: .time)
     self.duration = try container.decode(Double.self, forKey: .duration)
-    self.waveformPath = try container.decode(String.self, forKey: .waveformPath)
     self.parameters = try container.decode(AHAPPattern.AudioParameters.self, forKey: .parameters)
-    self.waveformLoopEnabled =
-      try container.decodeIfPresent(Bool.self, forKey: .waveformLoopEnabled) ?? false
     self.waveformUseVolumeEnvelope =
       try container.decodeIfPresent(Bool.self, forKey: .waveformUseVolumeEnvelope) ?? false
   }
