@@ -650,6 +650,7 @@ extension AHAPPattern {
       self.time = time
       self.waveformPath = waveformPath
       self.waveformUseVolumeEnvelope = waveformUseVolumeEnvelope
+      self.duration = duration
       self.parameters = parameters
     }
   }
@@ -674,6 +675,7 @@ extension AHAPPattern.AudioCustomEvent: Decodable {
     self.time = try container.decode(Double.self, forKey: .time)
     self.waveformPath = try container.decode(String.self, forKey: .waveformPath)
     self.parameters = try container.decode(AHAPPattern.AudioParameters.self, forKey: .parameters)
+    self.duration = try container.decodeIfPresent(Double.self, forKey: .duration)
     self.waveformLoopEnabled =
       try container.decodeIfPresent(Bool.self, forKey: .waveformLoopEnabled) ?? false
     self.waveformUseVolumeEnvelope =

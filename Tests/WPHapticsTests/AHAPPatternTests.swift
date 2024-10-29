@@ -157,7 +157,7 @@ struct AHAPPatternTests {
     )
     let data = try JSONEncoder().encode(event)
     let decodedEvent = try JSONDecoder().decode(AHAPPattern.AudioCustomEvent.self, from: data)
-    #expect(event == decodedEvent)
+    expectNoDifference(event, decodedEvent)
   }
 }
 
