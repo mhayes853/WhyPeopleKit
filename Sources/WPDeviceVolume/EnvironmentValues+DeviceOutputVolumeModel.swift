@@ -10,6 +10,6 @@ extension EnvironmentValues {
 
   @MainActor
   private struct DeviceOutputVolumeModelKey: @preconcurrency EnvironmentKey {
-    static let defaultValue = DeviceOutputVolumeModel.default
+    static let defaultValue = DeviceOutputVolumeModel.systemDefault
   }
 }

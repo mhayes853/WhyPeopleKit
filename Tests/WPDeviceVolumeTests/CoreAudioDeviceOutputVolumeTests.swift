@@ -125,7 +125,7 @@ import WPFoundation
   }
 
   private func yield() async {
-    for _ in 0..<1000 { await Task.yield() }
+    await Task.megaYield(count: 10_000)
   }
 
 #endif

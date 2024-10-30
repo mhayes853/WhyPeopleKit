@@ -16,19 +16,9 @@ public struct DeviceOutputVolumeStatus: Hashable, Sendable {
   /// - Parameters:
   ///   - decibals: The amount of volume in in the range [0, 1].
   ///   - isMuted: Whether or not the device is muted through hardware or software means.
-  @available(watchOS, unavailable)
-  public init(outputVolume: Double, isMuted: Bool) {
+  public init(outputVolume: Double, isMuted: Bool = false) {
     self.outputVolume = outputVolume
     self.isMuted = isMuted
-  }
-
-  /// Iniitializes a ``DeviceOutputVolumeStatus`` instance.
-  ///
-  /// - Parameters:
-  ///   - decibals: The amount of volume in in the range [0, 1].
-  public init(outputVolume: Double) {
-    self.outputVolume = outputVolume
-    self.isMuted = false
   }
 }
 

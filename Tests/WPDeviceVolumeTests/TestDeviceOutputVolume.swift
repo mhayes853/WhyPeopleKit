@@ -1,21 +1,29 @@
+import ConcurrencyExtras
+import Foundation
 import WPDeviceVolume
 
-struct TestDeviceOutputVolume: DeviceOutputVolume {
-  let statusUpdates: AsyncThrowingStream<DeviceOutputVolumeStatus, Error>
+final class TestDeviceOutputVolume: DeviceOutputVolume, Sendable {
+  private let subscribers = LockIsolated(
+    [UUID: @Sendable (Result<DeviceOutputVolumeStatus, any Error>) -> Void]()
+  )
 
   func subscribe(
     _ callback: @escaping @Sendable (Result<DeviceOutputVolumeStatus, any Error>) -> Void
   ) -> DeviceOutputVolumeSubscription {
-    let task = Task {
-      do {
-        for try await status in self.statusUpdates {
-          callback(.success(status))
-        }
-      } catch {
-        callback(.failure(error))
+    let id = UUID()
+    self.subscribers.withValue { $0[id] = callback }
+    return DeviceOutputVolumeSubscription {
+      _ = self.subscribers.withValue { $0.removeValue(forKey: id) }
+    }
+  }
+
+  func send(result: Result<DeviceOutputVolumeStatus, any Error>) async {
+    self.subscribers.withValue {
+      for callback in $0.values {
+        callback(result)
       }
     }
-    return DeviceOutputVolumeSubscription { task.cancel() }
+    await Task.megaYield()
   }
 }
 

@@ -45,11 +45,7 @@ public final class DeviceOutputVolumeModel {
   /// If this value is non-nil, then ``status`` will no longer be updated.
   public private(set) var error: (any Error)?
 
-  @PerceptionIgnored private var task: Task<Void, Never>?
-
-  deinit {
-    Task { @MainActor [task] in task?.cancel() }
-  }
+  @PerceptionIgnored private var subscription: DeviceOutputVolumeSubscription?
 
   /// Initializes this model with an escaping closure to create the ``DeviceOutputVolume`` instance
   /// to observe.
@@ -57,14 +53,18 @@ public final class DeviceOutputVolumeModel {
   /// - Parameter volume: An escaping closure to create the ``DeviceOutputVolume`` instance to
   /// observe.
   public init(_ volume: @escaping () throws -> some DeviceOutputVolume) {
-    self.task = Task {
-      do {
-        for try await status in try volume().statusUpdates {
-          withAnimation { self.status = status }
+    do {
+      self.subscription = try volume()
+        .subscribe { result in
+          Task { @MainActor in
+            switch result {
+            case let .failure(error): withAnimation { self.error = error }
+            case let .success(status): withAnimation { self.status = status }
+            }
+          }
         }
-      } catch {
-        withAnimation { self.error = error }
-      }
+    } catch {
+      self.error = withAnimation { error }
     }
   }
 }
@@ -93,7 +93,7 @@ extension DeviceOutputVolumeModel {
 // MARK: - Default Instance
 
 extension DeviceOutputVolumeModel {
-  /// Returns the default instance of this model.
+  /// Returns the an instance of this model that tracks the system default volume.
   ///
   /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
   ///
@@ -106,5 +106,5 @@ extension DeviceOutputVolumeModel {
   /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
   /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
   /// then the device is inferred to be in silent mode.
-  public static let `default` = DeviceOutputVolumeModel { try .systemDefault() }
+  public static let systemDefault = DeviceOutputVolumeModel { try .systemDefault() }
 }
