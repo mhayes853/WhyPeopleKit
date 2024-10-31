@@ -13,10 +13,17 @@ extension MainActor {
     file: StaticString = #file,
     line: UInt = #line
   ) rethrows -> T {
-    if Thread.isMainThread {
+    if DispatchQueue.getSpecific(key: mainQueueKey) == value {
       try Self.runAssumingIsolation(operation, file: file, line: line)
     } else {
       try DispatchQueue.main.sync { try operation() }
     }
   }
 }
+
+private let mainQueueKey: DispatchSpecificKey<UInt8> = {
+  let key = DispatchSpecificKey<UInt8>()
+  DispatchQueue.main.setSpecific(key: key, value: value)
+  return key
+}()
+private let value: UInt8 = 0

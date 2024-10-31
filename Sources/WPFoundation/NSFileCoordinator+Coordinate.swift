@@ -37,9 +37,9 @@ extension NSFileCoordinator {
 extension NSFileCoordinator {
   public func coordinate<T>(
     readingItemAt: URL,
-    options readingOptions: NSFileCoordinator.ReadingOptions,
+    options readingOptions: NSFileCoordinator.ReadingOptions = [],
     writingItemAt: URL,
-    options writingOptions: NSFileCoordinator.WritingOptions,
+    options writingOptions: NSFileCoordinator.WritingOptions = [],
     byAccessor: (URL, URL) throws -> T
   ) throws -> T {
     try self.coordinate { pointer, state in
@@ -61,9 +61,9 @@ extension NSFileCoordinator {
 extension NSFileCoordinator {
   public func coordinate<T>(
     writingItemAt url1: URL,
-    options options1: NSFileCoordinator.WritingOptions,
+    options options1: NSFileCoordinator.WritingOptions = [],
     writingItemAt url2: URL,
-    options options2: NSFileCoordinator.WritingOptions,
+    options options2: NSFileCoordinator.WritingOptions = [],
     byAccessor: (URL, URL) throws -> T
   ) throws -> T {
     try self.coordinate { pointer, state in
@@ -85,7 +85,7 @@ extension NSFileCoordinator {
 private struct CoordinateState<T> {
   private(set) var value: T?
   private(set) var error: (any Error)?
-  
+
   mutating func perform(_ work: () throws -> T) {
     do {
       self.value = try work()

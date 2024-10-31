@@ -21,6 +21,23 @@ struct StringProtocolCharactersTests {
   }
 
   @Test(
+    "First Character Lowercased",
+    arguments: [
+      ("", ""),
+      ("Hello", "hello"),
+      ("   ", "   "),
+      ("1234", "1234"),
+      ("1a2b3c", "1a2b3c"),
+      ("This is a test", "this is a test"),
+      ("✅ this is an emoji", "✅ this is an emoji"),
+      ("🤔➰🙄😛", "🤔➰🙄😛")
+    ]
+  )
+  func lowercaseFirst(string: String, expected: String) {
+    #expect(string.firstCharacterLowercased == expected)
+  }
+
+  @Test(
     "Character Before Index, Non Empty Returns Character Before or Nil",
     arguments: [
       ("hello", "h", nil),

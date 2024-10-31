@@ -7,6 +7,13 @@ extension StringProtocol {
     guard let first else { return "" }
     return first.uppercased() + self.dropFirst()
   }
+
+  /// Returns a string with the first character of this string lowercased.
+  @inlinable
+  public var firstCharacterLowercased: String {
+    guard let first else { return "" }
+    return first.lowercased() + self.dropFirst()
+  }
 }
 
 // MARK: - Positional Helpers
