@@ -18,7 +18,7 @@ struct TestAnalyticsRecorderTests {
     let e3 = AnalyticsEvent.setUserProperties([:])
     let recorder = TestAnalyticsRecorder()
     recorder.record(event: e1)
-    recorder.record(name: "test")
+    recorder.record(event: "test")
     recorder.record(event: e2)
     recorder.record(event: e3)
     recorder.record(event: e3)

@@ -24,7 +24,7 @@ public enum AnalyticsEvent: Sendable {
   case identify(distinctId: String)
 
   /// An event for opting in and out of analytics tracking.
-  case opt(OptInStatus)
+  case opt(AnalyticsOptInStatus)
 
   /// An event for associating properties with the current user.
   case setUserProperties([String: Value?])
@@ -110,14 +110,12 @@ extension AnalyticsEvent {
   /// - Parameters:
   ///   - name: The name of the event.
   ///   - properties: The properties associated with the event.
-  @inlinable
   public init(_ name: String, properties: [String: Value?] = [:]) {
     self = .event(name: name, properties: properties)
   }
 }
 
 extension AnalyticsEvent: ExpressibleByStringLiteral {
-  @inlinable
   public init(stringLiteral value: StringLiteralType) {
     self.init(value)
   }

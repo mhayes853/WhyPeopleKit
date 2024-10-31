@@ -12,8 +12,8 @@ This library provides generic types and a protocol for dealing with common analy
 
 ```swift
 struct SomeScreen: View {
-  @Environment(\.analyticsRecordable) var analytics
-  
+  @Environment(\.analytics) var analytics
+
   var body: some View {
     VStack {
       // Rest of screen...
@@ -21,7 +21,7 @@ struct SomeScreen: View {
     .onAppear { self.analytics.record(event: "viewed_some_screen") }
   }
 }
-``` 
+```
 
 In addition to this core library, adapter modules for both Mixpanel and PostHog can be found in this repo.
 
@@ -32,7 +32,7 @@ This protocol defines the basic functionallity for recording analytics. It has a
 This core library contains 3 implementations:
 1. `ConsoleAnalyticsRecorder` - Prints analytic events to the console.
 2. `TestAnalyticsRecorder` - Records events in memory and allows for inspection of analytic events during testing.
-3. `FailingAnalyticsRecorder` - Fails the current test case when an event is recorded.
+3. `IssueReportingAnalyticsRecorder` - Reports an issue using swift-issue-reporting when an analytics event is recorder.
 
 Additionally, you can find `MixpanelAnalyticsRecorder` and `PostHogAnalyticsRecorder` in WPMixpanelAnalytics and WPPostHogAnalytics respectively.
 
@@ -83,16 +83,16 @@ struct MyAnalyticsRecorder: AnalyticsRecordable {
     switch event {
       case let .event(name, properties):
         // ...
-  
+
       case let .identify(distinctId):
         // ...
-  
+
       case let .setUserProperties(properties):
         // ...
-  
+
       case let .opt(status):
         // ...
-  
+
       case let .custom(event):
         guard let event = event as? TrackChargeEvent else { return }
         // Record the event somehow...

@@ -44,7 +44,7 @@ extension DependencyValues {
     }
 
     static var testValue: any AnalyticsRecordable & Sendable {
-      FailingAnalyticsRecorder()
+      IssueReportingAnalyticsRecorder()
     }
   }
 }
