@@ -86,7 +86,7 @@ extension ConsoleAnalyticsRecorder.Console where Self == SwiftLogAnalyticsConsol
 
 // MARK: - OSLogAnalyticsConsole
 
-/// A console that logs to a swift-log `Logger`.
+/// A console that logs to an OSLog `Logger`.
 public struct OSLogAnalyticsConsole: ConsoleAnalyticsRecorder.Console {
   private let logger: os.Logger
   private let level: OSLogType
@@ -107,7 +107,7 @@ public struct OSLogAnalyticsConsole: ConsoleAnalyticsRecorder.Console {
 }
 
 extension ConsoleAnalyticsRecorder.Console where Self == OSLogAnalyticsConsole {
-  /// A console that logs to a swift-log `Logger`.
+  /// A console that logs to an OSLog `Logger`.
   ///
   /// - Parameters:
   ///   - logger: The `Logger` to use.
@@ -123,28 +123,5 @@ extension AnalyticsRecordable where Self == ConsoleAnalyticsRecorder {
   /// An ``AnalyticsRecordable`` conformance that logs events to the console.
   public static var console: Self {
     ConsoleAnalyticsRecorder()
-  }
-}
-
-// MARK: - Console Logging with Another Recordable
-
-extension AnalyticsRecordable {
-  /// Adds console logging to each event recorded by this recordable.
-  ///
-  /// - Parameter console: A ``Console`` instance, defaults to standard output.
-  public func withConsoleLogging(
-    console: some ConsoleAnalyticsRecorder.Console = .standardOutput
-  ) -> _WithConsoleLoggingRecordable<Self> {
-    _WithConsoleLoggingRecordable(base: self, console: ConsoleAnalyticsRecorder(console: console))
-  }
-}
-
-public struct _WithConsoleLoggingRecordable<Base: AnalyticsRecordable>: AnalyticsRecordable {
-  let base: Base
-  let console: ConsoleAnalyticsRecorder
-
-  public func record(event: AnalyticsEvent) {
-    self.base.record(event: event)
-    self.console.record(event: event)
   }
 }
