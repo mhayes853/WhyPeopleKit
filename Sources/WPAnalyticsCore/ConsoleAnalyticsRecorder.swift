@@ -124,4 +124,11 @@ extension AnalyticsRecordable where Self == ConsoleAnalyticsRecorder {
   public static var console: Self {
     ConsoleAnalyticsRecorder()
   }
+
+  /// An ``AnalyticsRecordable`` conformance that logs events to the console.
+  ///
+  /// - Parameter console: A ``ConsoleAnalyticsRecorder/Console`` instance.
+  public static func console(_ console: ConsoleAnalyticsRecorder.Console) -> Self {
+    ConsoleAnalyticsRecorder(console: console)
+  }
 }

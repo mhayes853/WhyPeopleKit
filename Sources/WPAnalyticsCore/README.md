@@ -29,10 +29,12 @@ In addition to this core library, adapter modules for both Mixpanel and PostHog 
 
 This protocol defines the basic functionallity for recording analytics. It has a singular `record` method requirement that is responsible for recording an instance of `AnalyticsEvent`.
 
-This core library contains 3 implementations:
+This core library contains 5 utility implementations that you may find especially useful for testing or debugging:
 1. `ConsoleAnalyticsRecorder` - Prints analytic events to the console.
 2. `TestAnalyticsRecorder` - Records events in memory and allows for inspection of analytic events during testing.
 3. `IssueReportingAnalyticsRecorder` - Reports an issue using swift-issue-reporting when an analytics event is recorder.
+4. `NoopAnalyticsRecorder` - Does nothing when receiving anlytic events.
+5. `VariadicCombinedAnalyticsRecorder/AnyCombinedAnalyticsRecorder` - Combines multiple analytics recorders into 1.
 
 Additionally, you can find `MixpanelAnalyticsRecorder` and `PostHogAnalyticsRecorder` in WPMixpanelAnalytics and WPPostHogAnalytics respectively.
 
@@ -99,6 +101,14 @@ struct MyAnalyticsRecorder: AnalyticsRecordable {
     }
   }
 }
+```
+
+### Combining
+
+The library ships with a helper function to combine multiple analytics recorders into 1.
+
+```swift
+let analytics = combineAnalytics(.postHog, .console, .mixpanel)
 ```
 
 ### Testing
