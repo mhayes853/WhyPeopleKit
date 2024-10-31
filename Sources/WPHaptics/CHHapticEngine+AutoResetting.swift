@@ -2,17 +2,6 @@
   import CoreHaptics
 
   extension CHHapticEngine {
-    /// Attempts to create a `CHHapticEngine` instance with autoshutdown enabled, and with a reset
-    /// handler that restarts the engine.
-    ///
-    /// - Returns: A `CHHapticEngine`.
-    public static func autoResetting() throws -> CHHapticEngine {
-      let engine = try CHHapticEngine()
-      engine.isAutoShutdownEnabled = true
-      engine.enableAutomaticRestarts()
-      return engine
-    }
-
     /// Enables automatic restarting when this engine resets.
     ///
     /// This method overrides the `resetHandler`, so ensure that you do not set `resetHandler`

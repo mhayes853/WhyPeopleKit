@@ -649,6 +649,7 @@ extension AHAPPattern {
     ) {
       self.time = time
       self.waveformPath = waveformPath
+      self.waveformLoopEnabled = waveformLoopEnabled
       self.waveformUseVolumeEnvelope = waveformUseVolumeEnvelope
       self.duration = duration
       self.parameters = parameters
