@@ -1,4 +1,5 @@
 import Logging
+import os
 
 // MARK: - ConsoleAnalyticsRecorder
 
@@ -54,15 +55,15 @@ extension ConsoleAnalyticsRecorder.Console where Self == StandardOutputAnalytics
 
 /// A console that logs to a swift-log `Logger`.
 public struct SwiftLogAnalyticsConsole: ConsoleAnalyticsRecorder.Console {
-  private let logger: Logger
-  private let level: Logger.Level
+  private let logger: Logging.Logger
+  private let level: Logging.Logger.Level
 
   /// Creates a console that logs to a swift-log `Logger`.
   ///
   /// - Parameters:
   ///   - logger: The `Logger` to use.
   ///   - level: The level at which `Logger` logs.
-  public init(logger: Logger, level: Logger.Level = .info) {
+  public init(logger: Logging.Logger, level: Logging.Logger.Level = .info) {
     self.logger = logger
     self.level = level
   }
@@ -78,8 +79,41 @@ extension ConsoleAnalyticsRecorder.Console where Self == SwiftLogAnalyticsConsol
   /// - Parameters:
   ///   - logger: The `Logger` to use.
   ///   - level: The level at which `Logger` logs.
-  public static func swiftLog(logger: Logger, level: Logger.Level = .info) -> Self {
+  public static func swiftLog(logger: Logging.Logger, level: Logging.Logger.Level = .info) -> Self {
     SwiftLogAnalyticsConsole(logger: logger, level: level)
+  }
+}
+
+// MARK: - OSLogAnalyticsConsole
+
+/// A console that logs to a swift-log `Logger`.
+public struct OSLogAnalyticsConsole: ConsoleAnalyticsRecorder.Console {
+  private let logger: os.Logger
+  private let level: OSLogType
+
+  /// Creates a console that logs to a swift-log `Logger`.
+  ///
+  /// - Parameters:
+  ///   - logger: The `Logger` to use.
+  ///   - level: The level at which `Logger` logs.
+  public init(logger: os.Logger, level: OSLogType = .info) {
+    self.logger = logger
+    self.level = level
+  }
+
+  public func print(_ formattedEvent: String) {
+    self.logger.log(level: self.level, "\(formattedEvent)")
+  }
+}
+
+extension ConsoleAnalyticsRecorder.Console where Self == OSLogAnalyticsConsole {
+  /// A console that logs to a swift-log `Logger`.
+  ///
+  /// - Parameters:
+  ///   - logger: The `Logger` to use.
+  ///   - level: The level at which `Logger` logs.
+  public static func osLog(logger: os.Logger, level: OSLogType = .info) -> Self {
+    OSLogAnalyticsConsole(logger: logger, level: level)
   }
 }
 
