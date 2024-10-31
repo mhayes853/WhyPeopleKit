@@ -43,25 +43,28 @@ import os
     func merges() async throws {
       let clock = TestClock()
       let sleepTime = SleepTime(duration: .milliseconds(100))
-      let (stream, continuation) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
-      let deviceVolume = TestDeviceOutputVolume(statusUpdates: stream)
-        .pingForMuteStatus(
-          interval: .seconds(1),
-          threshold: .milliseconds(200),
-          clock: clock,
-          ping: { try? await clock.sleep(for: sleepTime.duration) },
-          isInBackground: { false }
-        )
+      let testVolume = TestDeviceOutputVolume()
+      let deviceVolume = testVolume.pingForMuteStatus(
+        interval: .seconds(1),
+        threshold: .milliseconds(200),
+        clock: clock,
+        ping: { try? await clock.sleep(for: sleepTime.duration) },
+        isInBackground: { false }
+      )
       let task = Task {
         try await deviceVolume.statusUpdates.prefix(4)
           .reduce([DeviceOutputVolumeStatus]()) { acc, status in acc + [status] }
       }
-      continuation.yield(DeviceOutputVolumeStatus(outputVolume: 0.7, isMuted: false))
+      await testVolume.send(
+        result: .success(DeviceOutputVolumeStatus(outputVolume: 0.7, isMuted: false))
+      )
       await clock.advance(by: .milliseconds(100))
       await clock.advance(by: .seconds(1))
       await clock.advance(by: .milliseconds(100))
       await sleepTime.setDuration(.milliseconds(300))
-      continuation.yield(DeviceOutputVolumeStatus(outputVolume: 0.5, isMuted: true))
+      await testVolume.send(
+        result: .success(DeviceOutputVolumeStatus(outputVolume: 0.5, isMuted: true))
+      )
       await clock.advance(by: .seconds(1))
       await clock.advance(by: .milliseconds(300))
       let statuses = try await task.value
@@ -76,19 +79,18 @@ import os
 
     @Test("Forwards Error From Base Volume")
     func forwardsBaseError() async throws {
-      let (stream, continuation) = AsyncThrowingStream<DeviceOutputVolumeStatus, Error>.makeStream()
-      let deviceVolume = TestDeviceOutputVolume(statusUpdates: stream)
-        .pingForMuteStatus(
-          interval: .seconds(1),
-          threshold: .milliseconds(200),
-          clock: TestClock()
-        )
+      let testVolume = TestDeviceOutputVolume()
+      let deviceVolume = testVolume.pingForMuteStatus(
+        interval: .seconds(1),
+        threshold: .milliseconds(200),
+        clock: TestClock()
+      )
       let task = Task {
         try await deviceVolume.statusUpdates
           .reduce([DeviceOutputVolumeStatus]()) { acc, status in acc + [status] }
       }
       struct SomeError: Error {}
-      continuation.finish(throwing: SomeError())
+      await testVolume.send(result: .failure(SomeError()))
       await #expect(throws: SomeError.self) {
         try await task.value
       }
