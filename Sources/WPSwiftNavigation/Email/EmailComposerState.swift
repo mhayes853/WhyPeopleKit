@@ -27,11 +27,11 @@ import WPFoundation
 ///
 /// Then, in your view, you can use the ``SwiftUICore/View/emailComposer(_:onFinished:onDismiss:)``
 /// modifier to present the email composer. However, make sure to check if the composer is
-/// available on the user's device using `@Environment(\.canSendEmail)`.
+/// available on the user's device using `@Environment(\.canPresentEmailComposer)`.
 ///
 /// ```swift
 /// struct EmailView: View {
-///   @Environment(\.canSendEmail) private var canSendEmail
+///   @Environment(\.canPresentEmailComposer) private var canSendEmail
 ///   @State private var model = HelpAndSupportModel()
 ///
 ///   var body: some View {
@@ -81,7 +81,7 @@ import WPFoundation
 ///
 /// ```swift
 /// struct EmailView: View {
-///   @Environment(\.canSendEmail) private var canSendEmail
+///   @Environment(\.canPresentEmailComposer) private var canSendEmail
 ///   @State private var model = HelpAndSupportModel()
 ///
 ///   var body: some View {

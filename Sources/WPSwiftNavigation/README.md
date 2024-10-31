@@ -9,7 +9,7 @@ A package on top of [swift-navigation](https://github.com/pointfreeco/swift-navi
 **Swift UI**
 ```swift
 struct EmailView: View {
-  @Environment(\.canSendEmail) private var canSendEmail
+  @Environment(\.canPresentEmailComposer) private var canSendEmail
   @State private var state: EmailComposerState?
 
   var body: some View {
@@ -48,7 +48,7 @@ final class EmailController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    if self.traitCollection.canSendEmail() {
+    if self.traitCollection.canPresentEmailComposer() {
       self.present(emailComposer: self.$state) { result in
         switch result {
         case .sent:

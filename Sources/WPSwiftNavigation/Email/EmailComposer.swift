@@ -12,7 +12,7 @@ import UIKitNavigation
   extension View {
     /// Presents an email composer based on ``EmailComposerState``.
     ///
-    /// Before calling this modifier, make sure to use `@Environment(\.canSendEmail)` to check if the
+    /// Before calling this modifier, make sure to use `@Environment(\.canPresentEmailComposer)` to check if the
     /// user's device is capable of sending email through the system email composer.
     ///
     /// You can pass a callback closure to this modifier that listens for an ``EmailComposerResult``
@@ -20,7 +20,7 @@ import UIKitNavigation
     ///
     /// ```swift
     /// struct EmailView: View {
-    ///   @Environment(\.canSendEmail) private var canSendEmail
+    ///   @Environment(\.canPresentEmailComposer) private var canSendEmail
     ///   @State private var state: EmailComposerState?
     ///
     ///   var body: some View {
@@ -71,7 +71,7 @@ import UIKitNavigation
   extension View {
     /// Presents an email composer based on ``EmailComposerState``.
     ///
-    /// Before calling this modifier, make sure to use `@Environment(\.canSendEmail)` to check if the
+    /// Before calling this modifier, make sure to use `@Environment(\.canPresentEmailComposer)` to check if the
     /// user's device is capable of sending email through the system email composer.
     ///
     /// You can pass a callback closure to this modifier that listens for an ``EmailComposerResult``
@@ -79,7 +79,7 @@ import UIKitNavigation
     ///
     /// ```swift
     /// struct EmailView: View {
-    ///   @Environment(\.canSendEmail) private var canSendEmail
+    ///   @Environment(\.canPresentEmailComposer) private var canSendEmail
     ///   @State private var state: EmailComposerState?
     ///
     ///   var body: some View {
@@ -161,7 +161,7 @@ import UIKitNavigation
   extension UIViewController {
     /// Presents an email composer based on ``EmailComposerState``.
     ///
-    /// Before calling this method, make sure to use ``UIKit/UITraitCollection/canSendEmail`` to
+    /// Before calling this method, make sure to use ``UIKit/UITraitCollection/canPresentEmailComposer`` to
     /// check if the user's device is capable of sending email through the system email composer.
     ///
     /// You can pass a callback closure to this modifier that method for an ``EmailComposerResult``
@@ -173,7 +173,7 @@ import UIKitNavigation
     ///
     ///   override func viewDidLoad() {
     ///     super.viewDidLoad()
-    ///     if self.traitCollection.canSendEmail() {
+    ///     if self.traitCollection.canPresentEmailComposer() {
     ///       self.present(emailComposer: self.$state) { result in
     ///         switch result {
     ///         case .sent:
@@ -275,7 +275,7 @@ import UIKitNavigation
   extension UIViewController {
     /// Presents an email composer based on ``EmailComposerState``.
     ///
-    /// Before calling this method, make sure to use ``UIKit/UITraitCollection/canSendEmail`` to
+    /// Before calling this method, make sure to use ``UIKit/UITraitCollection/canPresentEmailComposer`` to
     /// check if the user's device is capable of sending email through the system email composer.
     ///
     /// You can pass a callback closure to this modifier that method for an ``EmailComposerResult``
@@ -287,7 +287,7 @@ import UIKitNavigation
     ///
     ///   override func viewDidLoad() {
     ///     super.viewDidLoad()
-    ///     if self.traitCollection.canSendEmail() {
+    ///     if self.traitCollection.canPresentEmailComposer() {
     ///       self.present(emailComposer: self.$state) { result in
     ///         switch result {
     ///         case .sent:
