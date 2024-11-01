@@ -7,6 +7,7 @@
 
   // MARK: - Extension
 
+  @available(iOS 16, *)
   extension DeviceOutputVolume where Self: Sendable {
     /// Sets ``DeviceOutputVolumeStatus/isMuted`` on emissions of this volume's ``statusUpdates``
     /// based on a ping hack using AudioToolbox.
@@ -68,6 +69,7 @@
 
   // MARK: - PingForMuteStatus Type
 
+  @available(iOS 16, *)
   public final class _PingForMuteStatusDeviceVolume<
     Base: DeviceOutputVolume & Sendable,
     C: Clock
@@ -99,6 +101,7 @@
 
   // MARK: - PingState
 
+  @available(iOS 16, *)
   extension _PingForMuteStatusDeviceVolume {
     struct PingState: Sendable {
       private var isMuted: Bool?
@@ -140,6 +143,7 @@
 
   // MARK: - DeviceOutputVolume Conformance
 
+  @available(iOS 16, *)
   extension _PingForMuteStatusDeviceVolume: DeviceOutputVolume {
     public func subscribe(
       _ callback: @escaping @Sendable (Result<DeviceOutputVolumeStatus, any Error>) -> Void

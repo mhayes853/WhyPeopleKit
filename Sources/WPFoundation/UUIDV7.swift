@@ -74,7 +74,7 @@ extension UUIDV7 {
   }
 
   private struct MonotonicityState: Sendable {
-    static let current = OSAllocatedUnfairLock(initialState: MonotonicityState())
+    static let current = Lock(MonotonicityState())
 
     private var previousTimestamp = UInt64(0)
     private var sequence = UInt16(0)
@@ -259,6 +259,7 @@ extension UUIDV7: Decodable {
 // MARK: - EntityIdentifierConvertible
 
 #if canImport(AppIntents)
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   extension UUIDV7: EntityIdentifierConvertible {
     @inlinable
     public var entityIdentifierString: String {

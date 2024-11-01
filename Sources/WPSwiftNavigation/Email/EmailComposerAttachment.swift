@@ -47,6 +47,7 @@ public struct EmailComposerAttachment: Hashable, Sendable {
   /// - Parameters:
   ///   - url: A filesystem `url`.
   ///   - filename: The filename to use for the attachment in the email composer.
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
   public init?(url: URL, filename: String) {
     guard let mimeType = MIMEType(of: url) else { return nil }
     self.contents = .url(url)

@@ -5,6 +5,7 @@ extension StringProtocol {
   /// - Returns: The match, if one is found. If there is no match, or a
   ///   transformation in `regex` throws an error, this method returns `nil.`
   @inlinable
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   public func wholeMatch<R: RegexComponent>(
     in regexComponent: R
   ) -> Regex<R.RegexOutput>.Match? {

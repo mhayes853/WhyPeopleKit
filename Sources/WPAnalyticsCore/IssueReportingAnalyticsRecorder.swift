@@ -1,5 +1,4 @@
 import IssueReporting
-import WPFoundation
 
 // MARK: - IssueReportingAnalyticsRecorder
 

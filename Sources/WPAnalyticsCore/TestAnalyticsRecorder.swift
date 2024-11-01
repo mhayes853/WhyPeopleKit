@@ -1,12 +1,11 @@
-import Foundation
-import os
+import WPFoundation
 
 // MARK: - TestAnalyticsRecorder
 
 /// An ``AnalyticsRecordable`` that records events in-memory such that inspection is possible
 /// during testing.
 public final class TestAnalyticsRecorder: Sendable {
-  private let events = OSAllocatedUnfairLock(initialState: [AnalyticsEvent]())
+  private let events = Lock([AnalyticsEvent]())
 
   public init() {}
 }

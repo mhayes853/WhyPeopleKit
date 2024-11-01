@@ -1,3 +1,4 @@
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 extension Duration {
   /// Construct a `Duration` given a number of minutes represented as a `BinaryInteger`.
   ///

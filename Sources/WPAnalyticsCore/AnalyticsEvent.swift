@@ -176,6 +176,7 @@ extension AnalyticsEvent.Value {
 
 extension AnalyticsEvent.Value {
   @inlinable
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
   public static func float(_ f: Float16) -> Self {
     .double(Double(f))
   }

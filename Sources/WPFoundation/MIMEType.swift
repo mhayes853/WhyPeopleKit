@@ -28,6 +28,7 @@ extension MIMEType {
   /// This initializer returns nil if the URL is a directory URL, or not a filesystem URL.
   ///
   /// - Parameter url: A filesystem `URL`.
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
   public init?(of url: URL) {
     guard !url.hasDirectoryPath && url.isFileURL else { return nil }
     if let identifier = UTType(filenameExtension: url.pathExtension)?.preferredMIMEType {

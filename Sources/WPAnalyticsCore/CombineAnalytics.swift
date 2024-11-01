@@ -9,7 +9,7 @@
 /// - Parameter recorder: A variadic list of ``AnalyticsRecordable``.
 /// - Returns: A ``VariadicCombinedAnalyticsRecorder``.
 @inlinable
-@available(iOS 17, macOS 14, watchOS 9, tvOS 17, *)
+@available(iOS 17, macOS 14, watchOS 10, tvOS 17, *)
 public func combineAnalytics<each R: AnalyticsRecordable & Sendable>(
   _ recorder: repeat each R
 ) -> VariadicCombinedAnalyticsRecorder<repeat each R> {
@@ -19,7 +19,7 @@ public func combineAnalytics<each R: AnalyticsRecordable & Sendable>(
 /// An ``AnalyticsRecordable`` type that combines a variadic list of analytics recorders.
 ///
 /// You create this type by calling ``combineAnalytics(_:)``.
-@available(iOS 17, macOS 14, watchOS 9, tvOS 17, *)
+@available(iOS 17, macOS 14, watchOS 10, tvOS 17, *)
 public struct VariadicCombinedAnalyticsRecorder<
   each R: AnalyticsRecordable & Sendable
 >: AnalyticsRecordable, Sendable {

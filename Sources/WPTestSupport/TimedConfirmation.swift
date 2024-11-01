@@ -5,6 +5,7 @@ import os
 
 /// A type that can be used to confirm that an event occurs zero or more times when using
 /// ``timedConfirmation(_:expectedCount:timeout:fileID:filePath:line:column:body:)``.
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 public struct TimedConfirmation: Sendable {
   private let confirmation: Confirmation
   private let expectedCount: Int
@@ -30,6 +31,7 @@ public struct TimedConfirmation: Sendable {
 
 // MARK: - Confirm
 
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 extension TimedConfirmation {
   /// Confirm this confirmation.
   ///
@@ -62,6 +64,7 @@ extension TimedConfirmation {
 
 // MARK: - Run
 
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 extension TimedConfirmation {
   fileprivate func run<T>(
     body: @Sendable @escaping (TimedConfirmation) async throws -> T
@@ -149,6 +152,7 @@ private final class TimedConfirmationExecutor: TaskExecutor {
 ///   - body: The function to invoke.
 /// - Throws: Whatever is thrown by `body`.
 /// - Returns: Whatever is returned by `body`.
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 public func timedConfirmation<T>(
   _ comment: Comment? = nil,
   expectedCount: Int = 1,

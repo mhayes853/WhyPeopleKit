@@ -21,6 +21,7 @@ public enum WebBrowserApp: String, Sendable, Codable {
 
 extension WebBrowserApp {
   /// A localized name for this web browser app identifier.
+  @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
   public var localizedName: String {
     switch self {
     case .systemDefault: String(localized: "web.browser.app.system.default", bundle: .module)

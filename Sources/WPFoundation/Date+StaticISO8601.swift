@@ -7,6 +7,8 @@ extension Date {
   ///
   /// - Parameter staticISO8601: A `StaticString` in iso8601 format.
   public init(staticISO8601: StaticString) {
-    try! self.init("\(staticISO8601)", strategy: .iso8601)
+    self = formatter.withLock { $0.date(from: "\(staticISO8601)")! }
   }
 }
+
+private let formatter = Lock(ISO8601DateFormatter())

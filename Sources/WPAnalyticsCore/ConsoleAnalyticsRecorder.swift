@@ -87,6 +87,7 @@ extension ConsoleAnalyticsRecorder.Console where Self == SwiftLogAnalyticsConsol
 // MARK: - OSLogAnalyticsConsole
 
 /// A console that logs to an OSLog `Logger`.
+@available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
 public struct OSLogAnalyticsConsole: ConsoleAnalyticsRecorder.Console {
   private let logger: os.Logger
   private let level: OSLogType
@@ -106,6 +107,7 @@ public struct OSLogAnalyticsConsole: ConsoleAnalyticsRecorder.Console {
   }
 }
 
+@available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
 extension ConsoleAnalyticsRecorder.Console where Self == OSLogAnalyticsConsole {
   /// A console that logs to an OSLog `Logger`.
   ///

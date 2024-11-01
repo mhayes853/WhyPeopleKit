@@ -1,7 +1,7 @@
-import os
+import WPFoundation
 
 final class RemoveDuplicatesState: Sendable {
-  private let value = OSAllocatedUnfairLock<DeviceOutputVolumeStatus?>(initialState: nil)
+  private let value = Lock<DeviceOutputVolumeStatus?>(nil)
   private let callback: @Sendable (Result<DeviceOutputVolumeStatus, Error>) -> Void
 
   init(

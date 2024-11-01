@@ -141,17 +141,19 @@ extension SendableUserDefaults {
 
 #if DEBUG
   // NB: It shouldn't be possible for regex literals to be non-thread-safe.
-  nonisolated(unsafe) private let swiftVariableName = /^[a-zA-Z_$][\w$]*$/
+  private let swiftVariableName = try! NSRegularExpression(
+    pattern: "^[a-zA-Z_$][\\w$]*$"
+  )
 #endif
 
 extension SendableUserDefaults {
   private func debugValidKeyCheck(_ key: String) {
     #if DEBUG
-      if !key.contains(swiftVariableName) {
+      if swiftVariableName.firstMatch(in: key, range: NSRange(0..<key.count)) == nil {
         reportIssue(
           """
           An invalid key format was detected for SendableUserDefaults value observation:
-            
+
             - Key: \(key)
 
           Key names which do not use the same format as swift variable names will not receive any \
