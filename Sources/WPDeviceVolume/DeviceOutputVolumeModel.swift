@@ -116,94 +116,96 @@ extension DeviceOutputVolumeModel {
 
 // MARK: - Default Instance
 
-extension DeviceOutputVolumeModel {
-  /// Returns the an instance of this model that tracks the system default volume.
-  ///
-  /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
-  ///
-  /// On watchOS, this instance is backed by  ``AVAudioSessionDeviceOutputVolume``. The watchOS
-  /// instance does not detect whether or not the device is in silent mode because watchOS does
-  /// not have an API to detect silent mode.
-  ///
-  /// On all other platforms, this is backed by ``AVAudioSessionDeviceOutputVolume`` and
-  /// ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:clock:)``. The latter extension
-  /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
-  /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
-  /// then the device is inferred to be in silent mode.
-  public static let systemDefault = DeviceOutputVolumeModel { try .systemDefault() }
-  
-  /// Returns the an instance of this model that tracks the system default volume.
-  /// 
-  /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
-  /// 
-  /// On watchOS, this instance is backed by  ``AVAudioSessionDeviceOutputVolume``. The watchOS
-  /// instance does not detect whether or not the device is in silent mode because watchOS does
-  /// not have an API to detect silent mode.
-  /// 
-  /// On all other platforms, this is backed by ``AVAudioSessionDeviceOutputVolume`` and
-  /// ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:clock:)``. The latter extension
-  /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
-  /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
-  /// then the device is inferred to be in silent mode.
-  ///
-  /// - Parameters:
-  ///   - transaction: A `UITransaction` that is used for state updates.
-  ///   - withTransaction: A function to apply animations when updating the state.
-  public static func systemDefault(
-    transaction: UITransaction,
-    withTransaction: @Sendable @escaping (
-      UITransaction,
-      () -> Void
-    ) throws -> Void = withUITransaction
-  ) -> DeviceOutputVolumeModel {
-    DeviceOutputVolumeModel(
-      transaction: transaction,
-      { try .systemDefault() },
-      withTransaction: withTransaction
-    )
+#if !os(Linux)
+  extension DeviceOutputVolumeModel {
+    /// Returns the an instance of this model that tracks the system default volume.
+    ///
+    /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
+    ///
+    /// On watchOS, this instance is backed by  ``AVAudioSessionDeviceOutputVolume``. The watchOS
+    /// instance does not detect whether or not the device is in silent mode because watchOS does
+    /// not have an API to detect silent mode.
+    ///
+    /// On all other platforms, this is backed by ``AVAudioSessionDeviceOutputVolume`` and
+    /// ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:clock:)``. The latter extension
+    /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
+    /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
+    /// then the device is inferred to be in silent mode.
+    public static let systemDefault = DeviceOutputVolumeModel { try .systemDefault() }
+
+    /// Returns the an instance of this model that tracks the system default volume.
+    ///
+    /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
+    ///
+    /// On watchOS, this instance is backed by  ``AVAudioSessionDeviceOutputVolume``. The watchOS
+    /// instance does not detect whether or not the device is in silent mode because watchOS does
+    /// not have an API to detect silent mode.
+    ///
+    /// On all other platforms, this is backed by ``AVAudioSessionDeviceOutputVolume`` and
+    /// ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:clock:)``. The latter extension
+    /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
+    /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
+    /// then the device is inferred to be in silent mode.
+    ///
+    /// - Parameters:
+    ///   - transaction: A `UITransaction` that is used for state updates.
+    ///   - withTransaction: A function to apply animations when updating the state.
+    public static func systemDefault(
+      transaction: UITransaction,
+      withTransaction: @Sendable @escaping (
+        UITransaction,
+        () -> Void
+      ) throws -> Void = withUITransaction
+    ) -> DeviceOutputVolumeModel {
+      DeviceOutputVolumeModel(
+        transaction: transaction,
+        { try .systemDefault() },
+        withTransaction: withTransaction
+      )
+    }
   }
-}
+#endif
 
 // MARK: - SwiftUI
 
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 
-extension DeviceOutputVolumeModel {
-  /// Initializes this model with an ``DeviceOutputVolume`` instance to observe.
-  ///
-  /// - Parameters:
-  ///    - animation: The `Animation` to use when the state changes.
-  ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
-  public convenience init(
-    animation: Animation? = .default,
-    _ volume: @escaping () throws -> some DeviceOutputVolume
-  ) {
-    self.init(transaction: UITransaction(animation: animation)) {
-      try volume()
-    } withTransaction: { transaction, body in
-      withTransaction(transaction.swiftUI.transaction, body)
+  extension DeviceOutputVolumeModel {
+    /// Initializes this model with an ``DeviceOutputVolume`` instance to observe.
+    ///
+    /// - Parameters:
+    ///    - animation: The `Animation` to use when the state changes.
+    ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
+    public convenience init(
+      animation: Animation? = .default,
+      _ volume: @escaping () throws -> some DeviceOutputVolume
+    ) {
+      self.init(transaction: UITransaction(animation: animation)) {
+        try volume()
+      } withTransaction: { transaction, body in
+        withTransaction(transaction.swiftUI.transaction, body)
+      }
+    }
+
+    /// Returns the an instance of this model that tracks the system default volume.
+    ///
+    /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
+    ///
+    /// On watchOS, this instance is backed by  ``AVAudioSessionDeviceOutputVolume``. The watchOS
+    /// instance does not detect whether or not the device is in silent mode because watchOS does
+    /// not have an API to detect silent mode.
+    ///
+    /// On all other platforms, this is backed by ``AVAudioSessionDeviceOutputVolume`` and
+    /// ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:clock:)``. The latter extension
+    /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
+    /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
+    /// then the device is inferred to be in silent mode.
+    ///
+    /// - Parameters:
+    ///   - animation: The `Animation` to use when the state changes.
+    public static func systemDefault(animation: Animation? = .default) -> DeviceOutputVolumeModel {
+      DeviceOutputVolumeModel(animation: animation) { try .systemDefault() }
     }
   }
-  
-  /// Returns the an instance of this model that tracks the system default volume.
-  ///
-  /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
-  ///
-  /// On watchOS, this instance is backed by  ``AVAudioSessionDeviceOutputVolume``. The watchOS
-  /// instance does not detect whether or not the device is in silent mode because watchOS does
-  /// not have an API to detect silent mode.
-  ///
-  /// On all other platforms, this is backed by ``AVAudioSessionDeviceOutputVolume`` and
-  /// ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:clock:)``. The latter extension
-  /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
-  /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
-  /// then the device is inferred to be in silent mode.
-  ///
-  /// - Parameters:
-  ///   - animation: The `Animation` to use when the state changes.
-  public static func systemDefault(animation: Animation? = .default) -> DeviceOutputVolumeModel {
-    DeviceOutputVolumeModel(animation: animation) { try .systemDefault() }
-  }
-}
 #endif
