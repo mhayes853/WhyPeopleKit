@@ -62,7 +62,19 @@
     }
   }
 
-  extension DeviceOutputVolume {
+  extension DeviceOutputVolume where Self: Sendable {
+    public func pingForMuteStatus(
+      interval: TimeInterval = 0.75,
+      threshold: TimeInterval = 0.1,
+      queue: DispatchQueue
+    ) -> _PingForMuteStatusDeviceVolume<Self, DispatchPingTimer> {
+      self.pingForMuteStatus(
+        interval: interval,
+        threshold: threshold,
+        timer: DispatchPingTimer(queue: queue)
+      )
+    }
+
     /// Sets ``DeviceOutputVolumeStatus/isMuted`` on emissions of this volume's ``statusUpdates``
     /// based on a ping hack using AudioToolbox.
     ///
@@ -123,27 +135,45 @@
 
   // MARK: - PingTimer
 
+  /// A timer to control the pinging in ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:timer:)``.
   public protocol PingTimer: Sendable {
     associatedtype Ticks: AsyncSequence where Ticks.Element == Void
 
+    /// An asynchronous sequence of timer ticks on the specified `interval`.
+    ///
+    /// - Parameter interval: The interval of the timer.
+    /// - Returns: An asynchronous sequence of timer ticks.
     func ticks(on interval: TimeInterval) -> Ticks
+
+    /// Measures the performance of the specified work in seconds.
+    ///
+    /// - Parameter work: A unit of work.
+    /// - Returns: The duration of how long the work took to complete.
     func time(work: @Sendable () async -> Void) async -> TimeInterval
   }
 
   // MARK: - DispatchPingTimer
 
-  public struct DispatchPingTimer: PingTimer {
-    private let queue: DispatchQueue
+  /// A ``PingTimer`` using a dispatch queue as a timer source.
+  public struct DispatchPingTimer {
+    /// The queue used by this timer.
+    public let queue: DispatchQueue
 
+    /// Creates a dispatch ping timer.
+    ///
+    /// - Parameter queue: A queue to run timer operations on.
     public init(queue: DispatchQueue) {
       self.queue = queue
     }
+  }
 
+  extension DispatchPingTimer: PingTimer {
     public func ticks(on interval: TimeInterval) -> AsyncStream<Void> {
       AsyncStream { continuation in
         let timer = DispatchSource.makeTimerSource(queue: self.queue)
         timer.setEventHandler { continuation.yield() }
         timer.schedule(deadline: .now() + interval, repeating: interval)
+        timer.resume()
         let lockedTimer = Lock(timer)
         continuation.onTermination = { _ in lockedTimer.withLock { $0.cancel() } }
       }
@@ -158,10 +188,15 @@
 
   // MARK: - ClockPingTimer
 
+  /// A ``PingTimer`` that uses a `Clock`.
   @available(iOS 16, *)
   public struct ClockPingTimer<C: Clock> where C.Duration == Duration {
+    /// The `Clock` used by this timer.
     public let clock: C
 
+    /// Creates a ping timer with the specified clock.
+    ///
+    /// - Parameter clock: A `Clock`.
     public init(clock: C) {
       self.clock = clock
     }
