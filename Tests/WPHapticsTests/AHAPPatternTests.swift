@@ -136,6 +136,7 @@ struct AHAPPatternTests {
   }
 
   @Test("To and From Contents of URL")
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func contentsOfURL() throws {
     let pattern = AHAPPattern.test
     let url = URL.documentsDirectory.appending(path: "test.ahap")

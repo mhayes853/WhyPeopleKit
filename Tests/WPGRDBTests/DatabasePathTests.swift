@@ -4,9 +4,7 @@ import WPGRDB
 
 @Suite("DatabasePath tests")
 struct DatabasePathTests {
-  private let directoryURL = URL.documentsDirectory.appending(path: "grdb-test/nested")
-  private let url = URL.documentsDirectory.appending(path: "grdb-test/nested/test.db")
-
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   init() {
     try? FileManager.default.removeItem(at: .directoryURL)
   }
@@ -15,6 +13,7 @@ struct DatabasePathTests {
     "Open DatabaseQueue",
     arguments: [DatabasePath.inMemory, .inMemory(named: "Test"), .url(.dbURL)]
   )
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func openQueue(path: DatabasePath) {
     #expect(throws: Never.self) {
       _ = try DatabaseQueue(path: path)
@@ -22,6 +21,7 @@ struct DatabasePathTests {
   }
 
   @Test("Open DatabasePool", arguments: [DatabasePath.url(.dbURL)])
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func openPool(path: DatabasePath) {
     #expect(throws: Never.self) {
       _ = try DatabasePool(path: path)
@@ -29,6 +29,7 @@ struct DatabasePathTests {
   }
 }
 
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 extension URL {
   fileprivate static let directoryURL = Self.documentsDirectory.appending(path: "grdb-test/nested")
   fileprivate static let dbURL = Self.directoryURL.appending(path: "test.db")

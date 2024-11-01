@@ -7,6 +7,7 @@ struct TimedConfirmationTests {
   private let notificationCenter = NotificationCenter()
 
   @Test("Waits for Confirmation To Be Confirmed From Synchronous Function Call")
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func waitsForConfirmation() async {
     await timedConfirmation(expectedCount: 3) { confirm in
       let observer = self.notificationCenter.addObserver(
@@ -22,6 +23,7 @@ struct TimedConfirmationTests {
   }
 
   @Test("Raises Issue After Timeout")
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func raisesTimeoutIssue() async {
     let clock = ContinuousClock()
     let time = await clock.measure {
@@ -43,6 +45,7 @@ struct TimedConfirmationTests {
   }
 
   @Test("Raises Issue After Timeout, When Body Runs Longer Than Timeout")
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func raisesTimeoutIssueOnLongBody() async {
     let clock = ContinuousClock()
     let time = await clock.measure {
@@ -64,6 +67,7 @@ struct TimedConfirmationTests {
   }
 
   @Test("Raises Issue After Confirming More than Expected Count")
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func raisesIssueOnOverconfirm() async {
     await withKnownIssue {
       await timedConfirmation(expectedCount: 0) { confirm in

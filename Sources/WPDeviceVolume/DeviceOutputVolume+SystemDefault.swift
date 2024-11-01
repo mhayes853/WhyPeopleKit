@@ -22,7 +22,7 @@
   /// The default ``DeviceOutputVolume`` for this device.
   public typealias SystemDefaultDeviceOutputVolume = _PingForMuteStatusDeviceVolume<
     AVAudioSessionDeviceOutputVolume,
-    ContinuousClock
+    DispatchPingTimer
   >
 
   extension DeviceOutputVolume where Self == SystemDefaultDeviceOutputVolume {

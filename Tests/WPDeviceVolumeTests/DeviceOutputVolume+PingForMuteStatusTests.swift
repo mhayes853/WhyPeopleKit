@@ -9,6 +9,7 @@ import os
   @Suite("DeviceOutputVolume+PingForMuteStatus tests")
   struct DeviceOutputVolumePingForMuteStatusTests {
     @Test("Is Muted When Ping Finishes Under the Threshold")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func muteStatus() async throws {
       let clock = TestClock()
       let sleepTime = SleepTime(duration: .milliseconds(250))
@@ -40,6 +41,7 @@ import os
     }
 
     @Test("Merges Updates From Base Sequence With Is Muted From Ping, and Decibals From Base")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func merges() async throws {
       let clock = TestClock()
       let sleepTime = SleepTime(duration: .milliseconds(100))
@@ -78,6 +80,7 @@ import os
     }
 
     @Test("Forwards Error From Base Volume")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func forwardsBaseError() async throws {
       let testVolume = TestDeviceOutputVolume()
       let deviceVolume = testVolume.pingForMuteStatus(
@@ -97,6 +100,7 @@ import os
     }
 
     @Test("Uses Same Ping For Multiple Subscribers")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func samePing() async throws {
       let clock = TestClock()
       let deviceVolume = NoopDeviceOutputVolume()
@@ -121,6 +125,7 @@ import os
     }
 
     @Test("Emits Current Muted Status to New Subscriber")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func emitsStatusToNewSubscriber() async throws {
       let clock = TestClock()
       let deviceVolume = NoopDeviceOutputVolume()
@@ -141,6 +146,7 @@ import os
     }
 
     @Test("Stops Pinging When No More Subscribers")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func stopsPinging() async throws {
       let clock = TestClock()
       let pingCount = OSAllocatedUnfairLock(initialState: 0)
@@ -165,6 +171,7 @@ import os
     }
 
     @Test("Stops Pinging When in the Background")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func stopsBackgroundPinging() async throws {
       let clock = TestClock()
       let isInBackground = OSAllocatedUnfairLock(initialState: false)
@@ -191,6 +198,7 @@ import os
     }
   }
 
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   private actor SleepTime {
     var duration: Duration
 

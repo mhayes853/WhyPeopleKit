@@ -10,10 +10,10 @@
 //===----------------------------------------------------------------------===//
 
 @available(iOS 16, macOS 13, tvOS 16, watchOS 8, *)
-struct AsyncTimerSequence<C: Clock>: AsyncSequence, Sendable {
-  public typealias Element = C.Instant
+public struct _AsyncTimerSequence<C: Clock>: AsyncSequence, Sendable {
+  public typealias Element = Void
 
-  struct Iterator: AsyncIteratorProtocol, Sendable {
+  public struct Iterator: AsyncIteratorProtocol, Sendable {
     var clock: C?
     let interval: C.Instant.Duration
     let tolerance: C.Instant.Duration?
@@ -38,7 +38,7 @@ struct AsyncTimerSequence<C: Clock>: AsyncSequence, Sendable {
       }
     }
 
-    mutating func next() async -> C.Instant? {
+    public mutating func next() async -> Element? {
       guard let clock = clock else {
         return nil
       }
@@ -49,9 +49,8 @@ struct AsyncTimerSequence<C: Clock>: AsyncSequence, Sendable {
         self.clock = nil
         return nil
       }
-      let now = clock.now
       last = next
-      return now
+      return ()
     }
   }
 
@@ -65,7 +64,7 @@ struct AsyncTimerSequence<C: Clock>: AsyncSequence, Sendable {
     self.tolerance = tolerance
   }
 
-  func makeAsyncIterator() -> Iterator {
+  public func makeAsyncIterator() -> Iterator {
     Iterator(interval: interval, tolerance: tolerance, clock: clock)
   }
 }

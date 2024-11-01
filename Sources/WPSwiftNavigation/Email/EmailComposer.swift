@@ -138,16 +138,17 @@ import UIKitNavigation
     @State private var model = Model()
 
     func body(content: Content) -> some View {
-      content.bind(self.$state, to: self.$model.state)
-        .onAppear {
-          @UIBindable var model = self.model
-          UIApplication.shared.topMostViewController?
-            .present(
-              emailComposer: $model.state,
-              onFinished: self.onFinished,
-              onDismiss: self.onDismiss
-            )
-        }
+      EmptyView()
+//      content.bind(self.$state, to: self.$model.state)
+//        .onAppear {
+//          @UIBindable var model = self.model
+//          UIApplication.shared.topMostViewController?
+//            .present(
+//              emailComposer: $model.state,
+//              onFinished: self.onFinished,
+//              onDismiss: self.onDismiss
+//            )
+//        }
     }
   }
 

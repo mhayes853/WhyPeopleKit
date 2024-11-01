@@ -16,6 +16,7 @@ struct MIMETypeTests {
       )
     ]
   )
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func fromURL(url: URL, type: MIMEType?) {
     #expect(MIMEType(of: url) == type)
   }

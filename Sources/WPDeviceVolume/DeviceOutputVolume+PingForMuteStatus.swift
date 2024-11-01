@@ -1,6 +1,5 @@
 #if canImport(_WPDeviceVolumeMuteSound)
   import AudioToolbox
-  import os
   import WPFoundation
   import UIKit
   import _WPDeviceVolumeMuteSound
@@ -38,14 +37,11 @@
       interval: Duration = .milliseconds(750),
       threshold: Duration = .milliseconds(100),
       clock: C = ContinuousClock()
-    ) -> _PingForMuteStatusDeviceVolume<Self, C> where C.Duration == Duration {
-      let pinger = AudioToolboxPinger()
-      return self.pingForMuteStatus(
-        interval: interval,
-        threshold: threshold,
-        clock: clock,
-        ping: pinger.ping,
-        isInBackground: { await UIApplication.shared.applicationState != .active }
+    ) -> _PingForMuteStatusDeviceVolume<Self, ClockPingTimer<C>> where C.Duration == Duration {
+      self.pingForMuteStatus(
+        interval: TimeInterval(duration: interval),
+        threshold: TimeInterval(duration: threshold),
+        timer: ClockPingTimer(clock: clock)
       )
     }
 
@@ -55,11 +51,69 @@
       clock: C,
       ping: @Sendable @escaping () async -> Void,
       isInBackground: @Sendable @escaping () async -> Bool
-    ) -> _PingForMuteStatusDeviceVolume<Self, C> where C.Duration == Duration {
+    ) -> _PingForMuteStatusDeviceVolume<Self, ClockPingTimer<C>> where C.Duration == Duration {
+      self.pingForMuteStatus(
+        interval: TimeInterval(duration: interval),
+        threshold: TimeInterval(duration: threshold),
+        timer: ClockPingTimer(clock: clock),
+        ping: ping,
+        isInBackground: isInBackground
+      )
+    }
+  }
+
+  extension DeviceOutputVolume {
+    /// Sets ``DeviceOutputVolumeStatus/isMuted`` on emissions of this volume's ``statusUpdates``
+    /// based on a ping hack using AudioToolbox.
+    ///
+    /// ```swift
+    /// // Returns a DeviceOutputVolume instance that uses AVAudioSession to check the global output
+    /// // volume and the AudioToolbox technique to detect if the device is muted.
+    /// let volume = try AVAudioSessionDeviceOutputVolume().pingForMuteStatus()
+    /// ```
+    ///
+    /// iOS does not have a built-in API to detect the position of the ringer. The only way to
+    /// detect the position of the ringer is to play a muted sound with AudioToolbox, and check if
+    /// the playback length is under the specified threshold. If the playback length is under the
+    /// specified threshold, then the device is muted.
+    ///
+    /// This extension overrides the resulting ``DeviceOutputVolumeStatus/isMuted`` value of this
+    /// ``DeviceOutputVolume`` instance.
+    ///
+    /// - Parameters:
+    ///   - interval: The interval to ping at.
+    ///   - threshold: The threshold that the playback length must be under in order to conside the
+    ///   device to be muted.
+    ///   - clock: A `Clock` to use to control the interval.
+    /// - Returns: A new ``DeviceOutputVolume`` instance that uses the
+    /// ``DeviceOutputVolumeStatus/outputVolume`` value of this instance, and overrides the
+    /// ``DeviceOutputVolumeStatus/isMuted`` value of this instance when emitting status updates.
+    public func pingForMuteStatus<T: PingTimer>(
+      interval: TimeInterval = 0.75,
+      threshold: TimeInterval = 0.1,
+      timer: T = DispatchPingTimer(queue: .global())
+    ) -> _PingForMuteStatusDeviceVolume<Self, T> {
+      let pinger = AudioToolboxPinger()
+      return self.pingForMuteStatus(
+        interval: interval,
+        threshold: threshold,
+        timer: timer,
+        ping: pinger.ping,
+        isInBackground: { await UIApplication.shared.applicationState != .active }
+      )
+    }
+
+    private func pingForMuteStatus<T: PingTimer>(
+      interval: TimeInterval,
+      threshold: TimeInterval,
+      timer: T,
+      ping: @Sendable @escaping () async -> Void,
+      isInBackground: @Sendable @escaping () async -> Bool
+    ) -> _PingForMuteStatusDeviceVolume<Self, T> {
       _PingForMuteStatusDeviceVolume(
         interval: interval,
         threshold: threshold,
-        clock: clock,
+        timer: timer,
         base: self,
         ping: ping,
         isInBackground: isInBackground
@@ -67,32 +121,88 @@
     }
   }
 
-  // MARK: - PingForMuteStatus Type
+  // MARK: - PingTimer
+
+  public protocol PingTimer: Sendable {
+    associatedtype Ticks: AsyncSequence where Ticks.Element == Void
+
+    func ticks(on interval: TimeInterval) -> Ticks
+    func time(work: @Sendable () async -> Void) async -> TimeInterval
+  }
+
+  // MARK: - DispatchPingTimer
+
+  public struct DispatchPingTimer: PingTimer {
+    private let queue: DispatchQueue
+
+    public init(queue: DispatchQueue) {
+      self.queue = queue
+    }
+
+    public func ticks(on interval: TimeInterval) -> AsyncStream<Void> {
+      AsyncStream { continuation in
+        let timer = DispatchSource.makeTimerSource(queue: self.queue)
+        timer.setEventHandler { continuation.yield() }
+        timer.schedule(deadline: .now() + interval, repeating: interval)
+        let lockedTimer = Lock(timer)
+        continuation.onTermination = { _ in lockedTimer.withLock { $0.cancel() } }
+      }
+    }
+
+    public func time(work: @Sendable () async -> Void) async -> TimeInterval {
+      let start = CFAbsoluteTimeGetCurrent()
+      await work()
+      return CFAbsoluteTimeGetCurrent() - start
+    }
+  }
+
+  // MARK: - ClockPingTimer
 
   @available(iOS 16, *)
+  public struct ClockPingTimer<C: Clock> where C.Duration == Duration {
+    public let clock: C
+
+    public init(clock: C) {
+      self.clock = clock
+    }
+  }
+
+  @available(iOS 16, *)
+  extension ClockPingTimer: PingTimer {
+    public func ticks(on interval: TimeInterval) -> _AsyncTimerSequence<C> {
+      _AsyncTimerSequence(interval: .seconds(interval), clock: self.clock)
+    }
+
+    public func time(work: @Sendable () async -> Void) async -> TimeInterval {
+      TimeInterval(duration: await self.clock.measure(work))
+    }
+  }
+
+  // MARK: - PingForMuteStatus Type
+
   public final class _PingForMuteStatusDeviceVolume<
     Base: DeviceOutputVolume & Sendable,
-    C: Clock
-  >: Sendable where C.Duration == Duration {
-    private let interval: Duration
-    private let threshold: Duration
-    private let clock: C
+    Timer: PingTimer
+  >: Sendable {
+    private let interval: TimeInterval
+    private let threshold: TimeInterval
+    private let timer: Timer
     private let base: Base
     private let ping: @Sendable () async -> Void
-    private let pingState = OSAllocatedUnfairLock(initialState: PingState())
+    private let pingState = Lock(PingState())
     private let isInBackground: @Sendable () async -> Bool
 
     init(
-      interval: Duration,
-      threshold: Duration,
-      clock: C,
+      interval: TimeInterval,
+      threshold: TimeInterval,
+      timer: Timer,
       base: Base,
       ping: @Sendable @escaping () async -> Void,
       isInBackground: @Sendable @escaping () async -> Bool
     ) {
       self.interval = interval
       self.threshold = threshold
-      self.clock = clock
+      self.timer = timer
       self.base = base
       self.ping = ping
       self.isInBackground = isInBackground
@@ -101,17 +211,16 @@
 
   // MARK: - PingState
 
-  @available(iOS 16, *)
   extension _PingForMuteStatusDeviceVolume {
     struct PingState: Sendable {
       private var isMuted: Bool?
       private var id = 0
       private var callbacks = [Int: @Sendable (Bool) -> Void]()
-      private var pingTask: Task<Void, Never>?
+      private var pingTask: Task<Void, Error>?
 
       mutating func register(
         _ callback: @Sendable @escaping (Bool) -> Void,
-        beginPingTaskIfNeeded task: @Sendable @escaping () async -> Void
+        beginPingTaskIfNeeded task: @Sendable @escaping () async throws -> Void
       ) -> Int {
         let shouldBeginPingTask = self.callbacks.isEmpty
         let id = self.id
@@ -121,7 +230,7 @@
           callback(isMuted)
         }
         if shouldBeginPingTask {
-          self.pingTask = Task { await task() }
+          self.pingTask = Task { try await task() }
         }
         return id
       }
@@ -143,7 +252,6 @@
 
   // MARK: - DeviceOutputVolume Conformance
 
-  @available(iOS 16, *)
   extension _PingForMuteStatusDeviceVolume: DeviceOutputVolume {
     public func subscribe(
       _ callback: @escaping @Sendable (Result<DeviceOutputVolumeStatus, any Error>) -> Void
@@ -154,7 +262,7 @@
           state.emit { $0.isMuted = isMuted }
         } beginPingTaskIfNeeded: {
           await self.pingForMuteStatus()
-          for await _ in AsyncTimerSequence(interval: self.interval, clock: self.clock) {
+          for try await _ in self.timer.ticks(on: self.interval) {
             await self.pingForMuteStatus()
           }
         }
@@ -174,7 +282,7 @@
 
     private func pingForMuteStatus() async {
       guard !(await self.isInBackground()) else { return }
-      let time = await self.clock.measure { await self.ping() }
+      let time = await self.timer.time { await self.ping() }
       let isMuted = time < self.threshold
       self.pingState.withLock { $0.emit(isMuted: isMuted) }
     }

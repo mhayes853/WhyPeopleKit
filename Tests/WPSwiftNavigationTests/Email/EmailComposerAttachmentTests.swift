@@ -12,6 +12,7 @@ struct EmailComposerAttachmentTests {
       (URL(string: "https://www.example.com")!, nil)
     ]
   )
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func infersMIMEType(url: URL, mimeType: MIMEType?) async throws {
     #expect(EmailComposerAttachment(url: url, filename: "test")?.mimeType == mimeType)
   }
