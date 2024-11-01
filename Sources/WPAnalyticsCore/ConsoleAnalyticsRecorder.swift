@@ -1,5 +1,8 @@
 import Logging
-import os
+
+#if canImport(os)
+  import os
+#endif
 
 // MARK: - ConsoleAnalyticsRecorder
 
@@ -86,38 +89,40 @@ extension ConsoleAnalyticsRecorder.Console where Self == SwiftLogAnalyticsConsol
 
 // MARK: - OSLogAnalyticsConsole
 
-/// A console that logs to an OSLog `Logger`.
-@available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
-public struct OSLogAnalyticsConsole: ConsoleAnalyticsRecorder.Console {
-  private let logger: os.Logger
-  private let level: OSLogType
-
-  /// Creates a console that logs to a swift-log `Logger`.
-  ///
-  /// - Parameters:
-  ///   - logger: The `Logger` to use.
-  ///   - level: The level at which `Logger` logs.
-  public init(logger: os.Logger, level: OSLogType = .info) {
-    self.logger = logger
-    self.level = level
-  }
-
-  public func print(_ formattedEvent: String) {
-    self.logger.log(level: self.level, "\(formattedEvent)")
-  }
-}
-
-@available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
-extension ConsoleAnalyticsRecorder.Console where Self == OSLogAnalyticsConsole {
+#if canImport(os)
   /// A console that logs to an OSLog `Logger`.
-  ///
-  /// - Parameters:
-  ///   - logger: The `Logger` to use.
-  ///   - level: The level at which `Logger` logs.
-  public static func osLog(logger: os.Logger, level: OSLogType = .info) -> Self {
-    OSLogAnalyticsConsole(logger: logger, level: level)
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
+  public struct OSLogAnalyticsConsole: ConsoleAnalyticsRecorder.Console {
+    private let logger: os.Logger
+    private let level: OSLogType
+
+    /// Creates a console that logs to a swift-log `Logger`.
+    ///
+    /// - Parameters:
+    ///   - logger: The `Logger` to use.
+    ///   - level: The level at which `Logger` logs.
+    public init(logger: os.Logger, level: OSLogType = .info) {
+      self.logger = logger
+      self.level = level
+    }
+
+    public func print(_ formattedEvent: String) {
+      self.logger.log(level: self.level, "\(formattedEvent)")
+    }
   }
-}
+
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
+  extension ConsoleAnalyticsRecorder.Console where Self == OSLogAnalyticsConsole {
+    /// A console that logs to an OSLog `Logger`.
+    ///
+    /// - Parameters:
+    ///   - logger: The `Logger` to use.
+    ///   - level: The level at which `Logger` logs.
+    public static func osLog(logger: os.Logger, level: OSLogType = .info) -> Self {
+      OSLogAnalyticsConsole(logger: logger, level: level)
+    }
+  }
+#endif
 
 // MARK: - Extension
 

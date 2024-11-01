@@ -65,6 +65,7 @@ let package = Package(
       name: "WPDeviceVolume",
       dependencies: [
         "WPFoundation",
+        "WPSwiftNavigation",
         .targetItem(name: "_WPDeviceVolumeMuteSound", condition: .when(platforms: [.iOS])),
         .product(name: "Perception", package: "swift-perception")
       ]
@@ -121,7 +122,7 @@ let package = Package(
       name: "WPMixpanelAnalytics",
       dependencies: [
         "WPAnalyticsCore",
-        .product(name: "Mixpanel", package: "mixpanel-swift")
+        .product(name: "Mixpanel", package: "mixpanel-swift", condition: .whenApplePlatforms)
       ]
     ),
     .testTarget(name: "WPMixpanelAnalyticsTests", dependencies: ["WPMixpanelAnalytics"]),
@@ -129,7 +130,7 @@ let package = Package(
       name: "WPPostHogAnalytics",
       dependencies: [
         "WPAnalyticsCore",
-        .product(name: "PostHog", package: "posthog-ios")
+        .product(name: "PostHog", package: "posthog-ios", condition: .whenApplePlatforms)
       ]
     ),
     .target(
@@ -145,7 +146,7 @@ let package = Package(
       name: "WPGRDB",
       dependencies: [
         "WPFoundation",
-        .product(name: "GRDB", package: "GRDB.swift"),
+        .product(name: "GRDB", package: "GRDB.swift", condition: .whenApplePlatforms),
         .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
       ]
     ),
@@ -165,6 +166,12 @@ let package = Package(
   ]
   //  swiftLanguageModes: [.version("6")]
 )
+
+extension TargetDependencyCondition {
+  static var whenApplePlatforms: Self? {
+    .when(platforms: [.iOS, .macOS, .watchOS, .tvOS, .visionOS])
+  }
+}
 
 for target in package.targets {
   target.swiftSettings = target.swiftSettings ?? []

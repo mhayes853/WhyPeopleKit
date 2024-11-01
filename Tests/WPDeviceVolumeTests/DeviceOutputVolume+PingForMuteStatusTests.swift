@@ -1,10 +1,9 @@
-import Clocks
-import Synchronization
-import Testing
-@_spi(Workaround) import WPDeviceVolume
-import os
-
-#if canImport(_WPDeviceVolumeMuteSound)
+#if os(iOS)
+  import Clocks
+  import Synchronization
+  import Testing
+  @_spi(Workaround) import WPDeviceVolume
+  import os
 
   @Suite("DeviceOutputVolume+PingForMuteStatus tests")
   struct DeviceOutputVolumePingForMuteStatusTests {

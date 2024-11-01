@@ -1,6 +1,5 @@
-import AVFoundation
 import Perception
-import SwiftUI
+import WPSwiftNavigation
 
 // MARK: - DeviceOutputVolumeModel
 
@@ -45,26 +44,34 @@ public final class DeviceOutputVolumeModel {
   /// If this value is non-nil, then ``status`` will no longer be updated.
   public private(set) var error: (any Error)?
 
+  /// The transaction to use when the state changes.
+  @PerceptionIgnored public var transaction: UITransaction
+
   @PerceptionIgnored private var subscription: DeviceOutputVolumeSubscription?
 
   /// Initializes this model with an escaping closure to create the ``DeviceOutputVolume`` instance
   /// to observe.
   ///
-  /// - Parameter volume: An escaping closure to create the ``DeviceOutputVolume`` instance to
-  /// observe.
-  public init(_ volume: @escaping () throws -> some DeviceOutputVolume) {
+  /// - Parameters:
+  ///    - transaction: The transaction to use when the state changes.
+  ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
+  public init(
+    transaction: UITransaction = UITransaction(),
+    _ volume: @escaping () throws -> some DeviceOutputVolume
+  ) {
     do {
+      self.transaction = transaction
       self.subscription = try volume()
         .subscribe { result in
           Task { @MainActor in
             switch result {
-            case let .failure(error): withAnimation { self.error = error }
-            case let .success(status): withAnimation { self.status = status }
+            case let .failure(error): withUITransaction(self.transaction) { self.error = error }
+            case let .success(status): withUITransaction(self.transaction) { self.status = status }
             }
           }
         }
     } catch {
-      self.error = withAnimation { error }
+      self.error = withUITransaction(self.transaction) { error }
     }
   }
 }
@@ -74,9 +81,14 @@ public final class DeviceOutputVolumeModel {
 extension DeviceOutputVolumeModel {
   /// Initializes this model with an ``DeviceOutputVolume`` instance to observe.
   ///
-  /// - Parameter volume: The ``DeviceOutputVolume`` instance to observe.
-  public convenience init(_ volume: @autoclosure @escaping () throws -> some DeviceOutputVolume) {
-    self.init { try volume() }
+  /// - Parameters:
+  ///    - transaction: The transaction to use when the state changes.
+  ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
+  public convenience init(
+    transaction: UITransaction = UITransaction(),
+    _ volume: @autoclosure @escaping () throws -> some DeviceOutputVolume
+  ) {
+    self.init(transaction: transaction) { try volume() }
   }
 }
 

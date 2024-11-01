@@ -1,2 +1,5 @@
-@_exported import Mixpanel
 @_exported import WPAnalyticsCore
+
+#if canImport(Mixpanel)
+  @_exported import Mixpanel
+#endif

@@ -1,1 +1,3 @@
-@_exported import GRDB
+#if canImport(GRDB)
+  @_exported import GRDB
+#endif

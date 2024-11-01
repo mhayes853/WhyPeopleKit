@@ -1,6 +1,5 @@
 import CustomDump
 import Foundation
-import InlineSnapshotTesting
 import Testing
 import WPHaptics
 import WPSnapshotTesting

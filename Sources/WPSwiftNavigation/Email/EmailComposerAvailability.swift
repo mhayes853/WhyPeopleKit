@@ -1,4 +1,6 @@
-import SwiftUI
+#if canImport(SwiftUI)
+  import SwiftUI
+#endif
 
 #if canImport(MessageUI)
   import MessageUI
@@ -45,25 +47,27 @@ public struct EmailComposerAvailability: Sendable {
 
 // MARK: - Default Init
 
-#if canImport(MessageUI)
-  extension EmailComposerAvailability {
-    /// Availability that uses the MessageUI framework to check if the current device can send
-    /// email.
-    public static var messageUI: Self {
-      Self { MFMailComposeViewController.canSendMail() }
+#if canImport(SwiftUI)
+  #if canImport(MessageUI)
+    extension EmailComposerAvailability {
+      /// Availability that uses the MessageUI framework to check if the current device can send
+      /// email.
+      public static var messageUI: Self {
+        Self { MFMailComposeViewController.canSendMail() }
+      }
     }
-  }
-#else
-  extension EmailComposerAvailability {
-    /// Availability that uses the MessageUI framework to check if the current device can send
-    /// email.
-    @available(watchOS, unavailable)
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    public static var messageUI: Self {
-      fatalError()
+  #else
+    extension EmailComposerAvailability {
+      /// Availability that uses the MessageUI framework to check if the current device can send
+      /// email.
+      @available(watchOS, unavailable)
+      @available(macOS, unavailable)
+      @available(tvOS, unavailable)
+      public static var messageUI: Self {
+        fatalError()
+      }
     }
-  }
+  #endif
 #endif
 
 // MARK: - Call as Function
@@ -77,49 +81,51 @@ extension EmailComposerAvailability {
 
 // MARK: - Environment Value
 
-#if canImport(MessageUI)
-  extension EnvironmentValues {
-    /// A value that can be called as a function to determine if the user's device is capable of
-    /// sending email through the system mail composer.
-    @Entry public var canPresentEmailComposer = EmailComposerAvailability.messageUI
-  }
-#else
-  extension EnvironmentValues {
-    /// A value that can be called as a function to determine if the user's device is capable of
-    /// sending email through the system mail composer.
-    @Entry public var canPresentEmailComposer = EmailComposerAvailability { false }
-  }
-#endif
-
-// MARK: - UITraitCollection
-
-#if canImport(MessageUI)
-  extension UITraitCollection {
-    /// A value that can be called as a function to determine if the user's device is capable of
-    /// sending email through the system mail composer.
-    @available(iOS 17.0, *)
-    public var canPresentEmailComposer: EmailComposerAvailability {
-      self[CanSendEmailTraitDefinition.self]
-    }
-  }
-
-  @available(iOS 17.0, *)
-  extension UIMutableTraits {
-    /// A value that can be called as a function to determine if the user's device is capable of
-    /// sending email through the system mail composer.
-    public var canPresentEmailComposer: EmailComposerAvailability {
-      get { self[CanSendEmailTraitDefinition.self] }
-      set { self[CanSendEmailTraitDefinition.self] = newValue }
-    }
-  }
-
-  #if os(tvOS)
-    private struct CanSendEmailTraitDefinition: UITraitDefinition {
-      static let defaultValue = EmailComposerAvailability { false }
+#if canImport(SwiftUI)
+  #if canImport(MessageUI)
+    extension EnvironmentValues {
+      /// A value that can be called as a function to determine if the user's device is capable of
+      /// sending email through the system mail composer.
+      @Entry public var canPresentEmailComposer = EmailComposerAvailability.messageUI
     }
   #else
-    private struct CanSendEmailTraitDefinition: UITraitDefinition {
-      static let defaultValue = EmailComposerAvailability.messageUI
+    extension EnvironmentValues {
+      /// A value that can be called as a function to determine if the user's device is capable of
+      /// sending email through the system mail composer.
+      @Entry public var canPresentEmailComposer = EmailComposerAvailability { false }
     }
+  #endif
+
+  // MARK: - UITraitCollection
+
+  #if canImport(MessageUI)
+    extension UITraitCollection {
+      /// A value that can be called as a function to determine if the user's device is capable of
+      /// sending email through the system mail composer.
+      @available(iOS 17.0, tvOS 17.0, *)
+      public var canPresentEmailComposer: EmailComposerAvailability {
+        self[CanSendEmailTraitDefinition.self]
+      }
+    }
+
+    @available(iOS 17.0, tvOS 17.0, *)
+    extension UIMutableTraits {
+      /// A value that can be called as a function to determine if the user's device is capable of
+      /// sending email through the system mail composer.
+      public var canPresentEmailComposer: EmailComposerAvailability {
+        get { self[CanSendEmailTraitDefinition.self] }
+        set { self[CanSendEmailTraitDefinition.self] = newValue }
+      }
+    }
+
+    #if os(tvOS)
+      private struct CanSendEmailTraitDefinition: UITraitDefinition {
+        static let defaultValue = EmailComposerAvailability { false }
+      }
+    #else
+      private struct CanSendEmailTraitDefinition: UITraitDefinition {
+        static let defaultValue = EmailComposerAvailability.messageUI
+      }
+    #endif
   #endif
 #endif
