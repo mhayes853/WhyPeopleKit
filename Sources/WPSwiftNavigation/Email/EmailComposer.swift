@@ -135,26 +135,53 @@ import UIKitNavigation
     let onFinished: ((EmailComposerResult) -> Void)?
     let onDismiss: (() -> Void)?
 
-    @State private var model = Model()
-
     func body(content: Content) -> some View {
-      EmptyView()
-//      content.bind(self.$state, to: self.$model.state)
-//        .onAppear {
-//          @UIBindable var model = self.model
-//          UIApplication.shared.topMostViewController?
-//            .present(
-//              emailComposer: $model.state,
-//              onFinished: self.onFinished,
-//              onDismiss: self.onDismiss
-//            )
-//        }
+      content.background(
+        EmailComposerView(
+          state: self.$state,
+          onFinished: self.onFinished,
+          onDismiss: self.onDismiss
+        )
+      )
     }
   }
 
-  @Perceptible
-  private final class Model {
-    var state: EmailComposerState?
+  private struct EmailComposerView: UIViewControllerRepresentable {
+    @Binding var state: EmailComposerState?
+    let onFinished: ((EmailComposerResult) -> Void)?
+    let onDismiss: (() -> Void)?
+
+    func makeUIViewController(context: Context) -> EmailComposerViewController {
+      let controller = EmailComposerViewController()
+      controller.emailComposer = self.state
+      controller.onFinished = self.onFinished
+      controller.onDismiss = self.onDismiss
+      return controller
+    }
+
+    func updateUIViewController(_ controller: EmailComposerViewController, context: Context) {
+      if self.state != controller.emailComposer {
+        controller.emailComposer = self.state
+      }
+      controller.onFinished = self.onFinished
+      controller.onDismiss = self.onDismiss
+    }
+  }
+
+  private final class EmailComposerViewController: UIViewController {
+    @UIBinding var emailComposer: EmailComposerState?
+    var onFinished: ((EmailComposerResult) -> Void)?
+    var onDismiss: (() -> Void)?
+
+    override func viewDidLoad() {
+      super.viewDidLoad()
+      UIApplication.shared.topMostViewController?
+        .present(
+          emailComposer: self.$emailComposer,
+          onFinished: { self.onFinished?($0) },
+          onDismiss: { self.onDismiss?() }
+        )
+    }
   }
 
   // MARK: - UIViewController Present
