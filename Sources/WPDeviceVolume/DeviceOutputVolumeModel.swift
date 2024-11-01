@@ -55,9 +55,14 @@ public final class DeviceOutputVolumeModel {
   /// - Parameters:
   ///    - transaction: The transaction to use when the state changes.
   ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
+  ///    - withTransaction: A function to apply animations when updating the state.
   public init(
     transaction: UITransaction = UITransaction(),
-    _ volume: @escaping () throws -> some DeviceOutputVolume
+    _ volume: @escaping () throws -> some DeviceOutputVolume,
+    withTransaction: @Sendable @escaping (
+      UITransaction,
+      () -> Void
+    ) throws -> Void = withUITransaction
   ) {
     do {
       self.transaction = transaction
@@ -65,13 +70,15 @@ public final class DeviceOutputVolumeModel {
         .subscribe { result in
           Task { @MainActor in
             switch result {
-            case let .failure(error): withUITransaction(self.transaction) { self.error = error }
-            case let .success(status): withUITransaction(self.transaction) { self.status = status }
+            case let .failure(error):
+              try withTransaction(self.transaction) { self.error = error }
+            case let .success(status):
+              try withTransaction(self.transaction) { self.status = status }
             }
           }
         }
     } catch {
-      self.error = withUITransaction(self.transaction) { error }
+      try? withTransaction(self.transaction) { self.error = error }
     }
   }
 }
@@ -84,11 +91,16 @@ extension DeviceOutputVolumeModel {
   /// - Parameters:
   ///    - transaction: The transaction to use when the state changes.
   ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
+  ///    - withTransaction: A function to apply animations when updating the state.
   public convenience init(
     transaction: UITransaction = UITransaction(),
-    _ volume: @autoclosure @escaping () throws -> some DeviceOutputVolume
+    _ volume: @autoclosure @escaping () throws -> some DeviceOutputVolume,
+    withTransaction: @Sendable @escaping (
+      UITransaction,
+      () -> Void
+    ) throws -> Void = withUITransaction
   ) {
-    self.init(transaction: transaction) { try volume() }
+    self.init(transaction: transaction, { try volume() }, withTransaction: withTransaction)
   }
 }
 
@@ -119,4 +131,79 @@ extension DeviceOutputVolumeModel {
   /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
   /// then the device is inferred to be in silent mode.
   public static let systemDefault = DeviceOutputVolumeModel { try .systemDefault() }
+  
+  /// Returns the an instance of this model that tracks the system default volume.
+  /// 
+  /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
+  /// 
+  /// On watchOS, this instance is backed by  ``AVAudioSessionDeviceOutputVolume``. The watchOS
+  /// instance does not detect whether or not the device is in silent mode because watchOS does
+  /// not have an API to detect silent mode.
+  /// 
+  /// On all other platforms, this is backed by ``AVAudioSessionDeviceOutputVolume`` and
+  /// ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:clock:)``. The latter extension
+  /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
+  /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
+  /// then the device is inferred to be in silent mode.
+  ///
+  /// - Parameters:
+  ///   - transaction: A `UITransaction` that is used for state updates.
+  ///   - withTransaction: A function to apply animations when updating the state.
+  public static func systemDefault(
+    transaction: UITransaction,
+    withTransaction: @Sendable @escaping (
+      UITransaction,
+      () -> Void
+    ) throws -> Void = withUITransaction
+  ) -> DeviceOutputVolumeModel {
+    DeviceOutputVolumeModel(
+      transaction: transaction,
+      { try .systemDefault() },
+      withTransaction: withTransaction
+    )
+  }
 }
+
+// MARK: - SwiftUI
+
+#if canImport(SwiftUI)
+import SwiftUI
+
+extension DeviceOutputVolumeModel {
+  /// Initializes this model with an ``DeviceOutputVolume`` instance to observe.
+  ///
+  /// - Parameters:
+  ///    - animation: The `Animation` to use when the state changes.
+  ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
+  public convenience init(
+    animation: Animation? = .default,
+    _ volume: @escaping () throws -> some DeviceOutputVolume
+  ) {
+    self.init(transaction: UITransaction(animation: animation)) {
+      try volume()
+    } withTransaction: { transaction, body in
+      withTransaction(transaction.swiftUI.transaction, body)
+    }
+  }
+  
+  /// Returns the an instance of this model that tracks the system default volume.
+  ///
+  /// On macOS, this instance is backed by ``CoreAudioDeviceOutputVolume``.
+  ///
+  /// On watchOS, this instance is backed by  ``AVAudioSessionDeviceOutputVolume``. The watchOS
+  /// instance does not detect whether or not the device is in silent mode because watchOS does
+  /// not have an API to detect silent mode.
+  ///
+  /// On all other platforms, this is backed by ``AVAudioSessionDeviceOutputVolume`` and
+  /// ``DeviceOutputVolume/pingForMuteStatus(interval:threshold:clock:)``. The latter extension
+  /// method uses AudioToolbox to repeatedly play a muted sound at a specified interval to detect
+  /// if the device is in silent mode. If the playback time of the muted sound is instantaneous,
+  /// then the device is inferred to be in silent mode.
+  ///
+  /// - Parameters:
+  ///   - animation: The `Animation` to use when the state changes.
+  public static func systemDefault(animation: Animation? = .default) -> DeviceOutputVolumeModel {
+    DeviceOutputVolumeModel(animation: animation) { try .systemDefault() }
+  }
+}
+#endif

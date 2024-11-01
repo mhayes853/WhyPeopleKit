@@ -1,5 +1,6 @@
 #if canImport(SwiftUI)
   import SwiftUI
+  import WPSwiftNavigation
 
   extension EnvironmentValues {
     /// The ``DeviceOutputVolumeModel`` that represents the system output volume of the current
@@ -11,7 +12,7 @@
 
     @MainActor
     private struct DeviceOutputVolumeModelKey: @preconcurrency EnvironmentKey {
-      static let defaultValue = DeviceOutputVolumeModel.systemDefault
+      static let defaultValue = DeviceOutputVolumeModel.systemDefault()
     }
   }
 #endif

@@ -9,6 +9,6 @@ public protocol DefaultsKeyValueStore: NSObject {
 
 extension UserDefaults: DefaultsKeyValueStore {}
 
-#if !os(linux)
+#if !os(Linux)
   extension NSUbiquitousKeyValueStore: DefaultsKeyValueStore {}
 #endif
