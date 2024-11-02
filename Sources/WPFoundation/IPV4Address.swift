@@ -40,7 +40,7 @@ extension IPV4Address: CustomStringConvertible {
     var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
     getnameinfo(
       self.interface.ifa_addr,
-      socklen_t(self.interface.ifa_addr.pointee.sa_len),
+      16,
       &hostname,
       socklen_t(hostname.count),
       nil,

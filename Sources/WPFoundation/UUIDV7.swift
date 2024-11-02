@@ -4,6 +4,10 @@ import Foundation
   import AppIntents
 #endif
 
+#if os(Linux)
+  public let UUID_NULL: uuid_t = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+#endif
+
 // MARK: - UUIDV7
 
 /// An RFC 9562 compliant UUID Version 7.

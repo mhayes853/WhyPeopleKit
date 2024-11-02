@@ -8,7 +8,7 @@
       try CoreAudioDeviceOutputVolume()
     }
   }
-#elseif !os(iOS)
+#elseif !os(iOS) && !os(Linux)
   /// The default ``DeviceOutputVolume`` for this device.
   public typealias SystemDefaultDeviceOutputVolume = AVAudioSessionDeviceOutputVolume
 
