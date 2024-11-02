@@ -1,8 +1,11 @@
 import Foundation
-import os
 
 #if canImport(AppIntents)
   import AppIntents
+#endif
+
+#if os(Linux)
+  public let UUID_NULL: uuid_t = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 #endif
 
 // MARK: - UUIDV7

@@ -1,7 +1,6 @@
-import CoreAudio
-import WPFoundation
-
 #if os(macOS)
+  import CoreAudio
+  import WPFoundation
   import AudioToolbox
 
   // MARK: - CoreAudioDeviceVolume
@@ -136,5 +135,4 @@ import WPFoundation
     mScope: kAudioObjectPropertyScopeOutput,
     mElement: kAudioObjectPropertyElementMain
   )
-
 #endif

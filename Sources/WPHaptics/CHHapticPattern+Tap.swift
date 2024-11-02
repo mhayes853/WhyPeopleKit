@@ -49,5 +49,4 @@
       try Self.tap(intensity: 0.5, sharpness: 0.5)
     }
   }
-
 #endif

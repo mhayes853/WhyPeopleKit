@@ -19,25 +19,27 @@ public enum WebBrowserApp: String, Sendable, Codable {
 
 // MARK: - Localized Name
 
-extension WebBrowserApp {
-  /// A localized name for this web browser app identifier.
-  @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
-  public var localizedName: String {
-    switch self {
-    case .systemDefault: String(localized: "web.browser.app.system.default", bundle: .module)
-    case .inAppSafari: String(localized: "web.browser.app.in.app.safari", bundle: .module)
-    case .firefox: String(localized: "web.browser.app.firefox", bundle: .module)
-    case .firefoxFocus: String(localized: "web.browser.app.firefox.focus", bundle: .module)
-    case .chrome: String(localized: "web.browser.app.chrome", bundle: .module)
-    case .duckDuckGo: String(localized: "web.browser.app.ddg", bundle: .module)
-    case .opera: String(localized: "web.browser.app.opera", bundle: .module)
-    case .operaGX: String(localized: "web.browser.app.opera.gx", bundle: .module)
-    case .edge: String(localized: "web.browser.app.edge", bundle: .module)
-    case .brave: String(localized: "web.browser.app.brave", bundle: .module)
-    case .arcSearch: String(localized: "web.browser.app.arc.search", bundle: .module)
+#if !os(Linux)
+  extension WebBrowserApp {
+    /// A localized name for this web browser app identifier.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
+    public var localizedName: String {
+      switch self {
+      case .systemDefault: String(localized: "web.browser.app.system.default", bundle: .module)
+      case .inAppSafari: String(localized: "web.browser.app.in.app.safari", bundle: .module)
+      case .firefox: String(localized: "web.browser.app.firefox", bundle: .module)
+      case .firefoxFocus: String(localized: "web.browser.app.firefox.focus", bundle: .module)
+      case .chrome: String(localized: "web.browser.app.chrome", bundle: .module)
+      case .duckDuckGo: String(localized: "web.browser.app.ddg", bundle: .module)
+      case .opera: String(localized: "web.browser.app.opera", bundle: .module)
+      case .operaGX: String(localized: "web.browser.app.opera.gx", bundle: .module)
+      case .edge: String(localized: "web.browser.app.edge", bundle: .module)
+      case .brave: String(localized: "web.browser.app.brave", bundle: .module)
+      case .arcSearch: String(localized: "web.browser.app.arc.search", bundle: .module)
+      }
     }
   }
-}
+#endif
 
 // MARK: - Deep Link URL
 

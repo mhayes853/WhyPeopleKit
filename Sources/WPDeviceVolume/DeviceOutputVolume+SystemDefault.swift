@@ -8,7 +8,7 @@
       try CoreAudioDeviceOutputVolume()
     }
   }
-#elseif !canImport(_WPDeviceVolumeMuteSound)
+#elseif !os(iOS) && !os(Linux)
   /// The default ``DeviceOutputVolume`` for this device.
   public typealias SystemDefaultDeviceOutputVolume = AVAudioSessionDeviceOutputVolume
 
@@ -18,7 +18,7 @@
       try AVAudioSessionDeviceOutputVolume()
     }
   }
-#else
+#elseif os(iOS)
   /// The default ``DeviceOutputVolume`` for this device.
   public typealias SystemDefaultDeviceOutputVolume = _PingForMuteStatusDeviceVolume<
     AVAudioSessionDeviceOutputVolume,

@@ -1,4 +1,4 @@
-#if canImport(_WPDeviceVolumeMuteSound)
+#if os(iOS)
   import AudioToolbox
   import WPFoundation
   import UIKit
@@ -357,5 +357,4 @@
       }
     }
   }
-
 #endif

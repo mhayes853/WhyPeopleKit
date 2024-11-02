@@ -1,4 +1,4 @@
-@_spi(Experimental) import Testing
+import Testing
 
 @Suite("MainActor+RunAssumingIsolation tests")
 struct MainActorRunAssumingIsolationTests {

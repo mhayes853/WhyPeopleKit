@@ -1,5 +1,8 @@
 import Foundation
-import UniformTypeIdentifiers
+
+#if canImport(UniformTypeIdentifiers)
+  import UniformTypeIdentifiers
+#endif
 
 // MARK: - MIMEType
 
@@ -22,22 +25,24 @@ extension MIMEType: ExpressibleByStringLiteral {
 
 // MARK: - Of URL Init
 
-extension MIMEType {
-  /// Attempts to create a mime type by using the path extension of a `URL`.
-  ///
-  /// This initializer returns nil if the URL is a directory URL, or not a filesystem URL.
-  ///
-  /// - Parameter url: A filesystem `URL`.
-  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
-  public init?(of url: URL) {
-    guard !url.hasDirectoryPath && url.isFileURL else { return nil }
-    if let identifier = UTType(filenameExtension: url.pathExtension)?.preferredMIMEType {
-      self.init(rawValue: identifier)
-    } else {
-      self = .octetStream
+#if canImport(UniformTypeIdentifiers)
+  extension MIMEType {
+    /// Attempts to create a mime type by using the path extension of a `URL`.
+    ///
+    /// This initializer returns nil if the URL is a directory URL, or not a filesystem URL.
+    ///
+    /// - Parameter url: A filesystem `URL`.
+    @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
+    public init?(of url: URL) {
+      guard !url.hasDirectoryPath && url.isFileURL else { return nil }
+      if let identifier = UTType(filenameExtension: url.pathExtension)?.preferredMIMEType {
+        self.init(rawValue: identifier)
+      } else {
+        self = .octetStream
+      }
     }
   }
-}
+#endif
 
 // MARK: - MIME Types
 

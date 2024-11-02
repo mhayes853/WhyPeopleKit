@@ -1,5 +1,5 @@
 import Testing
-import os
+import WPFoundation
 
 // MARK: - TimedConfirmation
 
@@ -7,9 +7,12 @@ import os
 /// ``timedConfirmation(_:expectedCount:timeout:fileID:filePath:line:column:body:)``.
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 public struct TimedConfirmation: Sendable {
+  private final class Counter: Sendable {
+    let lock = Lock(0)
+  }
   private let confirmation: Confirmation
   private let expectedCount: Int
-  private let count = OSAllocatedUnfairLock(initialState: 0)
+  private let count = Counter()
   private var sleepTask: Task<Void, Error>
 
   fileprivate init(
@@ -41,7 +44,7 @@ extension TimedConfirmation {
   /// As a convenience, this method can be called by calling the confirmation
   /// directly.
   public func confirm(count: Int = 1) {
-    self.count.withLock {
+    self.count.lock.withLock {
       self.confirmation.confirm(count: count)
       $0 += count
       if $0 > self.expectedCount {

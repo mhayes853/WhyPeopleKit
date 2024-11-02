@@ -1,15 +1,18 @@
-import SwiftUI
+#if canImport(SwiftUI)
+  import SwiftUI
+  import WPSwiftNavigation
 
-extension EnvironmentValues {
-  /// The ``DeviceOutputVolumeModel`` that represents the system output volume of the current
-  /// device in this environment.
-  public var systemDeviceOutputVolume: DeviceOutputVolumeModel {
-    get { self[DeviceOutputVolumeModelKey.self] }
-    set { self[DeviceOutputVolumeModelKey.self] = newValue }
-  }
+  extension EnvironmentValues {
+    /// The ``DeviceOutputVolumeModel`` that represents the system output volume of the current
+    /// device in this environment.
+    public var systemDeviceOutputVolume: DeviceOutputVolumeModel {
+      get { self[DeviceOutputVolumeModelKey.self] }
+      set { self[DeviceOutputVolumeModelKey.self] = newValue }
+    }
 
-  @MainActor
-  private struct DeviceOutputVolumeModelKey: @preconcurrency EnvironmentKey {
-    static let defaultValue = DeviceOutputVolumeModel.systemDefault
+    @MainActor
+    private struct DeviceOutputVolumeModelKey: @preconcurrency EnvironmentKey {
+      static let defaultValue = DeviceOutputVolumeModel.systemDefault(animation: .default)
+    }
   }
-}
+#endif

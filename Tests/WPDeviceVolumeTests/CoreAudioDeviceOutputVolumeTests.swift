@@ -1,11 +1,10 @@
-import CoreAudio
-import Numerics
-import Testing
-import WPDeviceVolume
-import WPFoundation
-
 #if os(macOS)
   import AudioToolbox
+  import CoreAudio
+  import Numerics
+  import Testing
+  import WPDeviceVolume
+  import WPFoundation
 
   // MARK: - Test Suite
 
@@ -127,5 +126,4 @@ import WPFoundation
   private func yield() async {
     await Task.megaYield(count: 10_000)
   }
-
 #endif
