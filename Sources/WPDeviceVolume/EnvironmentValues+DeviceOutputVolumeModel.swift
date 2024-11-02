@@ -12,7 +12,7 @@
 
     @MainActor
     private struct DeviceOutputVolumeModelKey: @preconcurrency EnvironmentKey {
-      static let defaultValue = DeviceOutputVolumeModel.systemDefault()
+      static let defaultValue = DeviceOutputVolumeModel.systemDefault(animation: .default)
     }
   }
 #endif

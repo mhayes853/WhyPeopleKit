@@ -55,14 +55,9 @@ public final class DeviceOutputVolumeModel {
   /// - Parameters:
   ///    - transaction: The transaction to use when the state changes.
   ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
-  ///    - withTransaction: A function to apply animations when updating the state.
   public init(
     transaction: UITransaction = UITransaction(),
-    _ volume: @escaping () throws -> some DeviceOutputVolume,
-    withTransaction: @Sendable @escaping (
-      UITransaction,
-      () -> Void
-    ) throws -> Void = withUITransaction
+    _ volume: @escaping () throws -> some DeviceOutputVolume
   ) {
     do {
       self.transaction = transaction
@@ -71,14 +66,14 @@ public final class DeviceOutputVolumeModel {
           Task { @MainActor in
             switch result {
             case let .failure(error):
-              try withTransaction(self.transaction) { self.error = error }
+              withMultiplatformTransaction(self.transaction) { self.error = error }
             case let .success(status):
-              try withTransaction(self.transaction) { self.status = status }
+              withMultiplatformTransaction(self.transaction) { self.status = status }
             }
           }
         }
     } catch {
-      try? withTransaction(self.transaction) { self.error = error }
+      withMultiplatformTransaction(self.transaction) { self.error = error }
     }
   }
 }
@@ -91,16 +86,11 @@ extension DeviceOutputVolumeModel {
   /// - Parameters:
   ///    - transaction: The transaction to use when the state changes.
   ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
-  ///    - withTransaction: A function to apply animations when updating the state.
   public convenience init(
     transaction: UITransaction = UITransaction(),
-    _ volume: @autoclosure @escaping () throws -> some DeviceOutputVolume,
-    withTransaction: @Sendable @escaping (
-      UITransaction,
-      () -> Void
-    ) throws -> Void = withUITransaction
+    _ volume: @autoclosure @escaping () throws -> some DeviceOutputVolume
   ) {
-    self.init(transaction: transaction, { try volume() }, withTransaction: withTransaction)
+    self.init(transaction: transaction) { try volume() }
   }
 }
 
@@ -149,19 +139,8 @@ extension DeviceOutputVolumeModel {
     ///
     /// - Parameters:
     ///   - transaction: A `UITransaction` that is used for state updates.
-    ///   - withTransaction: A function to apply animations when updating the state.
-    public static func systemDefault(
-      transaction: UITransaction,
-      withTransaction: @Sendable @escaping (
-        UITransaction,
-        () -> Void
-      ) throws -> Void = withUITransaction
-    ) -> DeviceOutputVolumeModel {
-      DeviceOutputVolumeModel(
-        transaction: transaction,
-        { try .systemDefault() },
-        withTransaction: withTransaction
-      )
+    public static func systemDefault(transaction: UITransaction) -> DeviceOutputVolumeModel {
+      DeviceOutputVolumeModel(transaction: transaction) { try .systemDefault() }
     }
   }
 #endif
@@ -178,13 +157,11 @@ extension DeviceOutputVolumeModel {
     ///    - animation: The `Animation` to use when the state changes.
     ///    - volume: An escaping closure to create the ``DeviceOutputVolume`` instance to observe.
     public convenience init(
-      animation: Animation? = .default,
+      animation: Animation?,
       _ volume: @escaping () throws -> some DeviceOutputVolume
     ) {
       self.init(transaction: UITransaction(animation: animation)) {
         try volume()
-      } withTransaction: { transaction, body in
-        withTransaction(transaction.swiftUI.transaction, body)
       }
     }
 
@@ -204,7 +181,7 @@ extension DeviceOutputVolumeModel {
     ///
     /// - Parameters:
     ///   - animation: The `Animation` to use when the state changes.
-    public static func systemDefault(animation: Animation? = .default) -> DeviceOutputVolumeModel {
+    public static func systemDefault(animation: Animation?) -> DeviceOutputVolumeModel {
       DeviceOutputVolumeModel(animation: animation) { try .systemDefault() }
     }
   }
