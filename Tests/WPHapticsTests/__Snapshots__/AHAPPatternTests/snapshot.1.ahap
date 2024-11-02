@@ -1,0 +1,100 @@
+{
+  "Pattern" : [
+    {
+      "Event" : {
+        "EventParameters" : [
+          {
+            "ParameterID" : "HapticIntensity",
+            "ParameterValue" : 0.5
+          },
+          {
+            "ParameterID" : "HapticSharpness",
+            "ParameterValue" : 0.5
+          }
+        ],
+        "EventType" : "HapticTransient",
+        "Time" : 0
+      }
+    },
+    {
+      "Event" : {
+        "EventDuration" : 2,
+        "EventParameters" : [
+          {
+            "ParameterID" : "HapticIntensity",
+            "ParameterValue" : 0.5
+          },
+          {
+            "ParameterID" : "HapticSharpness",
+            "ParameterValue" : 0.5
+          }
+        ],
+        "EventType" : "HapticContinuous",
+        "Time" : 0
+      }
+    },
+    {
+      "Event" : {
+        "EventParameters" : [
+          {
+            "ParameterID" : "AudioVolume",
+            "ParameterValue" : 0.3
+          }
+        ],
+        "EventType" : "AudioCustom",
+        "EventWaveformLoopEnabled" : false,
+        "EventWaveformPath" : "coins",
+        "EventWaveformUseVolumeEnvelope" : false,
+        "Time" : 0.5
+      }
+    },
+    {
+      "ParameterCurve" : {
+        "ParameterCurveControlPoints" : [
+          {
+            "ParameterValue" : 0,
+            "Time" : 0
+          },
+          {
+            "ParameterValue" : 1,
+            "Time" : 0.1
+          },
+          {
+            "ParameterValue" : 0.5,
+            "Time" : 2
+          }
+        ],
+        "ParameterID" : "HapticIntensityControl",
+        "Time" : 0
+      }
+    },
+    {
+      "ParameterCurve" : {
+        "ParameterCurveControlPoints" : [
+          {
+            "ParameterValue" : 0,
+            "Time" : 0
+          },
+          {
+            "ParameterValue" : 1,
+            "Time" : 0.1
+          },
+          {
+            "ParameterValue" : 0.5,
+            "Time" : 2
+          }
+        ],
+        "ParameterID" : "HapticSharpnessControl",
+        "Time" : 2
+      }
+    },
+    {
+      "Parameter" : {
+        "ParameterID" : "AudioVolumeControl",
+        "ParameterValue" : 0.8,
+        "Time" : 0.5
+      }
+    }
+  ],
+  "Version" : 1
+}
