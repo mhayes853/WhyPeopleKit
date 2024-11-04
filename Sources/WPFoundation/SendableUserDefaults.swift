@@ -1,5 +1,5 @@
 import Foundation
-private import IssueReporting
+import IssueReporting
 
 // MARK: - SendableUserDefaults
 
