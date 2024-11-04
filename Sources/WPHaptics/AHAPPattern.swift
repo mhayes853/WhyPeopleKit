@@ -1,4 +1,4 @@
-import Foundation
+import WPFoundation
 
 // MARK: - AHAPPattern
 
@@ -378,8 +378,10 @@ extension AHAPPattern.Event: Encodable {
 }
 
 extension AHAPPattern.Event: Decodable {
+  public typealias CodingKeys = AnyStringCodingKey
+
   public init(from decoder: any Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKey.self)
+    let container = try decoder.container(keyedBy: AnyStringCodingKey.self)
     switch try container.decode(AHAPPattern.EventType.self, forKey: .eventType) {
     case .audioContinuous:
       self = try .audioContinuous(AHAPPattern.AudioContinuousEvent(from: decoder))
@@ -391,21 +393,10 @@ extension AHAPPattern.Event: Decodable {
       self = try .hapticTransient(AHAPPattern.HapticTransientEvent(from: decoder))
     }
   }
+}
 
-  private struct CodingKey: Swift.CodingKey {
-    static let eventType = Self(stringValue: "EventType")
-
-    var stringValue: String
-    var intValue: Int?
-
-    init(stringValue: String) {
-      self.stringValue = stringValue
-    }
-
-    init?(intValue: Int) {
-      return nil
-    }
-  }
+extension AnyStringCodingKey {
+  fileprivate static let eventType = Self(stringValue: "EventType")
 }
 
 // MARK: - Event Type
