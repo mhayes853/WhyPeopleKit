@@ -147,7 +147,8 @@ let package = Package(
       dependencies: [
         "WPFoundation",
         .product(name: "GRDB", package: "GRDB.swift", condition: .whenApplePlatforms),
-        .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+        .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
+        .product(name: "Logging", package: "swift-log")
       ]
     ),
     .testTarget(name: "WPGRDBTests", dependencies: ["WPGRDB"]),
