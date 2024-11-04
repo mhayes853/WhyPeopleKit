@@ -4,11 +4,7 @@ import Foundation
 
 /// An IPV4 Address.
 public struct IPV4Address {
-  private let interface: ifaddrs
-
-  private init(interface: ifaddrs) {
-    self.interface = interface
-  }
+  private var addr: sockaddr
 }
 
 // MARK: - Local Private IP
@@ -18,16 +14,18 @@ extension IPV4Address {
   public static var localPrivate: Self? {
     var ifaddr: UnsafeMutablePointer<ifaddrs>?
     if getifaddrs(&ifaddr) == 0 {
+      defer { freeifaddrs(ifaddr) }
       var _ptr = ifaddr
       while let ptr = _ptr {
         let isIPV4 = ptr.pointee.ifa_addr.pointee.sa_family == UInt8(AF_INET)
         let isWiFi = String(cString: ptr.pointee.ifa_name) == "en0"
         if isIPV4 && isWiFi {
-          return Self(interface: ptr.pointee)
+          var addr = sockaddr()
+          memcpy(&addr, ptr.pointee.ifa_addr, MemoryLayout<sockaddr>.size)
+          return Self(addr: addr)
         }
         _ptr = ptr.pointee.ifa_next
       }
-      freeifaddrs(ifaddr)
     }
     return nil
   }
@@ -38,8 +36,9 @@ extension IPV4Address {
 extension IPV4Address: CustomStringConvertible {
   public var description: String {
     var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+    var addr = self.addr
     getnameinfo(
-      self.interface.ifa_addr,
+      &addr,
       16,
       &hostname,
       socklen_t(hostname.count),
