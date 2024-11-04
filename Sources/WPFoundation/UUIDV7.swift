@@ -326,7 +326,7 @@ extension UUIDV7 {
     mutating func next() -> uuid_t {
       defer { self.cacheIndex = (self.cacheIndex + 1) % 1024 }
       if self.cacheIndex == 0 {
-        let fd = self.fd ?? open("/dev/random", O_RDONLY)
+        let fd = self.fd ?? open("/dev/urandom", O_RDONLY)
         read(fd, self.cache, MemoryLayout<uuid_t>.size * 1024)
         self.fd = fd
       }
