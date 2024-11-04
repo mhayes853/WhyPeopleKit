@@ -91,7 +91,7 @@ let package = Package(
       ]
     ),
     .testTarget(name: "WPTestSupportTests", dependencies: ["WPTestSupport"]),
-    .target(name: "WPHaptics"),
+    .target(name: "WPHaptics", dependencies: ["WPFoundation"]),
     .testTarget(
       name: "WPHapticsTests",
       dependencies: [

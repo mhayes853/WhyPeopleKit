@@ -78,3 +78,19 @@ extension ApplicationLaunchID: Comparable {
     lhs.rawValue < rhs.rawValue
   }
 }
+
+// MARK: - Encodable
+
+extension ApplicationLaunchID: Encodable {
+  public func encode(to encoder: any Encoder) throws {
+    try self.rawValue.encode(to: encoder)
+  }
+}
+
+// MARK: - Decodable
+
+extension ApplicationLaunchID: Decodable {
+  public init(from decoder: any Decoder) throws {
+    self.rawValue = try UUIDV7(from: decoder)
+  }
+}
