@@ -66,7 +66,7 @@ extension UUIDV7 {
     let (millis, sequence) = MonotonicityState.current.withLock {
       $0.nextMillisWithSequence(timeIntervalSince1970: systemNow.timeIntervalSince1970)
     }
-    var bytes = randomUUIDBytes()
+    var bytes = RandomUUIDBytesGenerator.shared.withLock { $0.next() }
     withUnsafePointer(to: sequence.bigEndian) { ptr in
       ptr.withMemoryRebound(to: (UInt8, UInt8).self, capacity: 1) {
         bytes.6 = $0.pointee.0
@@ -129,7 +129,7 @@ extension UUIDV7 {
   ///
   /// - Parameter timeInterval: The `TimeInterval` since 00:00:00 UTC on 1 January 1970.
   public init(timeIntervalSince1970 timeInterval: TimeInterval) {
-    var bytes = randomUUIDBytes()
+    var bytes = RandomUUIDBytesGenerator.shared.withLock { $0.next() }
     self.init(timeInterval, &bytes)
   }
 
@@ -313,10 +313,24 @@ extension UUIDV7: Sendable {}
 
 // MARK: - Random UUID Bytes
 
-private func randomUUIDBytes() -> uuid_t {
-  var bytes = UUID_NULL
-  let fd = open("/dev/urandom", O_RDONLY)
-  read(fd, &bytes, MemoryLayout<uuid_t>.size)
-  close(fd)
-  return bytes
+extension UUIDV7 {
+  private struct RandomUUIDBytesGenerator {
+    static let shared = Lock(Self())
+
+    private var cache = UnsafeMutablePointer<uuid_t>.allocate(capacity: 1024)
+    private var cacheIndex = 0
+    private var fd: Int32?
+
+    private init() {}
+
+    mutating func next() -> uuid_t {
+      defer { self.cacheIndex = (self.cacheIndex + 1) % 1024 }
+      if self.cacheIndex == 0 {
+        let fd = self.fd ?? open("/dev/urandom", O_RDONLY)
+        read(fd, self.cache, MemoryLayout<uuid_t>.size * 1024)
+        self.fd = fd
+      }
+      return self.cache[self.cacheIndex]
+    }
+  }
 }

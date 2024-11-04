@@ -132,8 +132,10 @@ struct UUIDV7Tests {
 
   @Test("2 Random Instances are Not Equal")
   func randomNotEqual() async throws {
-    let (u1, u2) = (UUIDV7(), UUIDV7())
-    #expect(u1 != u2)
+    for _ in 0..<10_000 {
+      let (u1, u2) = (UUIDV7(), UUIDV7())
+      #expect(u1 != u2)
+    }
   }
 
   @Test("2 Same Dated Instances are Not Equal")
@@ -210,6 +212,23 @@ struct UUIDV7Tests {
       #expect(u2 > u1)
       #expect(u1 < u2)
       u1 = u2
+    }
+  }
+
+  @Test("Generation Speed")
+  func generationSpeed() {
+    let clock = ContinuousClock()
+    let time = clock.measure {
+      for _ in 0..<1_000_000 { _ = UUIDV7() }
+    }
+    withExpectedIssue {
+      reportIssue("Generated 1,000,000 UUIDV7s in \(time).")
+    }
+    let time2 = clock.measure {
+      for _ in 0..<1_000_000 { _ = UUID() }
+    }
+    withExpectedIssue {
+      reportIssue("Generated 1,000,000 UUIDV4s in \(time2).")
     }
   }
 }
