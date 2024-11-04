@@ -163,25 +163,12 @@ let package = Package(
         .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
       ]
     )
-  ]
-  //  swiftLanguageModes: [.version("6")]
+  ],
+  swiftLanguageModes: [.version("6")]
 )
 
 extension TargetDependencyCondition {
   static var whenApplePlatforms: Self? {
     .when(platforms: [.iOS, .macOS, .watchOS, .tvOS, .visionOS])
   }
-}
-
-for target in package.targets {
-  target.swiftSettings = target.swiftSettings ?? []
-  target.swiftSettings?
-    .append(
-      .unsafeFlags([
-        "-Xfrontend", "-warn-concurrency",
-        "-Xfrontend", "-enable-actor-data-race-checks",
-        "-emit-symbol-graph",
-        "-enable-bare-slash-regex"
-      ])
-    )
 }

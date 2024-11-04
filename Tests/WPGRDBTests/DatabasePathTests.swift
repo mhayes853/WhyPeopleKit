@@ -3,7 +3,7 @@
   import Testing
   import WPGRDB
 
-  @Suite("DatabasePath tests")
+  @Suite("DatabasePath tests", .serialized)
   struct DatabasePathTests {
     @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     init() {

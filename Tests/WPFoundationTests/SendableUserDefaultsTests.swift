@@ -3,7 +3,7 @@
   import WPFoundation
   import WPTestSupport
 
-  @Suite("SendableUserDefaults tests")
+  @Suite("SendableUserDefaults tests", .serialized)
   struct SendableUserDefaultsTests {
     private let userDefaults: SendableUserDefaults
 
