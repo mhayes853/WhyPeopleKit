@@ -168,7 +168,7 @@
       self.metadata?.metadata
     }
 
-    fileprivate init(
+    public init(
       label: String,
       level: Logger.Level,
       message: String,
@@ -201,9 +201,9 @@
 
   extension MetadataDatabaseValue: Encodable {
     func encode(to encoder: any Encoder) throws {
-      var container = encoder.container(keyedBy: CodingKey.self)
+      var container = encoder.container(keyedBy: AnyStringCodingKey.self)
       for (key, value) in self.metadata {
-        let key = CodingKey(stringValue: key)
+        let key = AnyStringCodingKey(stringValue: key)
         try container.encode(value.codableValue, forKey: key)
       }
     }
@@ -213,29 +213,11 @@
 
   extension MetadataDatabaseValue: Decodable {
     init(from decoder: any Decoder) throws {
-      let container = try decoder.container(keyedBy: CodingKey.self)
+      let container = try decoder.container(keyedBy: AnyStringCodingKey.self)
       self.metadata = [:]
       for key in container.allKeys {
         let codableValue = try container.decode(MetadataValueCodable.self, forKey: key)
         self.metadata[key.stringValue] = Logger.MetadataValue(codableValue: codableValue)
-      }
-    }
-  }
-
-  // MARK: - CodingKey
-
-  extension MetadataDatabaseValue {
-    private struct CodingKey: Swift.CodingKey {
-      var stringValue: String
-
-      init(stringValue: String) {
-        self.stringValue = stringValue
-      }
-
-      var intValue: Int?
-
-      init?(intValue: Int) {
-        nil
       }
     }
   }
