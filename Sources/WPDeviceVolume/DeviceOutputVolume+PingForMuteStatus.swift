@@ -63,6 +63,31 @@
   }
 
   extension DeviceOutputVolume where Self: Sendable {
+    /// Sets ``DeviceOutputVolumeStatus/isMuted`` on emissions of this volume's ``statusUpdates``
+    /// based on a ping hack using AudioToolbox.
+    ///
+    /// ```swift
+    /// // Returns a DeviceOutputVolume instance that uses AVAudioSession to check the global output
+    /// // volume and the AudioToolbox technique to detect if the device is muted.
+    /// let volume = try AVAudioSessionDeviceOutputVolume().pingForMuteStatus(queue: .global())
+    /// ```
+    ///
+    /// iOS does not have a built-in API to detect the position of the ringer. The only way to
+    /// detect the position of the ringer is to play a muted sound with AudioToolbox, and check if
+    /// the playback length is under the specified threshold. If the playback length is under the
+    /// specified threshold, then the device is muted.
+    ///
+    /// This extension overrides the resulting ``DeviceOutputVolumeStatus/isMuted`` value of this
+    /// ``DeviceOutputVolume`` instance.
+    ///
+    /// - Parameters:
+    ///   - interval: The interval to ping at.
+    ///   - threshold: The threshold that the playback length must be under in order to conside the
+    ///   device to be muted.
+    ///   - queue: The queue to run the ping timer on.
+    /// - Returns: A new ``DeviceOutputVolume`` instance that uses the
+    /// ``DeviceOutputVolumeStatus/outputVolume`` value of this instance, and overrides the
+    /// ``DeviceOutputVolumeStatus/isMuted`` value of this instance when emitting status updates.
     public func pingForMuteStatus(
       interval: TimeInterval = 0.75,
       threshold: TimeInterval = 0.1,
@@ -96,7 +121,7 @@
     ///   - interval: The interval to ping at.
     ///   - threshold: The threshold that the playback length must be under in order to conside the
     ///   device to be muted.
-    ///   - clock: A `Clock` to use to control the interval.
+    ///   - timer: A ``PingTimer`` to use to control the timing of pings.
     /// - Returns: A new ``DeviceOutputVolume`` instance that uses the
     /// ``DeviceOutputVolumeStatus/outputVolume`` value of this instance, and overrides the
     /// ``DeviceOutputVolumeStatus/isMuted`` value of this instance when emitting status updates.
