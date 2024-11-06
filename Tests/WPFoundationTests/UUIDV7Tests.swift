@@ -1,7 +1,10 @@
 import IssueReporting
+import Logging
 import Testing
 
 @testable import WPFoundation
+
+private let logger = Logger(label: "wp.foundation.uuidv7.tests")
 
 @Suite("UUIDV7 tests")
 struct UUIDV7Tests {
@@ -221,14 +224,10 @@ struct UUIDV7Tests {
     let time = clock.measure {
       for _ in 0..<1_000_000 { _ = UUIDV7() }
     }
-    withExpectedIssue {
-      reportIssue("Generated 1,000,000 UUIDV7s in \(time).")
-    }
+    logger.info("Generated 1,000,000 UUIDV7s in \(time).")
     let time2 = clock.measure {
       for _ in 0..<1_000_000 { _ = UUID() }
     }
-    withExpectedIssue {
-      reportIssue("Generated 1,000,000 UUIDV4s in \(time2).")
-    }
+    logger.info("Generated 1,000,000 UUIDV4s in \(time2).")
   }
 }

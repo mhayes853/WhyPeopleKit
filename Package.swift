@@ -58,7 +58,8 @@ let package = Package(
       dependencies: [
         "WPFoundation",
         "WPTestSupport",
-        .product(name: "IssueReportingTestSupport", package: "xctest-dynamic-overlay")
+        .product(name: "IssueReportingTestSupport", package: "xctest-dynamic-overlay"),
+        .product(name: "Logging", package: "swift-log")
       ]
     ),
     .target(
