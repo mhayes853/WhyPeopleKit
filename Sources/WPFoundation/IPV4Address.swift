@@ -4,7 +4,34 @@ import Foundation
 
 /// An IPV4 Address.
 public struct IPV4Address {
-  private var addr: sockaddr
+  private let addr: sockaddr
+}
+
+// MARK: - For Interface Name
+
+extension IPV4Address {
+  /// Attempts to create an IP Address from a specified interface name.
+  ///
+  /// - Parameter interfaceName: The name of the network interface.
+  public init?(interfaceName: String) {
+    var ifaddr: UnsafeMutablePointer<ifaddrs>?
+    if getifaddrs(&ifaddr) == 0 {
+      defer { freeifaddrs(ifaddr) }
+      var _ptr = ifaddr
+      while let ptr = _ptr {
+        let isIPV4 = ptr.pointee.ifa_addr.pointee.sa_family == UInt8(AF_INET)
+        let isInterface = String(cString: ptr.pointee.ifa_name) == interfaceName
+        if isIPV4 && isInterface {
+          var addr = sockaddr()
+          memcpy(&addr, ptr.pointee.ifa_addr, MemoryLayout<sockaddr>.size)
+          self.init(addr: addr)
+          return
+        }
+        _ptr = ptr.pointee.ifa_next
+      }
+    }
+    return nil
+  }
 }
 
 // MARK: - Local Private IP
@@ -12,22 +39,7 @@ public struct IPV4Address {
 extension IPV4Address {
   /// The private IPV4 address assigned to this device on its local network if available.
   public static var localPrivate: Self? {
-    var ifaddr: UnsafeMutablePointer<ifaddrs>?
-    if getifaddrs(&ifaddr) == 0 {
-      defer { freeifaddrs(ifaddr) }
-      var _ptr = ifaddr
-      while let ptr = _ptr {
-        let isIPV4 = ptr.pointee.ifa_addr.pointee.sa_family == UInt8(AF_INET)
-        let isWiFi = String(cString: ptr.pointee.ifa_name) == "en0"
-        if isIPV4 && isWiFi {
-          var addr = sockaddr()
-          memcpy(&addr, ptr.pointee.ifa_addr, MemoryLayout<sockaddr>.size)
-          return Self(addr: addr)
-        }
-        _ptr = ptr.pointee.ifa_next
-      }
-    }
-    return nil
+    Self(interfaceName: "en0")
   }
 }
 
@@ -39,7 +51,7 @@ extension IPV4Address: CustomStringConvertible {
     var addr = self.addr
     getnameinfo(
       &addr,
-      16,
+      UInt32(MemoryLayout<sockaddr>.size),
       &hostname,
       socklen_t(hostname.count),
       nil,
