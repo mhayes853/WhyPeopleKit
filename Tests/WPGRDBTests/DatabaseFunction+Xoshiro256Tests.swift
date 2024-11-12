@@ -36,7 +36,7 @@
       let values = try await sqlite.read { db in
         try (0..<5)
           .map { _ in
-            try Int64.fetchOne(db, sql: "SELECT XOSHIRO256(?)", arguments: [seed])!
+            try Int64.fetchOne(db, literal: "SELECT XOSHIRO256(\(seed))")!
           }
       }
       expectNoDifference(values, expected)
