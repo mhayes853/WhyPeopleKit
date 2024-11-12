@@ -40,7 +40,7 @@
         }
         try await queue.write { db in
           try db.execute(literal: "INSERT INTO test (id, text) VALUES (1, 'hello')")
-          let strings = try String.fetchAll(db, sql: "SELECT text FROM test")
+          let strings = try String.fetchAll(db, literal: "SELECT text FROM test")
           #expect(strings == ["hello"])
         }
       }

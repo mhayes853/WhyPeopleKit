@@ -80,7 +80,10 @@
     public func all() async throws -> [DatabaseLog] {
       try await self.writer?
         .read {
-          try DatabaseLog.fetchAll($0, sql: "SELECT * FROM WPGRDBDatabaseLogs ORDER BY date DESC")
+          try DatabaseLog.fetchAll(
+            $0,
+            literal: "SELECT * FROM WPGRDBDatabaseLogs ORDER BY date DESC"
+          )
         } ?? []
     }
   }
