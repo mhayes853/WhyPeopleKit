@@ -29,7 +29,7 @@
       let promise = try #require(
         JSValue(newPromiseRejectedWithReason: "bad", in: self.context).toPromise()
       )
-      await #expect(throws: JSPromiseError.self) { try await promise.resolvedValue }
+      await #expect(throws: JSPromiseRejectedError.self) { try await promise.resolvedValue }
     }
 
     @Test("Resolve")
@@ -65,7 +65,7 @@
 
     @Test("Evaluated Rejected")
     func evaluatedRejected() async throws {
-      await #expect(throws: JSPromiseError.self) {
+      await #expect(throws: JSPromiseRejectedError.self) {
         try await self.context
           .evaluateScript(
             """
@@ -149,6 +149,31 @@
     func rejectedContinuation() async throws {
       let value = try await JSPromise(in: self.context) { continuation in
         Task { continuation.resume(rejecting: JSValue(int32: 5, in: continuation.context)) }
+      }
+      .catch { $0 }
+      .resolvedValue
+      #expect(value.toInt32() == 5)
+    }
+
+    @Test("Resume Continuation With Successful Result")
+    func successfulResult() async throws {
+      let value = try await JSPromise(in: self.context) { continuation in
+        Task { continuation.resume(result: .success(JSValue(int32: 5, in: continuation.context))) }
+      }
+      .resolvedValue
+      #expect(value.toInt32() == 5)
+    }
+
+    @Test("Resume Continuation With Failing Result")
+    func failingResult() async throws {
+      let value = try await JSPromise(in: self.context) { continuation in
+        Task {
+          continuation.resume(
+            result: .failure(
+              JSPromiseRejectedError(reason: JSValue(int32: 5, in: continuation.context))
+            )
+          )
+        }
       }
       .catch { $0 }
       .resolvedValue
