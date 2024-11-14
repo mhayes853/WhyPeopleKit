@@ -25,7 +25,8 @@ let package = Package(
     .library(name: "WPSwiftNavigation", targets: ["WPSwiftNavigation"]),
     .library(name: "WPGRDB", targets: ["WPGRDB"]),
     .library(name: "WPPerception", targets: ["WPPerception"]),
-    .library(name: "WPSnapshotTesting", targets: ["WPSnapshotTesting"])
+    .library(name: "WPSnapshotTesting", targets: ["WPSnapshotTesting"]),
+    .library(name: "WPJavascriptCore", targets: ["WPJavascriptCore"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
@@ -164,7 +165,9 @@ let package = Package(
         "WPHaptics",
         .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
       ]
-    )
+    ),
+    .target(name: "WPJavascriptCore"),
+    .testTarget(name: "WPJavascriptCoreTests", dependencies: ["WPJavascriptCore", "WPFoundation"])
   ],
   swiftLanguageModes: [.version("6")]
 )
