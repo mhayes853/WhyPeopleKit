@@ -103,20 +103,20 @@
       /// Resumes this continuation by resolving the promise to the specified value.
       ///
       /// - Parameter value: The `JSValue` to resolve the promise to.
-      public func resume(resolving value: JSValue) {
+      public func resume(resolving value: Any?) {
         self.storage.resume(resolving: value)
       }
 
       /// Resumes this continuation by rejected the promise with the specified reason.
       ///
       /// - Parameter reason: The `JSValue` to reject with.
-      public func resume(rejecting reason: JSValue) {
+      public func resume(rejecting reason: Any?) {
         self.storage.resume(rejecting: reason)
       }
 
       /// Resumes this continuation with a result of either a successfully resolved `JSValue`, or
       /// a rejected reason within a ``JSPromiseRejectedError``.
-      public func resume(result: Result<JSValue, JSPromiseRejectedError>) {
+      public func resume(result: Result<Any?, JSPromiseRejectedError>) {
         switch result {
         case let .success(value): self.resume(resolving: value)
         case let .failure(error): self.resume(rejecting: error.reason)
@@ -184,8 +184,10 @@
 
   extension JSPromise.Continuation {
     private final class Storage: Sendable {
-      private let state:
-        Lock<(value: JSValue, resolve: JSValue?, reject: JSValue?, isResumed: Bool)>
+      private typealias State = (
+        value: JSValue, resolve: JSValue?, reject: JSValue?, isResumed: Bool
+      )
+      private let state: Lock<State>
 
       var context: JSContext { self.state.withLock { $0.value.context } }
       var value: JSValue { self.state.withLock { $0.value } }
@@ -203,24 +205,28 @@
         }
       }
 
-      func resume(resolving value: JSValue) {
+      func resume(resolving value: Any?) {
         self.state.withLock {
-          if $0.isResumed {
-            jsPromiseContinuationMisuse()
-          }
-          $0.isResumed = true
-          $0.resolve?.call(withArguments: [value])
+          _ = $0.resolve?.call(withArguments: self.formStateResume(&$0, value: value))
         }
       }
 
-      func resume(rejecting value: JSValue) {
+      func resume(rejecting value: Any?) {
         self.state.withLock {
-          if $0.isResumed {
-            jsPromiseContinuationMisuse()
-          }
-          $0.isResumed = true
-          $0.reject?.call(withArguments: [value])
+          _ = $0.reject?.call(withArguments: self.formStateResume(&$0, value: value))
         }
+      }
+
+      private func formStateResume(_ state: inout State, value: Any?) -> [Any] {
+        if state.isResumed {
+          jsPromiseContinuationMisuse()
+        }
+        state.isResumed = true
+        var args = [Any]()
+        if let value {
+          args.append(value)
+        }
+        return args
       }
     }
   }
@@ -238,8 +244,8 @@
     /// - Returns: A new Promise.
     @discardableResult
     public func then(
-      perform fn: @convention(block) @Sendable @escaping (JSValue) -> JSValue,
-      onRejected: (@convention(block) @Sendable (JSValue) -> JSValue)? = nil
+      perform fn: @convention(block) @Sendable @escaping (JSValue) -> Any?,
+      onRejected: (@convention(block) @Sendable (JSValue) -> Any?)? = nil
     ) -> Self {
       var args = [unsafeBitCast(fn, to: JSValue.self)]
       if let onRejected {
@@ -256,7 +262,7 @@
     /// - Returns: A new Promise.
     @discardableResult
     public func `catch`(
-      perform fn: @convention(block) @Sendable @escaping (JSValue) -> JSValue
+      perform fn: @convention(block) @Sendable @escaping (JSValue) -> Any?
     ) -> Self {
       Self(self.value.invokeMethod("catch", withArguments: [unsafeBitCast(fn, to: JSValue.self)]))
     }

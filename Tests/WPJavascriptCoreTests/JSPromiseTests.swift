@@ -63,6 +63,14 @@
       #expect(value.toString() == "hello world")
     }
 
+    @Test("Then Nil")
+    func thenNil() async throws {
+      let value = try await JSPromise.resolve("hello", in: self.context)
+        .then { _ in nil }
+        .resolvedValue
+      #expect(value.isUndefined)
+    }
+
     @Test("Evaluated Rejected")
     func evaluatedRejected() async throws {
       await #expect(throws: JSPromiseRejectedError.self) {
@@ -86,6 +94,14 @@
         .catch { JSValue(object: ($0.toString() ?? "") + " world", in: $0.context) }
         .resolvedValue
       #expect(value.toString() == "hello world")
+    }
+
+    @Test("Catch Nil")
+    func catchNil() async throws {
+      let value = try await JSPromise.reject("hello", in: self.context)
+        .catch { _ in nil }
+        .resolvedValue
+      #expect(value.isUndefined)
     }
 
     @Test("Catch Catch")
@@ -148,7 +164,7 @@
     @Test("Rejected Continuation")
     func rejectedContinuation() async throws {
       let value = try await JSPromise(in: self.context) { continuation in
-        Task { continuation.resume(rejecting: JSValue(int32: 5, in: continuation.context)) }
+        Task { continuation.resume(rejecting: 5) }
       }
       .catch { $0 }
       .resolvedValue
