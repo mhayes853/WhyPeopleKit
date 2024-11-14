@@ -166,8 +166,14 @@ let package = Package(
         .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
       ]
     ),
-    .target(name: "WPJavascriptCore"),
-    .testTarget(name: "WPJavascriptCoreTests", dependencies: ["WPJavascriptCore", "WPFoundation"])
+    .target(
+      name: "WPJavascriptCore",
+      dependencies: [
+        "WPFoundation",
+        .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+      ]
+    ),
+    .testTarget(name: "WPJavascriptCoreTests", dependencies: ["WPJavascriptCore"])
   ],
   swiftLanguageModes: [.version("6")]
 )
