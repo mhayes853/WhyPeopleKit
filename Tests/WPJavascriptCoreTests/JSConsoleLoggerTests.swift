@@ -408,6 +408,18 @@
         self.logger.messages == [LogMessage(level: nil, message: "2024-11-14T00:00:00.000Z")]
       )
     }
+
+    @Test("Basic Variadic Args Log")
+    func basicVariadicArgsLog() {
+      self.context.evaluateScript(
+        """
+        console.log(1, "hello", true)
+        """
+      )
+      #expect(
+        self.logger.messages == [LogMessage(level: nil, message: "1 hello true")]
+      )
+    }
   }
 
   private final class TestLogger: JSConsoleLogger {

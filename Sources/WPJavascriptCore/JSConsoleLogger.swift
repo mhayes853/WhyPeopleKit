@@ -23,8 +23,9 @@
 
   extension JSConsoleLogger {
     public func install(in context: JSContext) {
-      let log: @convention(block) (JSValue) -> Void = {
-        self.log(level: nil, message: $0.loggableString())
+      let log: @convention(block) () -> Void = {
+        let args = JSContext.currentArguments().compactMap { ($0 as? JSValue) }
+        self.log(level: nil, message: args.map { $0.loggableString() }.joined(separator: " "))
       }
       context.setObject(log, forPath: "console.log")
     }
