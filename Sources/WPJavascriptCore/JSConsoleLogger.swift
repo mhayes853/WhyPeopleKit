@@ -24,10 +24,19 @@
   extension JSConsoleLogger {
     public func install(in context: JSContext) {
       let log: @convention(block) () -> Void = {
-        let args = JSContext.currentArguments().compactMap { ($0 as? JSValue) }
-        self.log(level: nil, message: args.map { $0.loggableString() }.joined(separator: " "))
+        self.log(level: nil, message: self.formattedArgs())
       }
       context.setObject(log, forPath: "console.log")
+    }
+
+    private func formattedArgs() -> String {
+      let args = JSContext.currentArguments().compactMap { ($0 as? JSValue) }
+      guard let firstArg = args.first else { return "undefined" }
+      if firstArg.isString {
+        return String(jsFormat: firstArg.toString(), args: Array(args.dropFirst()))
+      } else {
+        return args.map { $0.loggableString() }.joined(separator: " ")
+      }
     }
   }
 
@@ -165,6 +174,13 @@
         .call(withArguments: [self])
       return names?.toArray().map { arr in arr.compactMap { $0 as? String } }
     }
+
+    fileprivate var isFinite: Bool {
+      guard let isFinite = self.context.objectForKeyedSubscript("isFinite") else {
+        return true
+      }
+      return isFinite.call(withArguments: [self]).toBool()
+    }
   }
 
   extension String {
@@ -173,6 +189,83 @@
         return "'\(int)'"
       }
       return self
+    }
+  }
+
+  extension String {
+    private static let formatRegex = try! NSRegularExpression(
+      pattern: "(?<!%)%(s|i|d|f|c|o|O)"
+    )
+
+    private enum JSConsoleFormatter: String, CaseIterable {
+      case string = "%s"
+      case integerD = "%d"
+      case integerI = "%i"
+      case float = "%f"
+      case domElement = "%o"
+      case css = "%c"
+      case object = "%O"
+
+      func format(value: JSValue) -> String {
+        switch self {
+        case .integerD, .integerI:
+          guard value.isNumber else { return "NaN" }
+          return value.isFinite ? "\(value.toInt32())" : "Infinity"
+
+        case .float:
+          guard value.isNumber else { return "NaN" }
+          return value.toString()
+
+        case .string:
+          return value.loggableString()
+
+        case .domElement, .object:
+          return value.loggableString(isNested: true)
+
+        case .css:
+          return ""
+        }
+      }
+    }
+
+    fileprivate init(jsFormat: String, args: [JSValue]) {
+      var splits = jsFormat.splitKeepingMatches(with: Self.formatRegex)
+      var argsIndex = 0
+      for (index, split) in splits.enumerated() {
+        guard argsIndex < args.count else { break }
+        guard let formatter = JSConsoleFormatter(rawValue: split) else { continue }
+        splits[index] = formatter.format(value: args[argsIndex])
+        argsIndex += 1
+      }
+      let rest = argsIndex < args.count ? Array(args[argsIndex...]) : []
+      let strings = [splits.joined()] + rest.map { $0.loggableString() }
+      self = strings.joined(separator: " ")
+    }
+  }
+
+  extension String {
+    fileprivate func splitKeepingMatches(with regex: NSRegularExpression) -> [String] {
+      let nsString = self as NSString
+      let fullRange = NSRange(location: 0, length: nsString.length)
+      let matches = regex.matches(in: self, range: fullRange)
+      var results: [String] = []
+      var previousEnd = 0
+      for match in matches {
+        let range = match.range
+        if range.location > previousEnd {
+          let substringRange = NSRange(location: previousEnd, length: range.location - previousEnd)
+          let substring = nsString.substring(with: substringRange)
+          results.append(substring)
+        }
+        let matchString = nsString.substring(with: range)
+        results.append(matchString)
+        previousEnd = range.location + range.length
+      }
+      if previousEnd < nsString.length {
+        let substring = nsString.substring(from: previousEnd)
+        results.append(substring)
+      }
+      return results
     }
   }
 

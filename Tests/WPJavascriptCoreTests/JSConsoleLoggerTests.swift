@@ -2,6 +2,7 @@
   import WPJavascriptCore
   import WPFoundation
   import Testing
+  import CustomDump
 
   @Suite("JSConsoleLogger tests")
   struct JSConsoleLoggerTests {
@@ -19,7 +20,7 @@
         console.log("hello world")
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "hello world")])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: "hello world")])
     }
 
     @Test("Basic Number Log")
@@ -29,7 +30,7 @@
         console.log(1)
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "1")])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: "1")])
     }
 
     @Test("Basic Object Log")
@@ -39,7 +40,10 @@
         console.log({ a: { b: { c: {} } } })
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "{ a: { b: { c: {} } } }")])
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "{ a: { b: { c: {} } } }")]
+      )
     }
 
     @Test("Basic Object With Constructor Log")
@@ -49,7 +53,10 @@
         console.log({ constructor: "hello" })
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "{ constructor: 'hello' }")])
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "{ constructor: 'hello' }")]
+      )
     }
 
     @Test("Basic Object With Constructor Object Log")
@@ -83,7 +90,7 @@
         console.log({ a: { b: { c: {} } } }.toString())
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "[object Object]")])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: "[object Object]")])
     }
 
     @Test("Basic Function Log")
@@ -94,7 +101,7 @@
         console.log(foo)
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "[Function: foo]")])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: "[Function: foo]")])
     }
 
     @Test("Basic Anonymous Function Log")
@@ -104,7 +111,10 @@
         console.log(() => 1 + 1)
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "[Function: (anonymous)]")])
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "[Function: (anonymous)]")]
+      )
     }
 
     @Test("Basic Function toString Log")
@@ -115,7 +125,7 @@
         console.log(foo.toString())
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "() => 1 + 1")])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: "() => 1 + 1")])
     }
 
     @Test("Basic Class Instance Log")
@@ -161,7 +171,7 @@
         console.log(X)
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "[class X]")])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: "[class X]")])
     }
 
     @Test("Basic Nested Class Constructor Log")
@@ -204,7 +214,7 @@
         console.log(\(name))
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "[class \(name)]")])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: "[class \(name)]")])
     }
 
     @Test("Basic Class toString Log")
@@ -224,7 +234,7 @@
           foo() {}
         }
         """
-      #expect(self.logger.messages == [LogMessage(level: nil, message: message)])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: message)])
     }
 
     @Test("Basic Proxy Log")
@@ -250,7 +260,7 @@
         console.log(null)
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "null")])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: "null")])
     }
 
     @Test("Basic Undefined Log")
@@ -260,7 +270,7 @@
         console.log(undefined)
         """
       )
-      #expect(self.logger.messages == [LogMessage(level: nil, message: "undefined")])
+      expectNoDifference(self.logger.messages, [LogMessage(level: nil, message: "undefined")])
     }
 
     @Test("Basic Array Log")
@@ -270,8 +280,9 @@
         console.log(["hello", 1, true, "world"])
         """
       )
-      #expect(
-        self.logger.messages == [LogMessage(level: nil, message: "[ 'hello', 1, true, 'world' ]")]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "[ 'hello', 1, true, 'world' ]")]
       )
     }
 
@@ -282,8 +293,9 @@
         console.log([])
         """
       )
-      #expect(
-        self.logger.messages == [LogMessage(level: nil, message: "[]")]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "[]")]
       )
     }
 
@@ -294,10 +306,9 @@
         console.log(["hello", ["world"], { a: "world" }])
         """
       )
-      #expect(
-        self.logger.messages == [
-          LogMessage(level: nil, message: "[ 'hello', [ 'world' ], { a: 'world' } ]")
-        ]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "[ 'hello', [ 'world' ], { a: 'world' } ]")]
       )
     }
 
@@ -308,8 +319,9 @@
         console.log(new Set([1, "hello", true]))
         """
       )
-      #expect(
-        self.logger.messages == [LogMessage(level: nil, message: "Set(3) { 1, 'hello', true }")]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "Set(3) { 1, 'hello', true }")]
       )
     }
 
@@ -321,8 +333,9 @@
         console.log(new SubSet([1, "hello", true]))
         """
       )
-      #expect(
-        self.logger.messages == [LogMessage(level: nil, message: "SubSet(3) { 1, 'hello', true }")]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "SubSet(3) { 1, 'hello', true }")]
       )
     }
 
@@ -333,8 +346,9 @@
         console.log(new Set())
         """
       )
-      #expect(
-        self.logger.messages == [LogMessage(level: nil, message: "Set(0) {}")]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "Set(0) {}")]
       )
     }
 
@@ -345,8 +359,9 @@
         console.log(new Map([["foo", 2], ["bar", "baz"], [2, "abc"], [{ a: "p" }, true]]))
         """
       )
-      #expect(
-        self.logger.messages == [
+      expectNoDifference(
+        self.logger.messages,
+        [
           LogMessage(
             level: nil,
             message: "Map(4) { 'foo' => 2, 'bar' => 'baz', 2 => 'abc', { a: 'p' } => true }"
@@ -363,8 +378,9 @@
         console.log(new SubMap([["foo", 2], ["bar", "baz"], [2, "abc"], [{ a: "p" }, true]]))
         """
       )
-      #expect(
-        self.logger.messages == [
+      expectNoDifference(
+        self.logger.messages,
+        [
           LogMessage(
             level: nil,
             message: "SubMap(4) { 'foo' => 2, 'bar' => 'baz', 2 => 'abc', { a: 'p' } => true }"
@@ -380,8 +396,9 @@
         console.log(new Map())
         """
       )
-      #expect(
-        self.logger.messages == [LogMessage(level: nil, message: "Map(0) {}")]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "Map(0) {}")]
       )
     }
 
@@ -392,8 +409,9 @@
         console.log(Symbol.name)
         """
       )
-      #expect(
-        self.logger.messages == [LogMessage(level: nil, message: "Symbol")]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "Symbol")]
       )
     }
 
@@ -404,8 +422,9 @@
         console.log(new Date("2024-11-14T00:00:00.000Z"))
         """
       )
-      #expect(
-        self.logger.messages == [LogMessage(level: nil, message: "2024-11-14T00:00:00.000Z")]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "2024-11-14T00:00:00.000Z")]
       )
     }
 
@@ -416,8 +435,211 @@
         console.log(1, "hello", true)
         """
       )
-      #expect(
-        self.logger.messages == [LogMessage(level: nil, message: "1 hello true")]
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "1 hello true")]
+      )
+    }
+
+    @Test("Logs Undefined When No Args")
+    func noArgs() {
+      self.context.evaluateScript(
+        """
+        console.log()
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "undefined")]
+      )
+
+      print("hello world".components(separatedBy: " "))
+    }
+
+    @Test("Format as Non-First Arg, Does Not Output Formatted Log")
+    func formatNonFirst() {
+      self.context.evaluateScript(
+        """
+        console.log(1, "hello %s", "world")
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "1 hello %s world")]
+      )
+    }
+
+    @Test("Format String Args")
+    func formatStringArgs() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %s %s %s", "world", 10, { a: "world" })
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello world 10 { a: 'world' }")]
+      )
+    }
+
+    @Test("Format Adjacent String Args")
+    func formatAdjacnetStringArgs() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %s %s%s", "world", 10, { a: "world" })
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello world 10{ a: 'world' }")]
+      )
+    }
+
+    @Test("Format String Args, Not Enough Args")
+    func formatStringNotEnoughArgs() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %s %s %s", "world", 10)
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello world 10 %s")]
+      )
+    }
+
+    @Test("Format String Args, Too Many Args")
+    func formatStringTooManyArgs() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %s %s %s", "world", 10, { a: "world" }, "test", 20)
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello world 10 { a: 'world' } test 20")]
+      )
+    }
+
+    @Test("Format String Args, Does Not Replace %%s instances")
+    func formatStringDoesNotReplace() {
+      self.context.evaluateScript(
+        """
+        console.log("hello skjks%%%%%%sskj %%s", "world")
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello skjks%%%%%%sskj %%s world")]
+      )
+    }
+
+    @Test("Format String Args With Mix of %%s")
+    func formatMixStringArgs() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %%%s %s%s", "world", 10, { a: "world" })
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello %%%s world10 { a: 'world' }")]
+      )
+    }
+
+    @Test("Format Integers")
+    func formatIntegers() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %%d %%i %d %i %d %i %d %i", 10, 20, 10.298928, 20.208929, Infinity, "blob")
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello %%d %%i 10 20 10 20 Infinity NaN")]
+      )
+    }
+
+    @Test("Format Floats")
+    func formatFloats() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %%f %f %f %f %f %f %f", 10, 20, 10.298928, 20.208929, Infinity, "blob")
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello %%f 10 20 10.298928 20.208929 Infinity NaN")]
+      )
+    }
+
+    @Test("Format DOM Element")
+    func formatDomElement() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %%o %o %o %o", "test", 10, { a: "world" })
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello %%o 'test' 10 { a: 'world' }")]
+      )
+    }
+
+    @Test("Format Object")
+    func formatObject() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %%O %O %O %O", "test", 10, { a: "world" })
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello %%O 'test' 10 { a: 'world' }")]
+      )
+    }
+
+    @Test("Removes %c Formats")
+    func removesCSSFormats() {
+      self.context.evaluateScript(
+        """
+        console.log("%c hello", "color:green;")
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: " hello")]
+      )
+    }
+
+    @Test("Does Not Format Invalid Formatters")
+    func invalidFormatters() {
+      self.context.evaluateScript(
+        """
+        console.log("hello %z %@ %e", 10, 20, 30)
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [LogMessage(level: nil, message: "hello %z %@ %e 10 20 30")]
+      )
+    }
+
+    @Test("All Formatters Combined")
+    func allFormatters() {
+      self.context.evaluateScript(
+        """
+        console.log("There are %d out of %f in the place of %O in %s", 10, 20.5, "Kansas", "Kansas", "yes")
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [
+          LogMessage(
+            level: nil,
+            message: "There are 10 out of 20.5 in the place of 'Kansas' in Kansas yes"
+          )
+        ]
       )
     }
   }

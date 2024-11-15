@@ -170,7 +170,8 @@ let package = Package(
       name: "WPJavascriptCore",
       dependencies: [
         "WPFoundation",
-        .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+        .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
+        .product(name: "CustomDump", package: "swift-custom-dump")
       ]
     ),
     .testTarget(name: "WPJavascriptCoreTests", dependencies: ["WPJavascriptCore"])
