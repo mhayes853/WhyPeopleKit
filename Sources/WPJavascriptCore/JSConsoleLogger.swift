@@ -5,12 +5,26 @@
   // MARK: - JSConsole
 
   /// A protocol that implements Javascript's the `console.log` family of functions.
+  ///
+  /// Conforming to this protocol installs the following functions.
+  /// - `console.log`
+  /// - `console.error`
+  /// - `console.info`
+  /// - `console.warn`
+  /// - `console.debug`
+  /// - `console.trace`
   public protocol JSConsoleLogger {
+    /// Logs the specified message at the specified level.
+    ///
+    /// - Parameters:
+    ///   - level: See ``JSConsoleLoggerLevel``.
+    ///   - message: The message to log.
     func log(level: JSConsoleLoggerLevel?, message: String)
   }
 
   // MARK: - LogLevel
 
+  /// Logger levels supported by the console API in Javascript.
   public enum JSConsoleLoggerLevel: Int, Hashable, Codable, Sendable {
     case trace = 0
     case debug = 1
@@ -22,11 +36,42 @@
   // MARK: - Install
 
   extension JSConsoleLogger {
+    /// Installs the functions provided by this logger in a `JSContext`.
+    ///
+    /// This method installs the following functions.
+    /// - `console.log`
+    /// - `console.error`
+    /// - `console.info`
+    /// - `console.warn`
+    /// - `console.debug`
+    /// - `console.trace`
+    ///
+    /// - Parameter context: The `JSContext` to install the functions to.
     public func install(in context: JSContext) {
       let log: @convention(block) () -> Void = {
         self.log(level: nil, message: self.formattedArgs())
       }
+      let info: @convention(block) () -> Void = {
+        self.log(level: .info, message: self.formattedArgs())
+      }
+      let error: @convention(block) () -> Void = {
+        self.log(level: .error, message: self.formattedArgs())
+      }
+      let warn: @convention(block) () -> Void = {
+        self.log(level: .warn, message: self.formattedArgs())
+      }
+      let trace: @convention(block) () -> Void = {
+        self.log(level: .trace, message: self.formattedArgs())
+      }
+      let debug: @convention(block) () -> Void = {
+        self.log(level: .debug, message: self.formattedArgs())
+      }
       context.setObject(log, forPath: "console.log")
+      context.setObject(info, forPath: "console.info")
+      context.setObject(error, forPath: "console.error")
+      context.setObject(warn, forPath: "console.warn")
+      context.setObject(trace, forPath: "console.trace")
+      context.setObject(debug, forPath: "console.debug")
     }
 
     private func formattedArgs() -> String {
@@ -42,6 +87,7 @@
 
   // MARK: - PrintJSConsoleLogger
 
+  /// A ``JSConsoleLogger`` that prints to either stdout or stderr based on the log level.
   public struct PrintJSConsoleLogger: JSConsoleLogger {
     public init() {}
 

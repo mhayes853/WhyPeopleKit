@@ -642,6 +642,31 @@
         ]
       )
     }
+
+    @Test("Log With Levels")
+    func withLevels() {
+      self.context.evaluateScript(
+        """
+        console.log("Hello %s", "World")
+        console.info("Hello %s", "World")
+        console.error("Hello %s", "World")
+        console.debug("Hello %s", "World")
+        console.trace("Hello %s", "World")
+        console.warn("Hello %s", "World")
+        """
+      )
+      expectNoDifference(
+        self.logger.messages,
+        [
+          LogMessage(level: nil, message: "Hello World"),
+          LogMessage(level: .info, message: "Hello World"),
+          LogMessage(level: .error, message: "Hello World"),
+          LogMessage(level: .debug, message: "Hello World"),
+          LogMessage(level: .trace, message: "Hello World"),
+          LogMessage(level: .warn, message: "Hello World")
+        ]
+      )
+    }
   }
 
   private final class TestLogger: JSConsoleLogger {
