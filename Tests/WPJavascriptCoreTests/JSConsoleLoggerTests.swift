@@ -10,7 +10,7 @@
     private let logger = TestLogger()
 
     init() {
-      self.logger.install(in: self.context)
+      self.context.install(self.logger)
     }
 
     @Test("Basic String Log")

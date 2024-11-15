@@ -25,14 +25,27 @@
     public static let `default` = Self()
   }
 
-  // MARK: - Install
+  // MARK: - JSContextInstallable
 
-  extension JSFetch {
+  extension JSFetch: JSContextInstallable {
     /// Installs the `fetch` function in the specified context.
     ///
     /// - Parameter context: A `JSContext`.
     public func install(in context: JSContext) {
       context.setObject(self.value, forPath: "fetch")
+    }
+  }
+
+  extension JSContextInstallable where Self == JSFetch {
+    /// An installable that installs a fetch implementation.
+    public static var fetch: Self { .default }
+
+    /// An installable that installs a fetch implementation.
+    ///
+    /// - Parameter session: The underlying `URLSession` to use to make HTTP requests.
+    /// - Returns: An installable.
+    public static func fetch(session: URLSession) -> Self {
+      Self(session: session)
     }
   }
 #endif

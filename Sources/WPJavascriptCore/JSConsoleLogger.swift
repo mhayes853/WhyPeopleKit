@@ -6,14 +6,14 @@
 
   /// A protocol that implements Javascript's the `console.log` family of functions.
   ///
-  /// Conforming to this protocol installs the following functions.
+  /// Conforming to this protocol installs the following functions:
   /// - `console.log`
   /// - `console.error`
   /// - `console.info`
   /// - `console.warn`
   /// - `console.debug`
   /// - `console.trace`
-  public protocol JSConsoleLogger {
+  public protocol JSConsoleLogger: JSContextInstallable {
     /// Logs the specified message at the specified level.
     ///
     /// - Parameters:
@@ -38,7 +38,7 @@
   extension JSConsoleLogger {
     /// Installs the functions provided by this logger in a `JSContext`.
     ///
-    /// This method installs the following functions.
+    /// This method installs the following functions:
     /// - `console.log`
     /// - `console.error`
     /// - `console.info`
@@ -98,6 +98,19 @@
       default: print(message)
       }
     }
+  }
+
+  extension JSContextInstallable where Self == PrintJSConsoleLogger {
+    /// An installable that installs `console.log`.
+    ///
+    /// The following functions are installed by this installable:
+    /// - `console.log`
+    /// - `console.error`
+    /// - `console.info`
+    /// - `console.warn`
+    /// - `console.debug`
+    /// - `console.trace`
+    public static var consoleLogging: Self { PrintJSConsoleLogger() }
   }
 
   // MARK: - Helpers
