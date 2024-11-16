@@ -219,5 +219,25 @@
       expectNoDifference(value?.atIndex(0).toString(), "AbortController")
       expectNoDifference(value?.atIndex(1).toString(), "AbortSignal")
     }
+
+    @Test("Does not Log Internal Class Variables")
+    func doesNotLogVars() {
+      let logger = TestLogger()
+      self.context.install(logger)
+
+      self.context.evaluateScript(
+        """
+        const a = new AbortController()
+        console.log(a, a.signal)
+        """
+      )
+
+      expectNoDifference(
+        logger.messages,
+        [
+          LogMessage(level: nil, message: "class AbortController {} class AbortSignal {}")
+        ]
+      )
+    }
   }
 #endif
