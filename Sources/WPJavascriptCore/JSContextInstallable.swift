@@ -71,8 +71,12 @@
   extension JSContextInstallable where Self == FilesJSContextInstallable {
     /// An installable that installs `AbortController` and `AbortSignal` functionallity.
     public static var abortController: Self {
-      let url = Bundle.module.assumingURL(forResource: "AbortController", withExtension: "js")
-      return .file(at: url)
+      let domExceptionURL = Bundle.module.assumingURL(
+        forResource: "DOMException",
+        withExtension: "js"
+      )
+      let abortURL = Bundle.module.assumingURL(forResource: "AbortController", withExtension: "js")
+      return .files(at: [domExceptionURL, abortURL])
     }
   }
 #endif

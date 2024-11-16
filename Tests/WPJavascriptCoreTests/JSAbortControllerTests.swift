@@ -87,7 +87,7 @@
     }
 
     @Test("Throws If Aborted Without Reason")
-    func throwsIfAbortedWithoutReason() {
+    func throwsIfAbortedWithoutReason() throws {
       let value = self.context.evaluateScript(
         """
         const results = []
@@ -109,10 +109,16 @@
       )
       expectNoDifference(value?.toArray().count, 2)
       expectNoDifference(value?.atIndex(0).isNull, true)
+      let domException = try #require(self.context.objectForKeyedSubscript("DOMException"))
+      let reason = try #require(value?.atIndex(1)?.objectForKeyedSubscript("reason"))
+      #expect(reason.isInstance(of: domException))
       expectNoDifference(
-        value?.atIndex(1).objectForKeyedSubscript("reason").objectForKeyedSubscript("message")
-          .toString(),
-        "AbortError: signal is aborted without reason"
+        reason.objectForKeyedSubscript("message").toString(),
+        "signal is aborted without reason"
+      )
+      expectNoDifference(
+        reason.objectForKeyedSubscript("name").toString(),
+        "AbortError"
       )
     }
 

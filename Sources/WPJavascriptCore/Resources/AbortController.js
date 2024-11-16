@@ -62,7 +62,7 @@ Object.defineProperties(AbortSignal.prototype, {
       const state = this[Symbol._abortSignal];
       if (!state.aborted) return;
       if (state.reason) throw state.reason;
-      throw new Error("AbortError: signal is aborted without reason");
+      throw new DOMException("signal is aborted without reason", "AbortError");
     },
     enumerable: false,
     configurable: true,
