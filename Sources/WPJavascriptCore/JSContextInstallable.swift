@@ -19,6 +19,7 @@
     ///
     /// - Parameter installable: A variadic list of ``JSContextInstallable``s.
     public func install<each I: JSContextInstallable>(_ installable: (repeat each I)) {
+      self.installPrivateInstanceVariablesSymbol()
       for installer in repeat each installable {
         installer.install(in: self)
       }
@@ -29,9 +30,15 @@
     /// - Parameter installables: A list of ``JSContextInstallable``s.
     @_disfavoredOverload
     public func install(_ installables: [any JSContextInstallable]) {
+      self.installPrivateInstanceVariablesSymbol()
       for installable in installables {
         installable.install(in: self)
       }
+    }
+
+    private func installPrivateInstanceVariablesSymbol() {
+      let symbol = JSValue(newSymbolFromDescription: "_wpJSCorePrivate", in: self)
+      self.setObject(symbol, forPath: "Symbol._wpJSCorePrivate")
     }
   }
 
