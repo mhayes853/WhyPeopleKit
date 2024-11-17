@@ -6,7 +6,7 @@
 
   /// An implementation of Javascript's `fetch` for JavaScriptCore.
   public struct JSFetch: Sendable {
-    private let value: JSValue
+    private let session: URLSession
 
     /// Creates a JSFetch function using the specified `URLSession`.
     ///
@@ -14,7 +14,7 @@
     ///   - session: A `URLSession` to use for HTTP Requests.
     public init(session: URLSession = .shared) {
       // TODO: - Setup Value
-      self.value = JSValue()
+      self.session = session
     }
   }
 
@@ -32,7 +32,14 @@
     ///
     /// - Parameter context: A `JSContext`.
     public func install(in context: JSContext) {
-      context.setObject(self.value, forPath: "fetch")
+      context.installFiles(at: [
+        Bundle.module.assumingURL(forResource: "Headers", withExtension: "js"),
+        Bundle.module.assumingURL(forResource: "fetch", withExtension: "js")
+      ])
+      let fetch: @convention(block) (JSValue) -> JSValue = { _ in
+        JSValue(nullIn: .current()!)
+      }
+      context.setObject(fetch, forPath: "_wpJSCoreFetch")
     }
   }
 

@@ -36,6 +36,16 @@
       }
     }
 
+    public func installFile(at url: URL) {
+      self.installFiles(at: [url])
+    }
+
+    public func installFiles(at urls: [URL]) {
+      for url in urls {
+        self.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
+      }
+    }
+
     private func installPrivateInstanceVariablesSymbol() {
       let symbol = JSValue(newSymbolFromDescription: "_wpJSCorePrivate", in: self)
       self.setObject(symbol, forPath: "Symbol._wpJSCorePrivate")
@@ -49,9 +59,7 @@
     let urls: [URL]
 
     public func install(in context: JSContext) {
-      for url in self.urls {
-        context.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
-      }
+      context.installFiles(at: self.urls)
     }
   }
 
