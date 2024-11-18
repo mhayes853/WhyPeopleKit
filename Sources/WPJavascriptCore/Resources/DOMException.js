@@ -3,6 +3,9 @@ function DOMException(message, name) {
   this[Symbol._wpJSCorePrivate] = { message, name };
 }
 
+DOMException.prototype = Object.create(Error.prototype);
+DOMException.prototype.constructor = DOMException;
+
 Object.defineProperties(DOMException.prototype, {
   name: {
     get: function () {

@@ -27,6 +27,29 @@
     }
   }
 
+  // MARK: - Combine
+
+  /// Returns an installer that combines a specified array of installers into a single installer.
+  ///
+  /// - Parameter installers: An array of ``JSContextInstallable`` instances.
+  /// - Returns: A ``CombinedJSContextInstallable``.
+  public func combineInstallers(
+    _ installers: [any JSContextInstallable]
+  ) -> CombinedJSContextInstallable {
+    CombinedJSContextInstallable(installers: installers)
+  }
+
+  /// An installable that combines an array of ``JSContextInstallable``s into a single installer.
+  public struct CombinedJSContextInstallable: JSContextInstallable {
+    let installers: [any JSContextInstallable]
+
+    public func install(in context: JSContext) {
+      for installer in self.installers {
+        installer.install(in: context)
+      }
+    }
+  }
+
   // MARK: - FilesJSContextInstallable
 
   /// A ``JSContextInstallable`` that loads Javascript code from a list of `URL`s.
@@ -58,26 +81,43 @@
     }
   }
 
-  // MARK: - AbortController
+  // MARK: - DOMException
 
   extension JSContextInstallable where Self == FilesJSContextInstallable {
+    /// An installable that installs the `DOMException` class.
+    public static var domException: Self {
+      let url = Bundle.module.assumingURL(forResource: "DOMException", withExtension: "js")
+      return .file(at: url)
+    }
+  }
+
+  // MARK: - AbortController
+
+  extension JSContextInstallable where Self == CombinedJSContextInstallable {
     /// An installable that installs `AbortController` and `AbortSignal` functionallity.
     public static var abortController: Self {
-      let domExceptionURL = Bundle.module.assumingURL(
-        forResource: "DOMException",
-        withExtension: "js"
-      )
-      let abortURL = Bundle.module.assumingURL(forResource: "AbortController", withExtension: "js")
-      return .files(at: [domExceptionURL, abortURL])
+      let url = Bundle.module.assumingURL(forResource: "AbortController", withExtension: "js")
+      return combineInstallers([.domException, .file(at: url)])
     }
   }
 
   // MARK: - File
 
-  extension JSContextInstallable where Self == FilesJSContextInstallable {
+  extension JSContextInstallable where Self == CombinedJSContextInstallable {
     /// An installable that installs the `File` class.
     public static var jsFileClass: Self {
-      .file(at: Bundle.module.assumingURL(forResource: "File", withExtension: "js"))
+      let url = Bundle.module.assumingURL(forResource: "File", withExtension: "js")
+      return combineInstallers([.blob, .file(at: url)])
+    }
+  }
+
+  // MARK: - FormData
+
+  extension JSContextInstallable where Self == CombinedJSContextInstallable {
+    /// An installable that installs the `FormData` class.
+    public static var formData: Self {
+      let url = Bundle.module.assumingURL(forResource: "FormData", withExtension: "js")
+      return combineInstallers([.jsFileClass, .file(at: url)])
     }
   }
 #endif

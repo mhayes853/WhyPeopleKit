@@ -4,8 +4,8 @@
   import CustomDump
 
   // Available: DataView, TypedArray, ArrayBuffer, String
-  // TODO: Request, Response, fetch, FormData, Blob
-  // Done: AbortController, AbortSignal, Headers
+  // TODO: Request, Response, fetch, FormData
+  // Done: AbortController, AbortSignal, Headers, Blob, File
 
   @Suite("JSFetch tests")
   struct JSFetchTests {
