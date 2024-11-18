@@ -406,7 +406,7 @@
     func basicSymbolLog() {
       self.context.evaluateScript(
         """
-        console.log(Symbol.name)
+        console.log(Symbol.iterator)
         """
       )
       expectNoDifference(

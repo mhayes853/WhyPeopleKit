@@ -161,7 +161,7 @@
           .joined(separator: ", ")
         return "\(className)(\(size)) { \(mapStrings) }"
       } else if self.isSymbol {
-        return "\(self)"
+        return "Symbol"
       } else if self.isClassConstructor {
         return "[class \(self.functionName)]"
       } else if self.isFunction {

@@ -30,6 +30,7 @@ function Headers(headers) {
       "Failed to construct 'Headers': The provided value is not of type '(record<ByteString, ByteString> or sequence<sequence<ByteString>>)'.",
     );
   }
+  this[Symbol.iterator] = this.entries;
 }
 
 Object.defineProperties(Headers.prototype, {

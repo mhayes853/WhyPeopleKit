@@ -4,8 +4,8 @@
   import CustomDump
 
   // Available: DataView, TypedArray, ArrayBuffer, String
-  // TODO: Request, Response, fetch, FormData, Headers
-  // Done: AbortController, AbortSignal
+  // TODO: Request, Response, fetch, FormData, Blob
+  // Done: AbortController, AbortSignal, Headers
 
   @Suite("JSFetch tests")
   struct JSFetchTests {
@@ -154,7 +154,7 @@
           headers.set(50, "bar")
           headers.set("B", 20)
           headers.set("Content-Type", "application/pdf")
-          Array.from(headers.entries())
+          Array.from(headers)
           """
         )
         expectHeaders(
@@ -320,7 +320,7 @@
         function *iter() {
             yield 1
         }
-        console.log(Array.from(iter()))
+        console.log("iterator" in Symbol, Symbol.iterator)
         """
       )
 
