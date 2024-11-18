@@ -17,32 +17,12 @@
   extension JSContext {
     /// Installs the specified installables to this context.
     ///
-    /// - Parameter installable: A variadic list of ``JSContextInstallable``s.
-    public func install<each I: JSContextInstallable>(_ installable: (repeat each I)) {
-      self.installPrivateInstanceVariablesSymbol()
-      for installer in repeat each installable {
-        installer.install(in: self)
-      }
-    }
-
-    /// Installs the specified installables to this context.
-    ///
     /// - Parameter installables: A list of ``JSContextInstallable``s.
     @_disfavoredOverload
     public func install(_ installables: [any JSContextInstallable]) {
       self.installPrivateInstanceVariablesSymbol()
       for installable in installables {
         installable.install(in: self)
-      }
-    }
-
-    public func installFile(at url: URL) {
-      self.installFiles(at: [url])
-    }
-
-    public func installFiles(at urls: [URL]) {
-      for url in urls {
-        self.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
       }
     }
 
@@ -59,7 +39,9 @@
     let urls: [URL]
 
     public func install(in context: JSContext) {
-      context.installFiles(at: self.urls)
+      for url in urls {
+        context.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
+      }
     }
   }
 

@@ -229,7 +229,7 @@
     @Test("Does not Log Internal Class Variables")
     func doesNotLogVars() {
       let logger = TestLogger()
-      self.context.install(logger)
+      self.context.install([logger])
 
       self.context.evaluateScript(
         """

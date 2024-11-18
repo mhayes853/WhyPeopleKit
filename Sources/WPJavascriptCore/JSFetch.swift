@@ -32,9 +32,11 @@
     ///
     /// - Parameter context: A `JSContext`.
     public func install(in context: JSContext) {
-      context.installFiles(at: [
-        Bundle.module.assumingURL(forResource: "Headers", withExtension: "js"),
-        Bundle.module.assumingURL(forResource: "fetch", withExtension: "js")
+      context.install([
+        .files(at: [
+          Bundle.module.assumingURL(forResource: "Headers", withExtension: "js"),
+          Bundle.module.assumingURL(forResource: "fetch", withExtension: "js")
+        ])
       ])
       let fetch: @convention(block) (JSValue) -> JSValue = { _ in
         JSValue(nullIn: .current()!)
