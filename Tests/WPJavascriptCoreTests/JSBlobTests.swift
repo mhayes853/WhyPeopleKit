@@ -100,13 +100,13 @@
           blobs.push(blob.slice(1, 4))
           blobs.push(blob.slice(1))
           blobs.push(new Blob(["test"]).slice(-10, 400))
+          blobs.push(new Blob(["test"]).slice("foo", "bar"))
           blobs.push(blob.slice(1, 4, "application/json").slice(1, 2))
           blobs
           """
         )
       )
-      print(value)
-      let blobs = try (0..<5).map { value.atIndex($0) }
+      let blobs = try (0..<6).map { value.atIndex($0) }
         .map {
           (
             try #require($0!.objectForKeyedSubscript("type").toString()),
@@ -115,7 +115,7 @@
         }
       expectNoDifference(
         blobs.map(\.0),
-        ["application/xml", "application/xml", "application/xml", "", "application/json"]
+        ["application/xml", "application/xml", "application/xml", "", "", "application/json"]
       )
       try await withThrowingTaskGroup(of: JSValue.self) { group in
         for (_, promise) in blobs {
@@ -123,7 +123,7 @@
         }
         let values = try await group.reduce(into: [JSValue]()) { $0.append($1) }
           .map { $0.toString() }
-        expectNoDifference(Set(values), ["foobar", "oob", "oobar", "test", "o"])
+        expectNoDifference(Set(values), ["foobar", "oob", "oobar", "test", "", "o"])
       }
     }
   }
