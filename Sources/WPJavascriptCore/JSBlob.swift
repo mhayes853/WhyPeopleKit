@@ -50,8 +50,9 @@
     func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> any JSBlobExport {
       let type = type.isUndefined ? self.type : type.toString() ?? ""
       guard !start.isUndefined else { return JSBlob(contents: self.contents, type: type) }
-      let startIndex = self.contents.index(self.contents.startIndex, offsetBy: Int(start.toInt32()))
-      let end = end.isUndefined ? self.size : Int(end.toInt32())
+      let start = max(0, Int(start.toInt32()))
+      let startIndex = self.contents.index(self.contents.startIndex, offsetBy: start)
+      let end = min(self.size, end.isUndefined ? self.size : Int(end.toInt32()))
       let endIndex = self.contents.index(self.contents.startIndex, offsetBy: end)
       return JSBlob(contents: self.contents[startIndex..<endIndex], type: type)
     }
