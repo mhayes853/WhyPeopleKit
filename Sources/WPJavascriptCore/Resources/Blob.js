@@ -8,51 +8,55 @@ function Blob(dataIterable, options = { type: "", endings: "transparent" }) {
     );
   }
   if (!isNative) {
-    this[Symbol._wpJSCorePrivate] = new _WPJSCoreBlob(dataIterable, options);
+    this[Symbol._wpJSCorePrivate] = {
+      nativeBlob: new _WPJSCoreBlob(dataIterable, options),
+    };
   } else {
-    this[Symbol._wpJSCorePrivate] = dataIterable;
+    this[Symbol._wpJSCorePrivate] = { nativeBlob: dataIterable };
   }
 }
 
 Object.defineProperties(Blob.prototype, {
   type: {
     get: function () {
-      return this[Symbol._wpJSCorePrivate].type;
+      return this[Symbol._wpJSCorePrivate].nativeBlob.type;
     },
     enumerable: false,
     configurable: true,
   },
   size: {
     get: function () {
-      return this[Symbol._wpJSCorePrivate].size;
+      return this[Symbol._wpJSCorePrivate].nativeBlob.size;
     },
     enumerable: false,
     configurable: true,
   },
   text: {
     value: function () {
-      return this[Symbol._wpJSCorePrivate].text();
+      return this[Symbol._wpJSCorePrivate].nativeBlob.text();
     },
     enumerable: false,
     configurable: true,
   },
   bytes: {
     value: async function () {
-      return new Uint8Array(await this[Symbol._wpJSCorePrivate].arrayBuffer());
+      return new Uint8Array(await this.arrayBuffer());
     },
     enumerable: false,
     configurable: true,
   },
   arrayBuffer: {
     value: function () {
-      return this[Symbol._wpJSCorePrivate].arrayBuffer();
+      return this[Symbol._wpJSCorePrivate].nativeBlob.arrayBuffer();
     },
     enumerable: false,
     configurable: true,
   },
   slice: {
-    value: function (start, end, type) {
-      return new Blob(this[Symbol._wpJSCorePrivate].slice(start, end, type));
+    value: function (start = 0, end = this.size, type = this.type) {
+      return new Blob(
+        this[Symbol._wpJSCorePrivate].nativeBlob.slice(start, end, type),
+      );
     },
     enumerable: false,
     configurable: true,

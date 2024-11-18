@@ -71,4 +71,13 @@
       return .files(at: [domExceptionURL, abortURL])
     }
   }
+
+  // MARK: - File
+
+  extension JSContextInstallable where Self == FilesJSContextInstallable {
+    /// An installable that installs the `File` class.
+    public static var jsFileClass: Self {
+      .file(at: Bundle.module.assumingURL(forResource: "File", withExtension: "js"))
+    }
+  }
 #endif

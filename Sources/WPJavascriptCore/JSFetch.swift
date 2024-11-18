@@ -34,6 +34,7 @@
     public func install(in context: JSContext) {
       context.install([
         .blob,
+        .jsFileClass,
         .abortController,
         .files(at: [
           Bundle.module.assumingURL(forResource: "Headers", withExtension: "js"),
