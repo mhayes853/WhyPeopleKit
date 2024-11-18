@@ -35,20 +35,29 @@
         "Construct from Initial Headers",
         arguments: [
           """
-          { 60: "Num", "Content-Type": "application/json", "Foo": ["bar", "baz", 1], Num: 60 }
+          const headers = new Headers({ 60: "Num", "Content-Type": "application/json", "Foo": ["bar", "baz", 1], Num: 60 })
           """,
           """
-          [[60, "Num"], ["Content-Type", "application/json"], ["Foo", ["bar", "baz", 1]], ["Num", 60]]
+          const headers = new Headers([[60, "Num"], ["Content-Type", "application/json"], ["Foo", ["bar", "baz", 1]], ["Num", 60]])
           """,
           """
-          new Map([[60, "Num"], ["Content-Type", "application/json"], ["Foo", ["bar", "baz", 1]], ["Num", 60]])
+          const headers = new Headers(new Map([[60, "Num"], ["Content-Type", "application/json"], ["Foo", ["bar", "baz", 1]], ["Num", 60]]))
+          """,
+          """
+          class X {
+            60 = "Num"
+            "Content-Type" = "application/json"
+            Foo = ["bar", "baz", 1]
+            Num = 60
+          }
+          const headers = new Headers(new X())
           """
         ]
       )
       func initialHeaders(initObject: String) {
         let value = self.context.evaluateScript(
           """
-          const headers = new Headers(\(initObject))
+          \(initObject)
           Array.from(headers.entries())
           """
         )
@@ -143,6 +152,7 @@
           headers.set("Foo", "Bar")
           headers.set("A", ["B", "C"])
           headers.set(50, "bar")
+          headers.set("B", 20)
           headers.set("Content-Type", "application/pdf")
           Array.from(headers.entries())
           """
@@ -150,7 +160,8 @@
         expectHeaders(
           from: value,
           toEqual: [
-            ["content-type", "application/pdf"], ["foo", "Bar"], ["a", "B,C"], ["50", "bar"]
+            ["content-type", "application/pdf"], ["foo", "Bar"], ["a", "B,C"], ["50", "bar"],
+            ["b", "20"]
           ]
         )
       }
@@ -174,6 +185,8 @@
           const results = []
           const headers = new Headers()
           results.push(headers.getSetCookie())
+          headers.set("set-cookie", "blob1=blib2")
+          results.push(headers.getSetCookie())
           headers.set("Set-Cookie", "")
           headers.append("Set-Cookie", "")
           results.push(headers.getSetCookie())
@@ -185,7 +198,7 @@
         )
         expectNoDifference(
           value?.toArray().map { $0 as? [String] },
-          [[], ["", ""], ["name1=value1", "name2=value2"]]
+          [[], ["blob1=blib2"], ["", ""], ["name1=value1", "name2=value2"]]
         )
       }
 
@@ -216,7 +229,7 @@
         )
         expectNoDifference(
           value?.toArray().map { $0 as? String },
-          ["Bar,Baz", "A,B,C"]
+          ["Bar, Baz", "A, B,C"]
         )
       }
 
@@ -263,6 +276,31 @@
             expectNoDifference(
               message,
               "Failed to construct 'Headers': The provided value cannot be converted to a sequence."
+            )
+            confirm()
+          }
+          self.context.evaluateScript(initObject)
+        }
+      }
+
+      @Test(
+        "Invalid Value",
+        arguments: [
+          """
+          new Headers([["foo", "bar", "baz"]])
+          """,
+          """
+          new Headers([["foo"]])
+          """
+        ]
+      )
+      func invalidValueConstructions(initObject: String) async {
+        await confirmation { confirm in
+          self.context.exceptionHandler = { _, value in
+            let message = value?.objectForKeyedSubscript("message")?.toString()
+            expectNoDifference(
+              message,
+              "Failed to construct 'Headers': Invalid value."
             )
             confirm()
           }

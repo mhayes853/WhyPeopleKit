@@ -6,20 +6,23 @@ function Headers(headers) {
           "Failed to construct 'Headers': The provided value cannot be converted to a sequence.",
         );
       }
+      if (h.length !== 2) {
+        throw new TypeError("Failed to construct 'Headers': Invalid value.");
+      }
       const [key, value] = h;
-      return [key.toString().toLowerCase(), value];
+      return [key.toString().toLowerCase(), this._convert(value)];
     });
     this[Symbol._wpJSCorePrivate] = new Map(stringified);
   } else if (headers === undefined) {
     this[Symbol._wpJSCorePrivate] = new Map();
   } else if (headers instanceof Map) {
     const stringified = Array.from(headers).map(([key, value]) => {
-      return [key.toString().toLowerCase(), value];
+      return [key.toString().toLowerCase(), this._convert(value)];
     });
     this[Symbol._wpJSCorePrivate] = new Map(stringified);
   } else if (typeof headers === "object") {
     const stringified = Object.entries(headers).map(([key, value]) => {
-      return [key.toString().toLowerCase(), value];
+      return [key.toString().toLowerCase(), this._convert(value)];
     });
     this[Symbol._wpJSCorePrivate] = new Map(stringified);
   } else {
@@ -33,7 +36,7 @@ Object.defineProperties(Headers.prototype, {
   entries: {
     value: function* () {
       for (const [key, value] of this[Symbol._wpJSCorePrivate].entries()) {
-        yield [key.toString(), this._convert(value)];
+        yield [key.toString(), this._convert(value, ", ")];
       }
     },
     enumerable: false,
@@ -78,21 +81,31 @@ Object.defineProperties(Headers.prototype, {
       const value = this[Symbol._wpJSCorePrivate].get(
         key.toString().toLowerCase(),
       );
-      return value ? this._convert(value) : null;
+      return value ? this._convert(value, ", ") : null;
     },
     enumerable: false,
     configurable: true,
   },
   getSetCookie: {
     value: function () {
-      return this[Symbol._wpJSCorePrivate].get("set-cookie") ?? [];
+      const cookie = this[Symbol._wpJSCorePrivate].get("set-cookie");
+      if (Array.isArray(cookie)) {
+        return cookie;
+      } else if (typeof cookie === "string") {
+        return [cookie];
+      } else {
+        return [];
+      }
     },
     enumerable: false,
     configurable: true,
   },
   set: {
     value: function (key, value) {
-      this[Symbol._wpJSCorePrivate].set(key.toString().toLowerCase(), value);
+      this[Symbol._wpJSCorePrivate].set(
+        key.toString().toLowerCase(),
+        this._convert(value),
+      );
     },
     enumerable: false,
     configurable: true,
@@ -104,14 +117,14 @@ Object.defineProperties(Headers.prototype, {
       );
       if (currentValue === undefined) {
         this[Symbol._wpJSCorePrivate].set(key.toString().toLowerCase(), [
-          value,
+          this._convert(value),
         ]);
       } else if (Array.isArray(currentValue)) {
-        currentValue.push(value);
+        currentValue.push(this._convert(value));
       } else {
         this[Symbol._wpJSCorePrivate].set(key.toString().toLowerCase(), [
           currentValue,
-          value,
+          this._convert(value),
         ]);
       }
     },
@@ -126,8 +139,8 @@ Object.defineProperties(Headers.prototype, {
     configurable: true,
   },
   _convert: {
-    value: function (value) {
-      return Array.isArray(value) ? value.join(",") : value.toString();
+    value: function (value, delmimeter = ",") {
+      return Array.isArray(value) ? value.join(delmimeter) : value.toString();
     },
     enumerable: false,
     configurable: true,
