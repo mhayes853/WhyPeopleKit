@@ -20,15 +20,10 @@
     /// - Parameter installables: A list of ``JSContextInstallable``s.
     @_disfavoredOverload
     public func install(_ installables: [any JSContextInstallable]) {
-      self.installPrivateInstanceVariablesSymbol()
+      self.setObject(JSValue(privateSymbolIn: self), forPath: "Symbol._wpJSCorePrivate")
       for installable in installables {
         installable.install(in: self)
       }
-    }
-
-    private func installPrivateInstanceVariablesSymbol() {
-      let symbol = JSValue(newSymbolFromDescription: "_wpJSCorePrivate", in: self)
-      self.setObject(symbol, forPath: "Symbol._wpJSCorePrivate")
     }
   }
 

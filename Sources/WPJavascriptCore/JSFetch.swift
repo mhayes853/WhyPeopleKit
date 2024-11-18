@@ -33,6 +33,8 @@
     /// - Parameter context: A `JSContext`.
     public func install(in context: JSContext) {
       context.install([
+        .blob,
+        .abortController,
         .files(at: [
           Bundle.module.assumingURL(forResource: "Headers", withExtension: "js"),
           Bundle.module.assumingURL(forResource: "fetch", withExtension: "js")
