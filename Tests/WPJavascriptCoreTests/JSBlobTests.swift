@@ -89,6 +89,30 @@
       expectNoDifference(value?.objectForKeyedSubscript("type").toString(), "application/json")
     }
 
+    @Test("Bytes")
+    func bytes() async throws {
+      let value = try await #require(
+        self.context.evaluateScript("new Blob([\"foo\"]).bytes()").toPromise()
+      )
+      .resolvedValue
+      .toArray()
+      .compactMap { $0 as? UInt8 }
+      expectNoDifference(value, [0x66, 0x6F, 0x6F])
+    }
+
+    @Test("Array Buffer")
+    func arrayBuffer() async throws {
+      let value = try await #require(
+        self.context
+          .evaluateScript("new Blob([\"foo\"]).arrayBuffer().then((b) => new Uint8Array(b))")
+          .toPromise()
+      )
+      .resolvedValue
+      .toArray()
+      .compactMap { $0 as? UInt8 }
+      expectNoDifference(value, [0x66, 0x6F, 0x6F])
+    }
+
     @Test("Slice")
     func slice() async throws {
       let value = try #require(

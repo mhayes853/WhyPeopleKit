@@ -8,6 +8,7 @@
     var size: Int { get }
     var type: String { get }
     func text() -> JSValue
+    func arrayBuffer() -> JSValue
 
     func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> JSBlobExport
   }
@@ -43,6 +44,20 @@
     func text() -> JSValue {
       JSPromise(in: .current()) { continuation in
         continuation.resume(resolving: String(self.contents))
+      }
+      .value
+    }
+
+    func arrayBuffer() -> JSValue {
+      JSPromise(in: .current()) { continuation in
+        let buffer = continuation.context.objectForKeyedSubscript("ArrayBuffer")
+          .construct(withArguments: [self.size])!
+        let bytes = continuation.context.objectForKeyedSubscript("Uint8Array")
+          .construct(withArguments: [buffer])
+        for (index, byte) in self.contents.enumerated() {
+          bytes?.setValue(byte, at: index)
+        }
+        continuation.resume(resolving: buffer)
       }
       .value
     }

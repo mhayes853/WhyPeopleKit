@@ -36,6 +36,20 @@ Object.defineProperties(Blob.prototype, {
     enumerable: false,
     configurable: true,
   },
+  bytes: {
+    value: async function () {
+      return new Uint8Array(await this[Symbol._wpJSCorePrivate].arrayBuffer());
+    },
+    enumerable: false,
+    configurable: true,
+  },
+  arrayBuffer: {
+    value: function () {
+      return this[Symbol._wpJSCorePrivate].arrayBuffer();
+    },
+    enumerable: false,
+    configurable: true,
+  },
   slice: {
     value: function (start, end, type) {
       return new Blob(this[Symbol._wpJSCorePrivate].slice(start, end, type));
