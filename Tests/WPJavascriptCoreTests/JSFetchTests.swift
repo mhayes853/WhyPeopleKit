@@ -320,7 +320,7 @@
         function *iter() {
             yield 1
         }
-        console.log("iterator" in Symbol, Symbol.iterator)
+        console.log("iterator", document)
         """
       )
 
