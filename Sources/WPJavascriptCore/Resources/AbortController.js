@@ -12,7 +12,8 @@ Object.defineProperties(AbortController.prototype, {
   },
   abort: {
     value: function (reason) {
-      this[Symbol._wpJSCorePrivate]._abort(reason);
+      const signal = this[Symbol._wpJSCorePrivate];
+      signal[Symbol._wpJSCorePrivate].abort(signal, reason);
     },
     enumerable: false,
     configurable: true,
@@ -25,6 +26,15 @@ function AbortSignal() {
     aborted: false,
     reason: undefined,
     onabort: undefined,
+    abort: (signal, reason) => {
+      const state = signal[Symbol._wpJSCorePrivate];
+      if (state.aborted) return;
+      const event = { type: "abort", target: signal };
+      state.aborted = true;
+      state.reason = reason;
+      state.onabort?.(event);
+      state.subscribers.forEach((s) => s(event));
+    },
   };
 }
 
@@ -59,19 +69,6 @@ Object.defineProperties(AbortSignal.prototype, {
       if (!state.aborted) return;
       if (state.reason) throw state.reason;
       throw new DOMException("signal is aborted without reason", "AbortError");
-    },
-    enumerable: false,
-    configurable: true,
-  },
-  _abort: {
-    value: function (reason) {
-      const state = this[Symbol._wpJSCorePrivate];
-      if (state.aborted) return;
-      const event = { type: "abort", target: this };
-      state.aborted = true;
-      state.reason = reason;
-      state.onabort?.(event);
-      state.subscribers.forEach((s) => s(event));
     },
     enumerable: false,
     configurable: true,

@@ -1,4 +1,8 @@
 function Headers(headers) {
+  const convert = (value, delmimeter = ",") => {
+    return Array.isArray(value) ? value.join(delmimeter) : value.toString();
+  };
+
   if (Array.isArray(headers)) {
     const stringified = headers.map((h) => {
       if (!Array.isArray(h)) {
@@ -10,34 +14,38 @@ function Headers(headers) {
         throw new TypeError("Failed to construct 'Headers': Invalid value.");
       }
       const [key, value] = h;
-      return [key.toString().toLowerCase(), this._convert(value)];
+      return [key.toString().toLowerCase(), convert(value)];
     });
-    this[Symbol._wpJSCorePrivate] = new Map(stringified);
+    this[Symbol._wpJSCorePrivate] = { map: new Map(stringified) };
   } else if (headers === undefined) {
-    this[Symbol._wpJSCorePrivate] = new Map();
+    this[Symbol._wpJSCorePrivate] = { map: new Map() };
   } else if (headers instanceof Map) {
     const stringified = Array.from(headers).map(([key, value]) => {
-      return [key.toString().toLowerCase(), this._convert(value)];
+      return [key.toString().toLowerCase(), convert(value)];
     });
-    this[Symbol._wpJSCorePrivate] = new Map(stringified);
+    this[Symbol._wpJSCorePrivate] = { map: new Map(stringified) };
   } else if (typeof headers === "object") {
     const stringified = Object.entries(headers).map(([key, value]) => {
-      return [key.toString().toLowerCase(), this._convert(value)];
+      return [key.toString().toLowerCase(), convert(value)];
     });
-    this[Symbol._wpJSCorePrivate] = new Map(stringified);
+    this[Symbol._wpJSCorePrivate] = { map: new Map(stringified) };
   } else {
     throw new TypeError(
       "Failed to construct 'Headers': The provided value is not of type '(record<ByteString, ByteString> or sequence<sequence<ByteString>>)'.",
     );
   }
+  this[Symbol._wpJSCorePrivate].convert = convert;
   this[Symbol.iterator] = this.entries;
 }
 
 Object.defineProperties(Headers.prototype, {
   entries: {
     value: function* () {
-      for (const [key, value] of this[Symbol._wpJSCorePrivate].entries()) {
-        yield [key.toString(), this._convert(value, ", ")];
+      for (const [key, value] of this[Symbol._wpJSCorePrivate].map.entries()) {
+        yield [
+          key.toString(),
+          this[Symbol._wpJSCorePrivate].convert(value, ", "),
+        ];
       }
     },
     enumerable: false,
@@ -79,17 +87,17 @@ Object.defineProperties(Headers.prototype, {
   },
   get: {
     value: function (key) {
-      const value = this[Symbol._wpJSCorePrivate].get(
+      const value = this[Symbol._wpJSCorePrivate].map.get(
         key.toString().toLowerCase(),
       );
-      return value ? this._convert(value, ", ") : null;
+      return value ? this[Symbol._wpJSCorePrivate].convert(value, ", ") : null;
     },
     enumerable: false,
     configurable: true,
   },
   getSetCookie: {
     value: function () {
-      const cookie = this[Symbol._wpJSCorePrivate].get("set-cookie");
+      const cookie = this[Symbol._wpJSCorePrivate].map.get("set-cookie");
       if (Array.isArray(cookie)) {
         return cookie;
       } else if (typeof cookie === "string") {
@@ -103,9 +111,9 @@ Object.defineProperties(Headers.prototype, {
   },
   set: {
     value: function (key, value) {
-      this[Symbol._wpJSCorePrivate].set(
+      this[Symbol._wpJSCorePrivate].map.set(
         key.toString().toLowerCase(),
-        this._convert(value),
+        this[Symbol._wpJSCorePrivate].convert(value),
       );
     },
     enumerable: false,
@@ -113,19 +121,19 @@ Object.defineProperties(Headers.prototype, {
   },
   append: {
     value: function (key, value) {
-      const currentValue = this[Symbol._wpJSCorePrivate].get(
+      const currentValue = this[Symbol._wpJSCorePrivate].map.get(
         key.toString().toLowerCase(),
       );
       if (currentValue === undefined) {
-        this[Symbol._wpJSCorePrivate].set(key.toString().toLowerCase(), [
-          this._convert(value),
+        this[Symbol._wpJSCorePrivate].map.set(key.toString().toLowerCase(), [
+          this[Symbol._wpJSCorePrivate].convert(value),
         ]);
       } else if (Array.isArray(currentValue)) {
-        currentValue.push(this._convert(value));
+        currentValue.push(this[Symbol._wpJSCorePrivate].convert(value));
       } else {
-        this[Symbol._wpJSCorePrivate].set(key.toString().toLowerCase(), [
+        this[Symbol._wpJSCorePrivate].map.set(key.toString().toLowerCase(), [
           currentValue,
-          this._convert(value),
+          this[Symbol._wpJSCorePrivate].convert(value),
         ]);
       }
     },
@@ -134,14 +142,7 @@ Object.defineProperties(Headers.prototype, {
   },
   delete: {
     value: function (key) {
-      this[Symbol._wpJSCorePrivate].delete(key.toString().toLowerCase());
-    },
-    enumerable: false,
-    configurable: true,
-  },
-  _convert: {
-    value: function (value, delmimeter = ",") {
-      return Array.isArray(value) ? value.join(delmimeter) : value.toString();
+      this[Symbol._wpJSCorePrivate].map.delete(key.toString().toLowerCase());
     },
     enumerable: false,
     configurable: true,
