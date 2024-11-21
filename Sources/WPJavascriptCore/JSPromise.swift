@@ -115,11 +115,11 @@
       }
 
       /// Resumes this continuation with a result of either a successfully resolved `JSValue`, or
-      /// a rejected reason within a ``JSPromiseRejectedError``.
-      public func resume(result: Result<Any?, JSPromiseRejectedError>) {
+      /// a rejected reason within a ``JSValueError``.
+      public func resume(result: Result<Any?, JSValueError>) {
         switch result {
         case let .success(value): self.resume(resolving: value)
-        case let .failure(error): self.resume(rejecting: error.reason)
+        case let .failure(error): self.resume(rejecting: error.value)
         }
       }
     }

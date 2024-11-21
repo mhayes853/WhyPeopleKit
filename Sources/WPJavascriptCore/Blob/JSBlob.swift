@@ -18,9 +18,16 @@
   }
 
   @objc(Blob) open class JSBlob: NSObject, JSBlobExport {
-    public let size: Int
     public let type: String
-    private let contents: String.UTF8View.SubSequence
+
+    public var size: Int {
+      self.storage.utf8Size
+    }
+
+    private let startIndex: Int
+    private let endIndex: Int
+
+    private let storage: any JSBlobStorage
 
     public required convenience init?(iterable: JSValue, options: JSValue) {
       guard let context = JSContext.current() else { return nil }
@@ -35,7 +42,7 @@
         return nil
       }
       guard !iterable.isUndefined else {
-        self.init(contents: "".utf8, type: type)
+        self.init(storage: "", type: type)
         return
       }
       let map: @convention(block) (JSValue) -> String = { $0.toString() }
@@ -44,69 +51,102 @@
         .invokeMethod("map", withArguments: [unsafeBitCast(map, to: JSValue.self)])
         .toArray()
         .compactMap { $0 as? String }
-      self.init(contents: strings.joined().utf8, type: type)
+      self.init(storage: strings.joined(), type: type)
     }
 
     public init(blob: JSBlob) {
-      self.size = blob.size
       self.type = blob.type
-      self.contents = blob.contents
+      self.storage = blob.storage
+      self.startIndex = blob.startIndex
+      self.endIndex = blob.endIndex
     }
 
-    private init(contents: String.UTF8View, type: String) {
-      self.contents = contents[contents.indexRange]
-      self.size = contents.count
+    public init(storage: some JSBlobStorage, type: String = "") {
+      self.storage = storage
       self.type = type
+      self.startIndex = 0
+      self.endIndex = storage.utf8Size
     }
 
-    private init(contents: String.UTF8View.SubSequence, type: String) {
-      self.contents = contents
-      self.size = contents.count
+    private init(storage: some JSBlobStorage, type: String, startIndex: Int, endIndex: Int) {
+      self.storage = storage
       self.type = type
+      self.startIndex = startIndex
+      self.endIndex = endIndex
     }
 
     func text() -> JSValue {
-      JSPromise(in: .current()) { continuation in
-        continuation.resume(resolving: String(self.contents))
-      }
-      .value
+      self.utf8Promise { utf8, _ in String(utf8) }.value
     }
 
     func bytes() -> JSValue {
-      JSPromise(in: .current()) { continuation in
-        let (_, bytes) = self.bufferWithBytes(in: continuation.context)
-        continuation.resume(resolving: bytes)
-      }
-      .value
+      self.utf8Promise { bufferWithBytes(utf8: $0, in: $1).1 }.value
     }
 
     func arrayBuffer() -> JSValue {
-      JSPromise(in: .current()) { continuation in
-        let (buffer, _) = self.bufferWithBytes(in: continuation.context)
-        continuation.resume(resolving: buffer)
-      }
-      .value
+      self.utf8Promise { bufferWithBytes(utf8: $0, in: $1).0 }.value
     }
 
-    private func bufferWithBytes(in context: JSContext) -> (JSValue, JSValue) {
-      let buffer = context.objectForKeyedSubscript("ArrayBuffer")
-        .construct(withArguments: [self.size])!
-      let bytes = context.objectForKeyedSubscript("Uint8Array")
-        .construct(withArguments: [buffer])!
-      for (index, byte) in self.contents.enumerated() {
-        bytes.setValue(byte, at: index)
+    private func utf8Promise(
+      _ map: @Sendable @escaping (String.UTF8View, JSContext) -> Any?
+    ) -> JSPromise {
+      JSPromise(in: .current()) { continuation in
+        let storage = self.storage
+        let startIndex = self.startIndex
+        let endIndex = self.endIndex
+        Task {
+          await utf8(
+            continuation: continuation,
+            storage: storage,
+            startIndex: startIndex,
+            endIndex: endIndex,
+            map
+          )
+        }
       }
-      return (buffer, bytes)
     }
 
     func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> JSBlob {
       let type = type.isUndefined ? self.type : type.toString() ?? ""
-      guard !start.isUndefined else { return JSBlob(contents: self.contents, type: type) }
+      guard !start.isUndefined else { return self }
       let start = max(0, Int(start.toInt32()))
-      let startIndex = self.contents.index(self.contents.startIndex, offsetBy: start)
       let end = min(self.size, end.isUndefined ? self.size : Int(end.toInt32()))
-      let endIndex = self.contents.index(self.contents.startIndex, offsetBy: end)
-      return JSBlob(contents: self.contents[startIndex..<endIndex], type: type)
+      return JSBlob(storage: self.storage, type: type, startIndex: start, endIndex: end)
+    }
+  }
+
+  // MARK: - Helpers
+
+  private func bufferWithBytes(
+    utf8: String.UTF8View,
+    in context: JSContext
+  ) -> (JSValue, JSValue) {
+    let buffer = context.objectForKeyedSubscript("ArrayBuffer")
+      .construct(withArguments: [utf8.count])!
+    let bytes = context.objectForKeyedSubscript("Uint8Array")
+      .construct(withArguments: [buffer])!
+    for (index, byte) in utf8.enumerated() {
+      bytes.setValue(byte, at: index)
+    }
+    return (buffer, bytes)
+  }
+
+  private func utf8(
+    continuation: JSPromise.Continuation,
+    storage: any JSBlobStorage,
+    startIndex: Int,
+    endIndex: Int,
+    _ map: (String.UTF8View, JSContext) -> Any?
+  ) async {
+    do {
+      continuation.resume(
+        resolving: map(
+          try await storage.utf8Bytes(start: startIndex, end: endIndex),
+          continuation.context
+        )
+      )
+    } catch {
+      continuation.resume(rejecting: error.value)
     }
   }
 

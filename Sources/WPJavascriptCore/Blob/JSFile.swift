@@ -1,6 +1,8 @@
 #if canImport(JavaScriptCore)
   import JavaScriptCore
 
+  // MARK: - JSFile
+
   @objc private protocol JSFileExport: JSExport {
     var name: String { get }
     var webkitRelativePath: String { get }
@@ -89,6 +91,8 @@
       self.init(iterable, options, args.count > 2 ? args[2] : JSValue(undefinedIn: .current()))
     }
   }
+
+  // MARK: - Installer
 
   public struct JSFileInstaller: JSContextInstallable {
     public func install(in context: JSContext) {

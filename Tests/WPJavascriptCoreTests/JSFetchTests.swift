@@ -307,23 +307,14 @@
           self.context.evaluateScript(initObject)
         }
       }
-
     }
 
     @Test("Availability")
     func availability() {
-      self.context.install([.consoleLogging, .fetch])
-      self.context.exceptionHandler = { _, value in print(value) }
-      self.context.evaluateScript(
-        """
-        console.log("Is Available")
-        function *iter() {
-            yield 1
-        }
-        console.log("iterator", document)
-        """
-      )
-
+      struct SomeError: Error {}
+      let object = JSValue(object: SomeError(), in: self.context)
+      let errorConstructor = self.context.objectForKeyedSubscript("Error")
+      print(object?.isInstance(of: errorConstructor))
     }
   }
 

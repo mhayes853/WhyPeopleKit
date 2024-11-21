@@ -186,7 +186,7 @@
         Task {
           continuation.resume(
             result: .failure(
-              JSPromiseRejectedError(reason: JSValue(int32: 5, in: continuation.context))
+              JSValueError(value: JSValue(int32: 5, in: continuation.context))
             )
           )
         }
