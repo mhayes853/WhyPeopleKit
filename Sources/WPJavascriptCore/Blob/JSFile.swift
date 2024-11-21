@@ -1,5 +1,6 @@
 #if canImport(JavaScriptCore)
   import JavaScriptCore
+  import WPFoundation
 
   // MARK: - JSFile
 
@@ -26,6 +27,20 @@
       Int(round(self.lastModifiedDate.timeIntervalSince1970 * 1000))
     }
     public let webkitRelativePath = ""
+
+    #if canImport(UniformTypeIdentifiers)
+      @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
+      public convenience init(contentsOf url: URL) throws {
+        try self.init(contentsOf: url, type: MIMEType(of: url)?.rawValue ?? "")
+      }
+    #endif
+
+    public init(contentsOf url: URL, type: String) throws {
+      let storage = try FileJSBlobStorage(url: url)
+      self.lastModifiedDate = storage.lastModified
+      self.name = url.lastPathComponent
+      super.init(storage: storage, type: type)
+    }
 
     public required convenience init?(
       _ fileBits: JSValue,
@@ -89,6 +104,32 @@
     public required convenience init?(iterable: JSValue, options: JSValue) {
       let args = JSContext.currentArguments().compactMap { $0 as? JSValue }
       self.init(iterable, options, args.count > 2 ? args[2] : JSValue(undefinedIn: .current()))
+    }
+  }
+
+  // MARK: - FileJSBlobStorage
+
+  private struct FileJSBlobStorage: JSBlobStorage {
+    let lastModified: Date
+    let utf8Size: Int
+    private let url: URL
+
+    init(url: URL) throws {
+      let values = try url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
+      self.utf8Size = values.fileSize ?? 0
+      self.lastModified = values.contentModificationDate ?? Date()
+      self.url = url
+    }
+
+    func utf8Bytes(start: Int, end: Int) throws(JSValueError) -> String.UTF8View {
+      do {
+        let string = try String(contentsOf: self.url)
+        return string.utf8
+      } catch {
+        throw JSValueError(
+          value: JSValue(newErrorFromMessage: error.localizedDescription, in: .current())
+        )
+      }
     }
   }
 

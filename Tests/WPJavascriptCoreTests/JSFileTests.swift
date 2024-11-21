@@ -124,5 +124,24 @@
       )
       expectNoDifference(value?.toBool(), true)
     }
+
+    #if canImport(UniformTypeIdentifiers)
+      @Test("From URL")
+      func fromURL() async throws {
+        let name = "\(UUID()).json"
+        let temp = URL.temporaryDirectory.appending(path: name)
+        try "{ \"key\": true }".write(to: temp, atomically: true, encoding: .utf8)
+        let file = try JSFile(contentsOf: temp)
+        self.context.setObject(file, forPath: "testFile")
+        let value = try await #require(
+          self.context.evaluateScript("testFile.text().then((t) => JSON.parse(t))").toPromise()
+        )
+        .resolvedValue
+        expectNoDifference(file.name, name)
+        expectNoDifference(file.size, 15)
+        expectNoDifference(file.type, "application/json")
+        expectNoDifference(value.objectForKeyedSubscript("key").toBool(), true)
+      }
+    #endif
   }
 #endif
