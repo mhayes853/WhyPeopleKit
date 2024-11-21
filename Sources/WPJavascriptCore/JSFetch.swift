@@ -33,7 +33,6 @@
     /// - Parameter context: A `JSContext`.
     public func install(in context: JSContext) {
       context.install([
-        .blob,
         .jsFileClass,
         .abortController,
         .files(at: [

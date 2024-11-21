@@ -8,7 +8,7 @@
     private let context = JSContext()!
 
     init() {
-      self.context.install([.fetch, .consoleLogging])
+      self.context.install([.consoleLogging, .fetch])
       self.context.exceptionHandler = { _, value in print(value) }
     }
 
@@ -33,48 +33,40 @@
         """
       ]
     )
-    func nonIterable(initObject: String) async {
-      await confirmation { confirm in
-        self.context.exceptionHandler = { _, value in
-          let message = value?.objectForKeyedSubscript("message")?.toString()
-          expectNoDifference(
-            message,
-            "Failed to construct 'File': The provided value cannot be converted to a sequence."
-          )
-          confirm()
-        }
-        self.context.evaluateScript(initObject)
-      }
+    func nonIterable(initObject: String) {
+      expectErrorMessage(
+        js: initObject,
+        message:
+          "Failed to construct 'File': The provided value cannot be converted to a sequence.",
+        in: self.context
+      )
     }
 
     @Test("Cannot Construct Without Name")
-    func noName() async {
-      await confirmation { confirm in
-        self.context.exceptionHandler = { _, value in
-          let message = value?.objectForKeyedSubscript("message")?.toString()
-          expectNoDifference(
-            message,
-            "Failed to construct 'File': 2 arguments required, but only 1 present."
-          )
-          confirm()
-        }
-        self.context.evaluateScript("new File(new Blob())")
-      }
+    func noName() {
+      expectErrorMessage(
+        js: "new File([])",
+        message: "Failed to construct 'File': 2 arguments required, but only 1 present.",
+        in: self.context
+      )
     }
 
     @Test("Cannot Construct Without Contents")
-    func noContents() async {
-      await confirmation { confirm in
-        self.context.exceptionHandler = { _, value in
-          let message = value?.objectForKeyedSubscript("message")?.toString()
-          expectNoDifference(
-            message,
-            "Failed to construct 'File': 2 arguments required, but only 0 present."
-          )
-          confirm()
-        }
-        self.context.evaluateScript("new File()")
-      }
+    func noContents() {
+      expectErrorMessage(
+        js: "new File()",
+        message: "Failed to construct 'File': 2 arguments required, but only 0 present.",
+        in: self.context
+      )
+    }
+
+    @Test("Cannot Construct With Invalid Options")
+    func invalidOptions() {
+      expectErrorMessage(
+        js: "new File([\"foo\"], \"foo.txt\", \"f\")",
+        message: "Failed to construct 'File': The provided value is not of type 'FilePropertyBag'.",
+        in: self.context
+      )
     }
 
     @Test("Construct With Last Modified", arguments: ["new Date(10)", "10"])
@@ -88,9 +80,11 @@
     @Test("Construct With Numeric Name")
     func numericName() async {
       let value = self.context.evaluateScript(
-        "new File([], 1)"
+        """
+        new File([], 1, { type: "application/json" }).name
+        """
       )
-      expectNoDifference(value?.objectForKeyedSubscript("name").toString(), "1")
+      expectNoDifference(value?.toString(), "1")
     }
 
     @Test(
@@ -119,6 +113,16 @@
     func exists() {
       let value = self.context.objectForKeyedSubscript("File")
       expectNoDifference(value?.isUndefined, false)
+    }
+
+    @Test("Instance of Blob")
+    func instanceOfBlob() {
+      let value = self.context.evaluateScript(
+        """
+        new File([], "foo.txt") instanceof Blob
+        """
+      )
+      expectNoDifference(value?.toBool(), true)
     }
   }
 #endif

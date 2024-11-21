@@ -101,16 +101,6 @@
     }
   }
 
-  // MARK: - File
-
-  extension JSContextInstallable where Self == CombinedJSContextInstallable {
-    /// An installable that installs the `File` class.
-    public static var jsFileClass: Self {
-      let url = Bundle.module.assumingURL(forResource: "File", withExtension: "js")
-      return combineInstallers([.blob, .file(at: url)])
-    }
-  }
-
   // MARK: - FormData
 
   extension JSContextInstallable where Self == CombinedJSContextInstallable {

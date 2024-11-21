@@ -2,11 +2,14 @@
   @preconcurrency import JavaScriptCore
   import WPFoundation
 
-  @objc private protocol JSBlobExport: JSExport {
-    init?(iterable: JSValue, options: JSValue)
+  // MARK: - JSBlob
 
+  @objc private protocol JSBlobExport: JSExport {
     var size: Int { get }
     var type: String { get }
+
+    init?(iterable: JSValue, options: JSValue)
+
     func text() -> JSValue
     func bytes() -> JSValue
     func arrayBuffer() -> JSValue
@@ -14,35 +17,46 @@
     func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> JSBlob
   }
 
-  @objc(Blob) public final class JSBlob: NSObject, JSBlobExport, Sendable {
+  @objc(Blob) open class JSBlob: NSObject, JSBlobExport {
     public let size: Int
     public let type: String
     private let contents: String.UTF8View.SubSequence
 
-    required convenience init?(iterable: JSValue, options: JSValue) {
-      guard iterable.isIterable || iterable.isUndefined else {
-        iterable.context.exception = .typeError(
-          message:
-            "Failed to construct 'Blob': The provided value cannot be converted to a sequence.",
-          in: iterable.context
+    public required convenience init?(iterable: JSValue, options: JSValue) {
+      guard let context = JSContext.current() else { return nil }
+      let typeValue = options.objectForKeyedSubscript("type")
+      let type = typeValue?.isUndefined == true ? "" : typeValue?.toString() ?? ""
+      guard (iterable.isIterable && !iterable.isString) || iterable.isUndefined else {
+        context.exception = .constructError(
+          className: "Blob",
+          message: "The provided value cannot be converted to a sequence.",
+          in: context
         )
         return nil
       }
-      let typeValue = options.objectForKeyedSubscript("type")
-      let type = typeValue?.isUndefined == true ? "" : typeValue?.toString() ?? ""
       guard !iterable.isUndefined else {
-        let utf8View = "".utf8
-        self.init(contents: utf8View[utf8View.indexRange], type: type)
+        self.init(contents: "".utf8, type: type)
         return
       }
       let map: @convention(block) (JSValue) -> String = { $0.toString() }
-      let strings = iterable.context.objectForKeyedSubscript("Array")
+      let strings = context.objectForKeyedSubscript("Array")
         .invokeMethod("from", withArguments: [iterable])
         .invokeMethod("map", withArguments: [unsafeBitCast(map, to: JSValue.self)])
         .toArray()
         .compactMap { $0 as? String }
-      let utf8View = strings.joined().utf8
-      self.init(contents: utf8View[utf8View.indexRange], type: type)
+      self.init(contents: strings.joined().utf8, type: type)
+    }
+
+    public init(blob: JSBlob) {
+      self.size = blob.size
+      self.type = blob.type
+      self.contents = blob.contents
+    }
+
+    private init(contents: String.UTF8View, type: String) {
+      self.contents = contents[contents.indexRange]
+      self.size = contents.count
+      self.type = type
     }
 
     private init(contents: String.UTF8View.SubSequence, type: String) {
@@ -96,6 +110,8 @@
     }
   }
 
+  // MARK: - Blob Installer
+
   public struct JSBlobInstaller: JSContextInstallable {
     public func install(in context: JSContext) {
       context.setObject(JSBlob.self, forPath: "Blob")
@@ -105,13 +121,5 @@
   extension JSContextInstallable where Self == JSBlobInstaller {
     /// An installable that installs the Blob class.
     public static var blob: Self { JSBlobInstaller() }
-  }
-
-  extension JSValue {
-    fileprivate var isIterable: Bool {
-      let symbol = self.context.evaluateScript("Symbol.iterator")
-      return self.hasProperty(symbol) && !self.isString
-    }
-
   }
 #endif

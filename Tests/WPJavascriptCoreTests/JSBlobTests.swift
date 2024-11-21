@@ -33,18 +33,13 @@
         """
       ]
     )
-    func nonIterable(initObject: String) async {
-      await confirmation { confirm in
-        self.context.exceptionHandler = { _, value in
-          let message = value?.objectForKeyedSubscript("message")?.toString()
-          expectNoDifference(
-            message,
-            "Failed to construct 'Blob': The provided value cannot be converted to a sequence."
-          )
-          confirm()
-        }
-        self.context.evaluateScript(initObject)
-      }
+    func nonIterable(initObject: String) {
+      expectErrorMessage(
+        js: initObject,
+        message:
+          "Failed to construct 'Blob': The provided value cannot be converted to a sequence.",
+        in: self.context
+      )
     }
 
     @Test(

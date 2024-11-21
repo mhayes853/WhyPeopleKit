@@ -175,7 +175,7 @@
     /// - Parameters:
     ///   - context: The context to create this promise in.
     ///   - fn: A unit of work that reports its result to the ``Continuation``.
-    public init(in context: JSContext, perform fn: @Sendable (Continuation) -> Void) {
+    public init(in context: JSContext, perform fn: (Continuation) -> Void) {
       let continuation = Continuation(context: context)
       fn(continuation)
       self.value = continuation.value
