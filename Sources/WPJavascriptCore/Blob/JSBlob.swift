@@ -21,13 +21,10 @@
     public let type: String
 
     public var size: Int {
-      self.storage.utf8Size
+      self.indexedStorage.storage.utf8Size
     }
 
-    private let startIndex: Int
-    private let endIndex: Int
-
-    private let storage: any JSBlobStorage
+    private let indexedStorage: IndexedStorage
 
     public required convenience init?(iterable: JSValue, options: JSValue) {
       guard let context = JSContext.current() else { return nil }
@@ -56,23 +53,21 @@
 
     public init(blob: JSBlob) {
       self.type = blob.type
-      self.storage = blob.storage
-      self.startIndex = blob.startIndex
-      self.endIndex = blob.endIndex
+      self.indexedStorage = blob.indexedStorage
     }
 
     public init(storage: some JSBlobStorage, type: String = "") {
-      self.storage = storage
       self.type = type
-      self.startIndex = 0
-      self.endIndex = storage.utf8Size
+      self.indexedStorage = IndexedStorage(
+        startIndex: 0,
+        endIndex: storage.utf8Size,
+        storage: storage
+      )
     }
 
-    private init(storage: some JSBlobStorage, type: String, startIndex: Int, endIndex: Int) {
-      self.storage = storage
+    private init(state: IndexedStorage, type: String) {
+      self.indexedStorage = state
       self.type = type
-      self.startIndex = startIndex
-      self.endIndex = endIndex
     }
 
     func text() -> JSValue {
@@ -91,31 +86,46 @@
       _ map: @Sendable @escaping (String.UTF8View, JSContext) -> Any?
     ) -> JSPromise {
       JSPromise(in: .current()) { continuation in
-        let storage = self.storage
-        let startIndex = self.startIndex
-        let endIndex = self.endIndex
-        Task {
-          await utf8(
-            continuation: continuation,
-            storage: storage,
-            startIndex: startIndex,
-            endIndex: endIndex,
-            map
-          )
-        }
+        let indexedStorage = self.indexedStorage
+        Task { await indexedStorage.utf8(continuation: continuation, map) }
       }
     }
 
     func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> JSBlob {
       let type = type.isUndefined ? self.type : type.toString() ?? ""
       guard !start.isUndefined else { return self }
-      let start = max(0, Int(start.toInt32()))
-      let end = min(self.size, end.isUndefined ? self.size : Int(end.toInt32()))
-      return JSBlob(storage: self.storage, type: type, startIndex: start, endIndex: end)
+      var state = self.indexedStorage
+      state.startIndex = max(0, Int(start.toInt32()))
+      state.endIndex = min(self.size, end.isUndefined ? self.size : Int(end.toInt32()))
+      return JSBlob(state: state, type: type)
     }
   }
 
   // MARK: - Helpers
+
+  extension JSBlob {
+    private struct IndexedStorage: Sendable {
+      var startIndex: Int
+      var endIndex: Int
+      let storage: any JSBlobStorage
+
+      func utf8(
+        continuation: JSPromise.Continuation,
+        _ map: (String.UTF8View, JSContext) -> Any?
+      ) async {
+        do {
+          continuation.resume(
+            resolving: map(
+              try await self.storage.utf8Bytes(start: self.startIndex, end: self.endIndex),
+              continuation.context
+            )
+          )
+        } catch {
+          continuation.resume(rejecting: error.value)
+        }
+      }
+    }
+  }
 
   private func bufferWithBytes(
     utf8: String.UTF8View,
@@ -129,25 +139,6 @@
       bytes.setValue(byte, at: index)
     }
     return (buffer, bytes)
-  }
-
-  private func utf8(
-    continuation: JSPromise.Continuation,
-    storage: any JSBlobStorage,
-    startIndex: Int,
-    endIndex: Int,
-    _ map: (String.UTF8View, JSContext) -> Any?
-  ) async {
-    do {
-      continuation.resume(
-        resolving: map(
-          try await storage.utf8Bytes(start: startIndex, end: endIndex),
-          continuation.context
-        )
-      )
-    } catch {
-      continuation.resume(rejecting: error.value)
-    }
   }
 
   // MARK: - Blob Installer
