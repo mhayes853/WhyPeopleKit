@@ -7,7 +7,7 @@
   @objc private protocol JSFileExport: JSExport {
     var name: String { get }
     var webkitRelativePath: String { get }
-    var lastModified: Int { get }
+    var lastModified: Int64 { get }
     var lastModifiedDate: Date { get }
     var size: Int { get }
     var type: String { get }
@@ -20,28 +20,50 @@
     func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> JSBlob
   }
 
-  @objc(File) open class JSFile: JSBlob, JSFileExport {
+  /// A class implementing Javascript's `File` class.
+  ///
+  /// > Note: The Objective C class name of this class is `File` instead of `JSFile`. This is to
+  /// > ensure that JavaScriptCore recognizes the constructor name as `"File"` instead of `"WPJavascriptCore.JSFile"`.
+  ///
+  /// See the [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/File).
+  @objc(File) open class JSFile: JSBlob {
+    /// The name of this file.
     public let name: String
+
+    /// The date this file was last modified.
     public let lastModifiedDate: Date
-    public var lastModified: Int {
-      Int(round(self.lastModifiedDate.timeIntervalSince1970 * 1000))
-    }
-    public let webkitRelativePath = ""
 
     #if canImport(UniformTypeIdentifiers)
+      /// Creates a file from the contents of the specified `URL`.
+      ///
+      /// The direct contents of the file are only read when retrieving the bytes directly, and are not
+      /// read in this initializer.
+      ///
+      /// - Parameter url: The `URL` of the file.
       @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
       public convenience init(contentsOf url: URL) throws {
-        try self.init(contentsOf: url, type: MIMEType(of: url)?.rawValue ?? "")
+        try self.init(contentsOf: url, type: MIMEType(of: url) ?? .empty)
       }
     #endif
 
-    public init(contentsOf url: URL, type: String) throws {
+    /// Creates a file from the contents of the specified `URL` and `MIMEType`.
+    ///
+    /// The direct contents of the file are only read when retrieving the bytes directly, and are not
+    /// read in this initializer.
+    ///
+    /// - Parameters:
+    ///   - url: The `URL` of the file.
+    ///   - type: The `MIMEType` of the file.
+    public init(contentsOf url: URL, type: MIMEType) throws {
       let storage = try FileJSBlobStorage(url: url)
       self.lastModifiedDate = storage.lastModified
       self.name = url.lastPathComponent
       super.init(storage: storage, type: type)
     }
 
+    /// The canonical Javascript initializer for a `File`.
+    ///
+    /// See the [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/File/File).
     public required convenience init?(
       _ fileBits: JSValue,
       _ fileName: JSValue,
@@ -69,22 +91,30 @@
       let file = fileBits.toObjectOf(JSFile.self) as? JSFile
       var lastModified = Date()
       let jsLastModified = options.objectForKeyedSubscript("lastModified")
-      if let date = jsLastModified?.toDate() {
+      if let date = jsLastModified?.toDate(), jsLastModified?.isDate == true {
         lastModified = date
       } else if let dateMillis = jsLastModified?.toInt32(), jsLastModified?.isNumber == true {
-        lastModified = Date(timeIntervalSince1970: Double(dateMillis / 1000))
+        lastModified = Date(timeIntervalSince1970: Double(dateMillis) / 1000)
       } else if let file {
         lastModified = file.lastModifiedDate
       }
-      if let blob = fileBits.toObjectOf(JSBlob.self) {
-        self.init(name: "blob", date: lastModified, blob: blob as! JSBlob)
-      } else if let file {
-        self.init(name: file.name, date: lastModified, blob: file)
+      if let file {
+        self.init(
+          name: fileName.isUndefined ? file.name : fileName.toString(),
+          date: lastModified,
+          blob: file
+        )
+      } else if let blob = fileBits.toObjectOf(JSBlob.self) {
+        self.init(
+          name: fileName.isUndefined ? "blob" : fileName.toString(),
+          date: lastModified,
+          blob: blob as! JSBlob
+        )
       } else if fileBits.isIterable && !fileBits.isString,
-        let blob = JSBlob(iterable: fileBits, options: options)
+        let blob = JSBlob(blobParts: fileBits, options: options)
       {
         // TODO: - Why does using super.init(iterable:options:) make the name and lastModified of this class blank?
-        self.init(name: fileName.toString() ?? "", date: lastModified, blob: blob)
+        self.init(name: fileName.toString(), date: lastModified, blob: blob)
       } else {
         context.exception = .constructError(
           className: "File",
@@ -95,33 +125,47 @@
       }
     }
 
+    /// The canonical Javascript initializer for a `File`.
+    ///
+    /// See the [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/File/File).
+    public required convenience init?(blobParts: JSValue, options: JSValue) {
+      let args = JSContext.currentArguments().compactMap { $0 as? JSValue }
+      self.init(blobParts, options, args.count > 2 ? args[2] : JSValue(undefinedIn: .current()))
+    }
+
     private init(name: String, date: Date, blob: JSBlob) {
       self.name = name
       self.lastModifiedDate = date
       super.init(blob: blob)
     }
+  }
 
-    public required convenience init?(iterable: JSValue, options: JSValue) {
-      let args = JSContext.currentArguments().compactMap { $0 as? JSValue }
-      self.init(iterable, options, args.count > 2 ? args[2] : JSValue(undefinedIn: .current()))
+  // MARK: - JSFileExport Conformance
+
+  extension JSFile: JSFileExport {
+    /// An integer unix epoch timestamp in milliseconds of the last modification date of this file.
+    public var lastModified: Int64 {
+      Int64(round(self.lastModifiedDate.timeIntervalSince1970 * 1000))
     }
+
+    public var webkitRelativePath: String { "" }
   }
 
   // MARK: - FileJSBlobStorage
 
   private struct FileJSBlobStorage: JSBlobStorage {
     let lastModified: Date
-    let utf8Size: Int
+    let utf8SizeInBytes: Int
     private let url: URL
 
     init(url: URL) throws {
       let values = try url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
-      self.utf8Size = values.fileSize ?? 0
+      self.utf8SizeInBytes = values.fileSize ?? 0
       self.lastModified = values.contentModificationDate ?? Date()
       self.url = url
     }
 
-    func utf8Bytes(start: Int, end: Int) throws(JSValueError) -> String.UTF8View {
+    func utf8Bytes(startIndex: Int, endIndex: Int) throws(JSValueError) -> String.UTF8View {
       do {
         let string = try String(contentsOf: self.url)
         return string.utf8

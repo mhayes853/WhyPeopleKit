@@ -47,6 +47,7 @@ extension MIMEType: ExpressibleByStringLiteral {
 // MARK: - MIME Types
 
 extension MIMEType {
+  public static let empty: Self = ""
   public static let zipArchive: Self = "application/zip"
   public static let text: Self = "text/plain"
   public static let png: Self = "image/png"

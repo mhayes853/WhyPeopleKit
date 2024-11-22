@@ -8,7 +8,7 @@
     var size: Int { get }
     var type: String { get }
 
-    init?(iterable: JSValue, options: JSValue)
+    init?(blobParts iterable: JSValue, options: JSValue)
 
     func text() -> JSValue
     func bytes() -> JSValue
@@ -17,16 +17,23 @@
     func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> JSBlob
   }
 
-  @objc(Blob) open class JSBlob: NSObject, JSBlobExport {
-    public let type: String
-
-    public var size: Int {
-      self.indexedStorage.storage.utf8Size
-    }
+  /// A class representing a Javascript `Blob`.
+  ///
+  /// > Note: The Objective C class name of this class is `Blob` instead of `JSBlob`. This is to
+  /// > ensure that JavaScriptCore recognizes the constructor name as `"Blob"` instead of `"WPJavascriptCore.JSBlob"`.
+  ///
+  /// You can create blobs through Javascript, but also by leveraging the ``JSBlobStorage``
+  /// protocol which allows you to create a blob with bytes from an arbitrary source such as a file.
+  @objc(Blob) open class JSBlob: NSObject {
+    /// The `MIMEType` of this blob.
+    public let mimeType: MIMEType
 
     private let indexedStorage: IndexedStorage
 
-    public required convenience init?(iterable: JSValue, options: JSValue) {
+    /// Creates a blob using its Javascript initializer.
+    ///
+    /// See [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/Blob/Blob).
+    public required convenience init?(blobParts iterable: JSValue, options: JSValue) {
       guard let context = JSContext.current() else { return nil }
       let typeValue = options.objectForKeyedSubscript("type")
       let type = typeValue?.isUndefined == true ? "" : typeValue?.toString() ?? ""
@@ -39,7 +46,7 @@
         return nil
       }
       guard !iterable.isUndefined else {
-        self.init(storage: "", type: type)
+        self.init(storage: "", type: MIMEType(rawValue: type))
         return
       }
       let map: @convention(block) (JSValue) -> String = { $0.toString() }
@@ -48,38 +55,104 @@
         .invokeMethod("map", withArguments: [unsafeBitCast(map, to: JSValue.self)])
         .toArray()
         .compactMap { $0 as? String }
-      self.init(storage: strings.joined(), type: type)
+      self.init(storage: strings.joined(), type: MIMEType(rawValue: type))
     }
 
+    /// Creates a blob from another blob.
+    ///
+    /// - Parameter blob: Another blob.
     public init(blob: JSBlob) {
-      self.type = blob.type
+      self.mimeType = blob.mimeType
       self.indexedStorage = blob.indexedStorage
     }
 
-    public init(storage: some JSBlobStorage, type: String = "") {
-      self.type = type
+    /// Creates a blob from a backing ``JSBlobStorage`` and `MIMEType`.
+    ///
+    /// ```swift
+    /// let blob = JSBlob(storage: "Hello world!", type: .text)
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - storage: A ``JSBlobStorage``.
+    ///   - type: A `MIMEType`.
+    public init(storage: some JSBlobStorage, type: MIMEType) {
+      self.mimeType = type
       self.indexedStorage = IndexedStorage(
         startIndex: 0,
-        endIndex: storage.utf8Size,
+        endIndex: storage.utf8SizeInBytes,
         storage: storage
       )
     }
 
-    private init(state: IndexedStorage, type: String) {
+    private init(state: IndexedStorage, type: MIMEType) {
       self.indexedStorage = state
-      self.type = type
+      self.mimeType = type
+    }
+  }
+
+  // MARK: - Subscript
+
+  extension JSBlob {
+    public subscript(range: Range<Int>, type mimeType: MIMEType? = nil) -> JSBlob {
+      var state = self.indexedStorage
+      state.startIndex = range.lowerBound
+      state.endIndex = range.upperBound
+      return JSBlob(state: state, type: mimeType ?? self.mimeType)
     }
 
-    func text() -> JSValue {
+    public subscript(range: PartialRangeFrom<Int>, type mimeType: MIMEType? = nil) -> JSBlob {
+      var state = self.indexedStorage
+      state.startIndex = range.lowerBound
+      state.endIndex = self.size
+      return JSBlob(state: state, type: mimeType ?? self.mimeType)
+    }
+  }
+
+  // MARK: - UTF8
+
+  extension JSBlob {
+    /// Returns the UTF8 view from this blob.
+    public func utf8() async throws -> String.UTF8View {
+      try await self.indexedStorage.utf8()
+    }
+  }
+
+  // MARK: - JSExport Conformance
+
+  extension JSBlob: JSBlobExport {
+    /// The mime type as a raw string.
+    public var type: String {
+      self.mimeType.rawValue
+    }
+
+    /// The size (in bytes) of this blob.
+    public var size: Int {
+      self.indexedStorage.storage.utf8SizeInBytes
+    }
+
+    /// Returns the text of this blob as a `JSValue`.
+    public func text() -> JSValue {
       self.utf8Promise { utf8, _ in String(utf8) }.value
     }
 
-    func bytes() -> JSValue {
+    /// Returns the bytes of this blob as a `JSValue`.
+    public func bytes() -> JSValue {
       self.utf8Promise { bufferWithBytes(utf8: $0, in: $1).1 }.value
     }
 
-    func arrayBuffer() -> JSValue {
+    /// Returns a Javascript `ArrayBuffer` of this blob as a `JSValue`.
+    public func arrayBuffer() -> JSValue {
       self.utf8Promise { bufferWithBytes(utf8: $0, in: $1).0 }.value
+    }
+
+    /// The implementation of Javascript's `Blob.slice`.
+    public func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> JSBlob {
+      let type = MIMEType(rawValue: type.isUndefined ? self.type : type.toString() ?? "")
+      guard !start.isUndefined else { return self }
+      let start = max(0, Int(start.toInt32()))
+      guard !end.isUndefined else { return self[start..., type: type] }
+      let end = min(self.size, end.isUndefined ? self.size : Int(end.toInt32()))
+      return self[start..<end, type: type]
     }
 
     private func utf8Promise(
@@ -89,15 +162,6 @@
         let indexedStorage = self.indexedStorage
         Task { await indexedStorage.utf8(continuation: continuation, map) }
       }
-    }
-
-    func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> JSBlob {
-      let type = type.isUndefined ? self.type : type.toString() ?? ""
-      guard !start.isUndefined else { return self }
-      var state = self.indexedStorage
-      state.startIndex = max(0, Int(start.toInt32()))
-      state.endIndex = min(self.size, end.isUndefined ? self.size : Int(end.toInt32()))
-      return JSBlob(state: state, type: type)
     }
   }
 
@@ -109,17 +173,16 @@
       var endIndex: Int
       let storage: any JSBlobStorage
 
+      func utf8() async throws(JSValueError) -> String.UTF8View {
+        try await self.storage.utf8Bytes(startIndex: self.startIndex, endIndex: self.endIndex)
+      }
+
       func utf8(
         continuation: JSPromise.Continuation,
         _ map: (String.UTF8View, JSContext) -> Any?
       ) async {
         do {
-          continuation.resume(
-            resolving: map(
-              try await self.storage.utf8Bytes(start: self.startIndex, end: self.endIndex),
-              continuation.context
-            )
-          )
+          continuation.resume(resolving: map(try await self.utf8(), continuation.context))
         } catch {
           continuation.resume(rejecting: error.value)
         }
