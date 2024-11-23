@@ -11,8 +11,10 @@ function FormData() {
         return new File(value, filename ?? "blob");
       }
       if (filename !== undefined) {
-        throw new TypeError(
-          `Failed to execute '${kind}' on 'FormData': parameter 2 is not of type 'Blob'.`,
+        throw _wpJSCoreFailedToExecute(
+          "FormData",
+          kind,
+          "parameter 2 is not of type 'Blob'.",
         );
       }
       return value.toString();
@@ -53,6 +55,12 @@ Object.defineProperties(FormData.prototype, {
   },
   append: {
     value: function (key, value, filename) {
+      _wpJSCoreEnsureMinArgCount(
+        "append",
+        "FormData",
+        [key, value, filename],
+        3,
+      );
       const values =
         this[Symbol._wpJSCorePrivate].map.get(key.toString()) ?? [];
       values.push(
@@ -65,6 +73,7 @@ Object.defineProperties(FormData.prototype, {
   },
   set: {
     value: function (key, value, filename) {
+      _wpJSCoreEnsureMinArgCount("set", "FormData", [key, value, filename], 3);
       this[Symbol._wpJSCorePrivate].map.set(key.toString(), [
         this[Symbol._wpJSCorePrivate].convertValue(value, filename, "set"),
       ]);
@@ -74,6 +83,7 @@ Object.defineProperties(FormData.prototype, {
   },
   delete: {
     value: function (key) {
+      _wpJSCoreEnsureMinArgCount("delete", "FormData", [key], 1);
       this[Symbol._wpJSCorePrivate].map.delete(key.toString());
     },
     enumerable: false,
@@ -81,6 +91,7 @@ Object.defineProperties(FormData.prototype, {
   },
   has: {
     value: function (key) {
+      _wpJSCoreEnsureMinArgCount("has", "FormData", [key], 1);
       return this[Symbol._wpJSCorePrivate].map.has(key.toString());
     },
     enumerable: false,
@@ -88,6 +99,7 @@ Object.defineProperties(FormData.prototype, {
   },
   get: {
     value: function (key) {
+      _wpJSCoreEnsureMinArgCount("get", "FormData", [key], 1);
       const values = this[Symbol._wpJSCorePrivate].map.get(key.toString());
       return values !== undefined ? values[0] : null;
     },
@@ -96,6 +108,7 @@ Object.defineProperties(FormData.prototype, {
   },
   getAll: {
     value: function (key) {
+      _wpJSCoreEnsureMinArgCount("getAll", "FormData", [key], 1);
       return this[Symbol._wpJSCorePrivate].map.get(key.toString()) ?? [];
     },
     enumerable: false,

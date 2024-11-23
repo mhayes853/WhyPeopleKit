@@ -93,6 +93,19 @@ const AbortSignal = (function () {
     // listeners by hand.
     addEventListener: {
       value: function (event, listener) {
+        _wpJSCoreEnsureMinArgCount(
+          "addEventListener",
+          "AbortSignal",
+          [event, listener],
+          2,
+        );
+        if (typeof listener !== "object" && typeof listener !== "function") {
+          throw _wpJSCoreFailedToExecute(
+            "AbortSignal",
+            "addEventListener",
+            "parameter 2 is not of type 'Object'",
+          );
+        }
         if (event !== "abort") return;
         this[Symbol._wpJSCorePrivate].subscribers.push(listener);
       },
@@ -101,6 +114,19 @@ const AbortSignal = (function () {
     },
     removeEventListener: {
       value: function (event, listener) {
+        _wpJSCoreEnsureMinArgCount(
+          "removeEventListener",
+          "AbortSignal",
+          [event, listener],
+          2,
+        );
+        if (typeof listener !== "object" && typeof listener !== "function") {
+          throw _wpJSCoreFailedToExecute(
+            "AbortSignal",
+            "removeEventListener",
+            "parameter 2 is not of type 'Object'",
+          );
+        }
         const state = this[Symbol._wpJSCorePrivate];
         if (event !== "abort") return;
         state.subscribers = state.subscribers.filter((s) => s !== listener);
@@ -119,13 +145,36 @@ const AbortSignal = (function () {
       return controller.signal;
     },
     timeout: function (millis) {
+      _wpJSCoreEnsureMinArgCount("timeout", "AbortSignal", [millis], 1);
+      if (typeof millis !== "number") {
+        throw _wpJSCoreFailedToExecute(
+          "AbortSignal",
+          "timeout",
+          "Value is not of type 'unsigned long long'.",
+        );
+      }
       const controller = new AbortController();
       _wpJSCoreAbortSignalTimeout(controller, millis / 1000);
       return controller.signal;
     },
     any: function (signals) {
+      _wpJSCoreEnsureMinArgCount("any", "AbortSignal", [signals], 1);
+      if (!(Symbol.iterator in signals)) {
+        throw _wpJSCoreFailedToExecute(
+          "AbortSignal",
+          "any",
+          "The provided value cannot be converted to a sequence.",
+        );
+      }
       const controller = new AbortController();
       for (const s of signals) {
+        if (!(s instanceof AbortSignal)) {
+          throw _wpJSCoreFailedToExecute(
+            "AbortSignal",
+            "any",
+            "Failed to convert value to 'AbortSignal'.",
+          );
+        }
         if (s.aborted) {
           controller.abort(s.reason);
           return controller.signal;

@@ -6,12 +6,13 @@ function Headers(headers) {
   if (Array.isArray(headers)) {
     const stringified = headers.map((h) => {
       if (!Array.isArray(h)) {
-        throw new TypeError(
-          "Failed to construct 'Headers': The provided value cannot be converted to a sequence.",
+        throw _wpJSCoreFailedToConstruct(
+          "Headers",
+          "The provided value cannot be converted to a sequence.",
         );
       }
       if (h.length !== 2) {
-        throw new TypeError("Failed to construct 'Headers': Invalid value.");
+        throw _wpJSCoreFailedToConstruct("Headers", "Invalid value.");
       }
       const [key, value] = h;
       return [key.toString().toLowerCase(), convert(value)];
@@ -30,8 +31,9 @@ function Headers(headers) {
     });
     this[Symbol._wpJSCorePrivate] = { map: new Map(stringified) };
   } else {
-    throw new TypeError(
-      "Failed to construct 'Headers': The provided value is not of type '(record<ByteString, ByteString> or sequence<sequence<ByteString>>)'.",
+    throw _wpJSCoreFailedToConstruct(
+      "Headers",
+      "The provided value is not of type '(record<ByteString, ByteString> or sequence<sequence<ByteString>>)'.",
     );
   }
   this[Symbol._wpJSCorePrivate].convert = convert;
@@ -71,6 +73,7 @@ Object.defineProperties(Headers.prototype, {
   },
   forEach: {
     value: function (fn) {
+      _wpJSCoreEnsureMinArgCount("forEach", "Headers", [fn], 1);
       for (const [_, value] of this.entries()) {
         fn(value);
       }
@@ -80,6 +83,7 @@ Object.defineProperties(Headers.prototype, {
   },
   has: {
     value: function (key) {
+      _wpJSCoreEnsureMinArgCount("has", "Headers", [key], 1);
       return this.get(key) !== null;
     },
     enumerable: false,
@@ -87,6 +91,7 @@ Object.defineProperties(Headers.prototype, {
   },
   get: {
     value: function (key) {
+      _wpJSCoreEnsureMinArgCount("get", "Headers", [key], 1);
       const value = this[Symbol._wpJSCorePrivate].map.get(
         key.toString().toLowerCase(),
       );
@@ -111,6 +116,7 @@ Object.defineProperties(Headers.prototype, {
   },
   set: {
     value: function (key, value) {
+      _wpJSCoreEnsureMinArgCount("set", "Headers", [key, value], 2);
       this[Symbol._wpJSCorePrivate].map.set(
         key.toString().toLowerCase(),
         this[Symbol._wpJSCorePrivate].convert(value),
@@ -121,6 +127,7 @@ Object.defineProperties(Headers.prototype, {
   },
   append: {
     value: function (key, value) {
+      _wpJSCoreEnsureMinArgCount("append", "Headers", [key, value], 2);
       const currentValue = this[Symbol._wpJSCorePrivate].map.get(
         key.toString().toLowerCase(),
       );
@@ -142,6 +149,7 @@ Object.defineProperties(Headers.prototype, {
   },
   delete: {
     value: function (key) {
+      _wpJSCoreEnsureMinArgCount("delete", "Headers", [key], 1);
       this[Symbol._wpJSCorePrivate].map.delete(key.toString().toLowerCase());
     },
     enumerable: false,

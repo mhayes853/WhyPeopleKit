@@ -21,6 +21,8 @@
     @_disfavoredOverload
     public func install(_ installables: [any JSContextInstallable]) {
       self.setObject(JSValue(privateSymbolIn: self), forPath: "Symbol._wpJSCorePrivate")
+      let url = Bundle.module.assumingURL(forResource: "Validation", withExtension: "js")
+      self.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
       for installable in installables {
         installable.install(in: self)
       }

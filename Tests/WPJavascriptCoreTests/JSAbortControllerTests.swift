@@ -15,7 +15,7 @@
         .abortController { try await clock.sleep(for: .seconds($0)) },
         .consoleLogging
       ])
-      //self.context.exceptionHandler = { _, value in print(value) }
+      self.context.exceptionHandler = { _, value in print(value) }
     }
 
     @Test("Initialization")
@@ -320,6 +320,18 @@
         """
       )
       expectNoDifference(value?.toString(), "foo")
+    }
+
+    @Test("Any Must Take AbortSignal Instances")
+    func anyMustTakeSignalInstances() {
+      expectErrorMessage(
+        js: """
+          const signal = AbortSignal.any([""])
+          """,
+        message:
+          "Failed to execute \'any\' on \'AbortSignal\': Failed to convert value to \'AbortSignal\'.",
+        in: self.context
+      )
     }
 
     @Test("Signal Aborts After Timeout")
