@@ -251,6 +251,25 @@
       expectNoDifference(v3.toArray().map { $0 as? String }, ["bar", "test"])
     }
 
+    @Test("For Each")
+    func forEach() async throws {
+      let value = self.context.evaluateScript(
+        """
+        const results = []
+        const data = new FormData()
+        data.append("foo", new File(["test"], "test.txt"), "a.txt")
+        data.append("foo", "value")
+        data.set("bar", "test")
+        data.forEach((pair) => results.push(pair))
+        results
+        """
+      )
+      let (v1, v2, v3) = (value!.atIndex(0)!, value!.atIndex(1)!, value!.atIndex(2)!)
+      expectNoDifference(FileCompare(value: v1), FileCompare(isFile: true, name: "a.txt"))
+      expectNoDifference(v2.toString(), "value")
+      expectNoDifference(v3.toString(), "test")
+    }
+
     @Test("Cannot Set Filename on Non-Blob")
     func cannotSetFilenameNonBlob() async {
       await confirmation { confirm in

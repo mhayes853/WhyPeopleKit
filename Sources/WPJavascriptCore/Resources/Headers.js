@@ -74,6 +74,13 @@ Object.defineProperties(Headers.prototype, {
   forEach: {
     value: function (fn) {
       _wpJSCoreEnsureMinArgCount("forEach", "Headers", [fn], 1);
+      if (typeof fn !== "function") {
+        throw _wpJSCoreFailedToExecute(
+          "Headers",
+          "forEach",
+          "parameter 1 is not of type 'Function'.",
+        );
+      }
       for (const [_, value] of this.entries()) {
         fn(value);
       }

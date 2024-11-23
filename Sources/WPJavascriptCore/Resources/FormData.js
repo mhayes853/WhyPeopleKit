@@ -44,6 +44,23 @@ Object.defineProperties(FormData.prototype, {
     enumerable: false,
     configurable: true,
   },
+  forEach: {
+    value: function (fn) {
+      _wpJSCoreEnsureMinArgCount("forEach", "FormData", [fn], 1);
+      if (typeof fn !== "function") {
+        throw _wpJSCoreFailedToExecute(
+          "FormData",
+          "forEach",
+          "parameter 1 is not of type 'Function'.",
+        );
+      }
+      for (const [_, value] of this.entries()) {
+        fn(value);
+      }
+    },
+    enumerable: false,
+    configurable: true,
+  },
   keys: {
     value: function* () {
       for (const [key, _] of this.entries()) {
