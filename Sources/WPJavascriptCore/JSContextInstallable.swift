@@ -91,16 +91,6 @@
     }
   }
 
-  // MARK: - AbortController
-
-  extension JSContextInstallable where Self == CombinedJSContextInstallable {
-    /// An installable that installs `AbortController` and `AbortSignal` functionallity.
-    public static var abortController: Self {
-      let url = Bundle.module.assumingURL(forResource: "AbortController", withExtension: "js")
-      return combineInstallers([.domException, .file(at: url)])
-    }
-  }
-
   // MARK: - FormData
 
   extension JSContextInstallable where Self == CombinedJSContextInstallable {

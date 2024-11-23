@@ -175,7 +175,10 @@ let package = Package(
       ],
       resources: [.process("Resources")]
     ),
-    .testTarget(name: "WPJavascriptCoreTests", dependencies: ["WPJavascriptCore"])
+    .testTarget(
+      name: "WPJavascriptCoreTests",
+      dependencies: ["WPJavascriptCore", .product(name: "Clocks", package: "swift-clocks")]
+    )
   ],
   swiftLanguageModes: [.version("6")]
 )

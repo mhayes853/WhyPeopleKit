@@ -2,13 +2,19 @@
   import WPJavascriptCore
   import Testing
   import CustomDump
+  import Clocks
 
   @Suite("JSAbortController tests")
   struct JSAbortControllerTests {
     private let context = JSContext()!
+    private let testClock = TestClock()
 
     init() {
-      self.context.install([.abortController, .consoleLogging])
+      let clock = self.testClock
+      self.context.install([
+        .abortController { try await clock.sleep(for: .seconds($0)) },
+        .consoleLogging
+      ])
       //self.context.exceptionHandler = { _, value in print(value) }
     }
 
@@ -229,9 +235,10 @@
     @Test("Does not Log Internal Class Variables")
     func doesNotLogVars() {
       let logger = TestLogger()
-      self.context.install([logger])
+      let context = JSContext()!
+      context.install([.abortController, logger])
 
-      self.context.evaluateScript(
+      context.evaluateScript(
         """
         const a = new AbortController()
         console.log(a, a.signal)
@@ -244,6 +251,95 @@
           LogMessage(level: nil, message: "class AbortController {} class AbortSignal {}")
         ]
       )
+    }
+
+    @Test("Creates a Signal in an Aborted State")
+    func abortedState() {
+      let value = self.context.evaluateScript(
+        """
+        const signal = AbortSignal.abort("test")
+        signal
+        """
+      )
+      expectNoDifference(value?.objectForKeyedSubscript("aborted")?.toBool(), true)
+      expectNoDifference(value?.objectForKeyedSubscript("reason")?.toString(), "test")
+    }
+
+    @Test("Signal is Non-Constructable")
+    func nonConstructableSignal() {
+      let value = self.context.evaluateScript(
+        """
+        new AbortSignal()
+        """
+      )
+      expectNoDifference(value?.isUndefined, true)
+    }
+
+    @Test("Abort Signal Any Creates Dependency Between Signals")
+    func signalDependencies() {
+      let value = self.context.evaluateScript(
+        """
+        let result
+        const a = new AbortController()
+        const b = new AbortController()
+        const signal = AbortSignal.any([a.signal, b.signal])
+        signal.addEventListener("abort", (e) => result = e.target.reason)
+        b.abort("test")
+        const values = [signal.aborted, a.signal.aborted, b.signal.aborted, result, signal.reason]
+        values
+        """
+      )
+      expectNoDifference(value?.atIndex(0).toBool(), true)
+      expectNoDifference(value?.atIndex(1).toBool(), false)
+      expectNoDifference(value?.atIndex(2).toBool(), true)
+      expectNoDifference(value?.atIndex(3).toString(), "test")
+      expectNoDifference(value?.atIndex(4).toString(), "test")
+    }
+
+    @Test("Dependent Signal is Aborted When Dependency is Aborted")
+    func abortedDependency() {
+      let value = self.context.evaluateScript(
+        """
+        const a = AbortSignal.abort()
+        const b = new AbortController()
+        const signal = AbortSignal.any([a, b.signal])
+        signal.aborted
+        """
+      )
+      expectNoDifference(value?.toBool(), true)
+    }
+
+    @Test("Dependent Signal Uses First Aborted Signal Reason")
+    func firstAbortedReason() {
+      let value = self.context.evaluateScript(
+        """
+        const a = AbortSignal.abort("foo")
+        const b = AbortSignal.abort("bar")
+        const signal = AbortSignal.any([a, b])
+        signal.reason
+        """
+      )
+      expectNoDifference(value?.toString(), "foo")
+    }
+
+    @Test("Signal Aborts After Timeout")
+    func abortsAfterTimeout() async throws {
+      let promise = try #require(
+        self.context
+          .evaluateScript(
+            """
+            new Promise((resolve) => {
+              const signal = AbortSignal.timeout(1000)
+              signal.onabort = (e) => resolve(e.target.reason)
+            })
+            """
+          )
+          .toPromise()
+      )
+      await self.testClock.advance(by: .seconds(1))
+      let value = try await promise.resolvedValue
+      expectNoDifference(value.objectForKeyedSubscript("name").toString(), "TimeoutError")
+      expectNoDifference(value.objectForKeyedSubscript("message").toString(), "signal timed out")
     }
   }
 #endif
