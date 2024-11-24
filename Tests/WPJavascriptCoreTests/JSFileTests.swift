@@ -142,6 +142,32 @@
         expectNoDifference(file.type, "application/json")
         expectNoDifference(value.objectForKeyedSubscript("key").toBool(), true)
       }
+
+      @Test("Sliced From URL")
+      func slicedFromURL() async throws {
+        let temp = URL.temporaryDirectory.appending(path: "\(UUID()).json")
+        try "Hello world".write(to: temp, atomically: true, encoding: .utf8)
+        let file = try JSFile(contentsOf: temp)
+        self.context.setObject(file, forPath: "testFile")
+        let value = try await #require(
+          self.context.evaluateScript("testFile.slice(0, 5).text()").toPromise()
+        )
+        .resolvedValue
+        expectNoDifference(value.toString(), "Hello")
+      }
+
+      @Test("From Non-Existent URL During Read")
+      func nonExistentURL() async throws {
+        let temp = URL.temporaryDirectory.appending(path: "\(UUID()).json")
+        try "Hello world".write(to: temp, atomically: true, encoding: .utf8)
+        let file = try JSFile(contentsOf: temp)
+        self.context.setObject(file, forPath: "testFile")
+        let value = try await #require(
+          self.context.evaluateScript("testFile.text()").toPromise()
+        )
+        .resolvedValue
+        expectNoDifference(value.toString(), "Hello world")
+      }
     #endif
   }
 #endif

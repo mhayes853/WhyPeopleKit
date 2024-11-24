@@ -175,6 +175,20 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WPJavascriptCore"
+               BuildableName = "WPJavascriptCore"
+               BlueprintName = "WPJavascriptCore"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -271,6 +285,16 @@
                BlueprintIdentifier = "WPHapticsTests"
                BuildableName = "WPHapticsTests"
                BlueprintName = "WPHapticsTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WPJavascriptCoreTests"
+               BuildableName = "WPJavascriptCoreTests"
+               BlueprintName = "WPJavascriptCoreTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

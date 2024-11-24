@@ -1,6 +1,7 @@
 #if canImport(JavaScriptCore)
   import JavaScriptCore
   import WPFoundation
+  @preconcurrency private import _CWPJavascriptCore
 
   // MARK: - JSFile
 
@@ -153,22 +154,30 @@
 
   // MARK: - FileJSBlobStorage
 
-  private struct FileJSBlobStorage: JSBlobStorage {
+  private final class FileJSBlobStorage: JSBlobStorage {
     let lastModified: Date
     let utf8SizeInBytes: Int
     private let url: URL
+    private let handle: WPJavascriptCoreFileHandle
 
     init(url: URL) throws {
       let values = try url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
       self.utf8SizeInBytes = values.fileSize ?? 0
       self.lastModified = values.contentModificationDate ?? Date()
+      self.handle = try WPJavascriptCoreFileHandle(url: url)
       self.url = url
     }
 
     func utf8Bytes(startIndex: Int, endIndex: Int) throws(JSValueError) -> String.UTF8View {
       do {
-        let string = try String(contentsOf: self.url)
-        return string.utf8
+        let data = try NSFileCoordinator()
+          .coordinate(readingItemAt: self.url) { url in
+            try self.handle.read(
+              fromOffset: UInt64(startIndex),
+              upTo: UInt64(endIndex - startIndex)
+            )
+          }
+        return String(decoding: data, as: UTF8.self).utf8
       } catch {
         throw JSValueError(
           value: JSValue(newErrorFromMessage: error.localizedDescription, in: .current())
