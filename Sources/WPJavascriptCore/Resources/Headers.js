@@ -3,8 +3,9 @@ function Headers(headers) {
     return Array.isArray(value) ? value.join(delmimeter) : value.toString();
   };
 
-  if (Array.isArray(headers)) {
-    const stringified = headers.map((h) => {
+  if (typeof headers === "object" && Symbol.iterator in headers) {
+    const array = Array.isArray(headers) ? headers : Array.from(headers);
+    const stringified = array.map((h) => {
       if (!Array.isArray(h)) {
         throw _wpJSCoreFailedToConstruct(
           "Headers",
@@ -20,11 +21,6 @@ function Headers(headers) {
     this[Symbol._wpJSCorePrivate] = { map: new Map(stringified) };
   } else if (headers === undefined) {
     this[Symbol._wpJSCorePrivate] = { map: new Map() };
-  } else if (headers instanceof Map) {
-    const stringified = Array.from(headers).map(([key, value]) => {
-      return [key.toString().toLowerCase(), convert(value)];
-    });
-    this[Symbol._wpJSCorePrivate] = { map: new Map(stringified) };
   } else if (typeof headers === "object") {
     const stringified = Object.entries(headers).map(([key, value]) => {
       return [key.toString().toLowerCase(), convert(value)];

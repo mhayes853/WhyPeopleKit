@@ -16,3 +16,12 @@ function _wpJSCoreEnsureMinArgCount(name, clazz, args, expected) {
     );
   }
 }
+
+function _wpJSCoreEnsureMinArgConstructor(clazz, args, expected) {
+  if (args.length < expected) {
+    const argName = expected === 2 ? "arguments" : "argument";
+    throw new TypeError(
+      `Failed to construct '${clazz}': ${expected} ${argName} required, but only ${args.length} present.`,
+    );
+  }
+}

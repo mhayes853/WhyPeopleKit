@@ -23,6 +23,14 @@ function FormData() {
   this[Symbol.iterator] = this.entries;
 }
 
+function _wpJSCoreCopyFormData(formData) {
+  const data = new FormData();
+  data[Symbol._wpJSCorePrivate].map = new Map(
+    formData[Symbol._wpJSCorePrivate].map,
+  );
+  return data;
+}
+
 Object.defineProperties(FormData.prototype, {
   entries: {
     value: function* () {

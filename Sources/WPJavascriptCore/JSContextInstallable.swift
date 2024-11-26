@@ -93,6 +93,16 @@
     }
   }
 
+  // MARK: - Headers
+
+  extension JSContextInstallable where Self == FilesJSContextInstallable {
+    /// An installable that installs the `Headers` class.
+    public static var headers: Self {
+      let url = Bundle.module.assumingURL(forResource: "Headers", withExtension: "js")
+      return .file(at: url)
+    }
+  }
+
   // MARK: - FormData
 
   extension JSContextInstallable where Self == CombinedJSContextInstallable {

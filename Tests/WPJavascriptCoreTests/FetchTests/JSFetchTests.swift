@@ -313,18 +313,9 @@
     func availability() {
       struct SomeError: Error {}
       let object = JSValue(object: SomeError(), in: self.context)
-      let errorConstructor = self.context.objectForKeyedSubscript("Error")
-      print(object?.isInstance(of: errorConstructor))
+      let value = self.context.evaluateScript("console.log(TextEncoder)")
+      let errorConstructor = self.context.objectForKeyedSubscript("TextEncoder")
+      print(value?.toArray())
     }
-  }
-
-  private func expectHeaders(from value: JSValue?, toEqual headers: [[String]]) {
-    var entries = [[String]]()
-    let forEach: @convention(block) (JSValue) -> Void = { value in
-      guard value.atIndex(0).isString && value.atIndex(1).isString else { return }
-      entries.append([value.atIndex(0).toString(), value.atIndex(1).toString()])
-    }
-    value?.invokeMethod("forEach", withArguments: [unsafeBitCast(forEach, to: JSValue.self)])
-    expectNoDifference(entries, headers)
   }
 #endif

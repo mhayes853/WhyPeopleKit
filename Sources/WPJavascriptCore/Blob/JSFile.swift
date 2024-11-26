@@ -154,7 +154,7 @@
 
   // MARK: - FileJSBlobStorage
 
-  private final class FileJSBlobStorage: JSBlobStorage {
+  private struct FileJSBlobStorage: JSBlobStorage {
     let lastModified: Date
     let utf8SizeInBytes: Int
     private let url: URL
