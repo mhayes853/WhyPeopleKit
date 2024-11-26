@@ -577,19 +577,122 @@
       expectNoDifference(resolvedValue?.objectForKeyedSubscript("a").isNull, true)
     }
 
-    //@Test("FormData Body Text")
-    //func formDataBodyText() async throws {
-    //  let value = self.context
-    //    .evaluateScript(
-    //      """
-    //      const request = new Request("www.example.com", { method: "POST", body: "foo" })
-    //      new Request(request, { body: "bar" }).text()
-    //      """
-    //    )
-    //    .toPromise()
-    //  let resolvedValue = try await value?.resolvedValue
-    //  expectNoDifference(resolvedValue?.toString(), "bar")
-    //}
+    #if canImport(UniformTypeIdentifiers)
+      @Test(
+        "FormData Body Text",
+        arguments: [
+          "request.text()",
+          "request.blob().then((b) => b.text())",
+          "request.bytes().then((b) => _wpJSCoreUint8ArrayToString(b))"
+        ]
+      )
+      @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
+      func formDataBodyText(text: String) async throws {
+        let url = URL.temporaryDirectory.appending(path: "\(UUID()).txt")
+        try "Hello world".write(to: url, atomically: true, encoding: .utf8)
+        let file = try JSFile(contentsOf: url)
+        self.context.setObject(file, forPath: "testFile")
+        let value = self.context
+          .evaluateScript(
+            """
+            function _wpJSCoreFormDataBoundary() {
+              return "-----testBoundary"
+            }
+
+            const formData = new FormData()
+            formData.set("file", testFile)
+            formData.append("a", "b")
+            formData.append("a", "c")
+            const request = new Request("www.example.com", { method: "POST", body: formData })
+            \(text)
+            """
+          )
+          .toPromise()
+        let resolvedValue = try await value?.resolvedValue
+        expectNoDifference(
+          resolvedValue?.toString(),
+          """
+          -----testBoundary\r\nContent-Disposition: form-data; name="file"; filename="\(file.name)"\r\nContent-Type: text/plain\r\n\r\nHello world\r\n-----testBoundary\r\nContent-Disposition: form-data; name="a"\r\n\r\nb\r\n-----testBoundary\r\nContent-Disposition: form-data; name="a"\r\n\r\nc\r\n-----testBoundary--\r\n
+          """
+        )
+      }
+    #endif
+
+    @Test("Sets Content-Type Header to multipart/form-data When Body is FormData")
+    func multipartFormData() {
+      let value = self.context
+        .evaluateScript(
+          """
+          function _wpJSCoreFormDataBoundary() {
+            return "-----testBoundary"
+          }
+          new Request("www.example.com", {
+            method: "POST",
+            body: new FormData()
+          })
+          .headers
+          .get("content-type")
+          """
+        )
+      expectNoDifference(value?.toString(), "multipart/form-data; boundary=-----testBoundary")
+    }
+
+    @Test(
+      "Keeps Content-Type Header to Current Content-Type When Body is FormData But Content-Type Specified"
+    )
+    func keepsContentTypeHeader() {
+      let value = self.context
+        .evaluateScript(
+          """
+          function _wpJSCoreFormDataBoundary() {
+            return "-----testBoundary"
+          }
+          new Request("www.example.com", {
+            method: "POST",
+            body: new FormData(),
+            headers: { "Content-Type": "application/json" }
+          })
+          .headers
+          .get("content-type")
+          """
+        )
+      expectNoDifference(value?.toString(), "application/json")
+    }
+
+    @Test(
+      "Sets Content-Type Header to text/plain When Body is String",
+      arguments: ["\"\"", "new String()", "1"]
+    )
+    func textPlain(initObject: String) {
+      let value = self.context
+        .evaluateScript(
+          """
+          new Request("www.example.com", {
+            method: "POST",
+            body: ""
+          })
+          .headers
+          .get("content-type")
+          """
+        )
+      expectNoDifference(value?.toString(), "text/plain;charset=UTF-8")
+    }
+
+    @Test("Sets Content-Type Header to Blob type When Body is Blob")
+    func blobContentType() {
+      let value = self.context
+        .evaluateScript(
+          """
+          new Request("www.example.com", {
+            method: "POST",
+            body: new Blob([], { type: "application/json" })
+          })
+          .headers
+          .get("content-type")
+          """
+        )
+      expectNoDifference(value?.toString(), "application/json")
+    }
 
     @Test("Request Clone Overrides Previous Request Options")
     func requestCloneOptionsOverride() async throws {

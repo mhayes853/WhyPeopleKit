@@ -55,7 +55,7 @@
         .invokeMethod("map", withArguments: [unsafeBitCast(map, to: JSValue.self)])
         .toArray()
         .compactMap { $0 as? String }
-      self.init(storage: strings.joined(), type: MIMEType(rawValue: type))
+      self.init(storage: strings.joined().utf8, type: MIMEType(rawValue: type))
     }
 
     /// Creates a blob from another blob.

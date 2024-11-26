@@ -31,6 +31,35 @@ function _wpJSCoreCopyFormData(formData) {
   return data;
 }
 
+function _wpJSCoreFormDataBoundary() {
+  return `-----WPJavascriptCoreBoundary${Math.random().toString(36).substring(2)}`;
+}
+
+async function _wpJSCoreEncodedFormData(formData, boundary) {
+  const entries = Array.from(formData);
+  const texts = entries.map(([_, value]) => {
+    if (value instanceof File) return value.text();
+    return value;
+  });
+  const parts = [];
+  for (let i = 0; i < entries.length; i++) {
+    parts.push(`${boundary}\r\n`);
+    const [key, file] = entries[i];
+    const text = texts[i];
+    if (!(text instanceof Promise)) {
+      parts.push(
+        `Content-Disposition: form-data; name="${key}"\r\n\r\n${text}\r\n`,
+      );
+      continue;
+    }
+    parts.push(
+      `Content-Disposition: form-data; name="${key}"; filename="${file.name}"\r\nContent-Type: ${file.type}\r\n\r\n${await text}\r\n`,
+    );
+  }
+  parts.push(`${boundary}--\r\n`);
+  return parts.join("");
+}
+
 Object.defineProperties(FormData.prototype, {
   entries: {
     value: function* () {

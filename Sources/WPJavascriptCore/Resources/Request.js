@@ -1,3 +1,9 @@
+function _wpJSCoreUint8ArrayToString(array) {
+  return Array.prototype.map
+    .call(array, (c) => String.fromCharCode(c))
+    .join("");
+}
+
 const Request = (function () {
   function Request(urlOrRequest, options) {
     _wpJSCoreEnsureMinArgConstructor("Request", [urlOrRequest, options], 1);
@@ -7,11 +13,13 @@ const Request = (function () {
         "The provided value is not of type 'RequestInit'.",
       );
     }
+    const formDataBoundary = _wpJSCoreFormDataBoundary();
     const { requestOptions, ...rest } =
       urlOrRequest instanceof Request
         ? {
             url: urlOrRequest[Symbol._wpJSCorePrivate].url,
             bodyUsed: urlOrRequest[Symbol._wpJSCorePrivate].bodyUsed,
+            formDataBoundary,
             requestOptions: {
               ...urlOrRequest[Symbol._wpJSCorePrivate].options,
               ...options,
@@ -19,6 +27,7 @@ const Request = (function () {
           }
         : {
             url: urlOrRequest.toString(),
+            formDataBoundary,
             bodyUsed: false,
             requestOptions: options,
           };
@@ -33,15 +42,32 @@ const Request = (function () {
       ...rest,
       options: {
         ...requestOptions,
-        headers: convertHeaders(requestOptions?.headers),
+        headers: convertHeaders(
+          requestOptions?.headers,
+          requestOptions?.body,
+          rest.formDataBoundary,
+        ),
         body: initialBody(requestOptions?.body),
       },
     };
   }
 
-  function convertHeaders(headers) {
+  function convertHeaders(headers, body, formDataBoundary) {
     try {
-      return new Headers(headers);
+      const newHeaders = new Headers(headers);
+      const isContentTypeOverrideable = !newHeaders.has("Content-Type");
+      if (!isContentTypeOverrideable) return newHeaders;
+      if (body instanceof FormData) {
+        newHeaders.set(
+          "Content-Type",
+          `multipart/form-data; boundary=${formDataBoundary}`,
+        );
+      } else if (body instanceof Blob) {
+        newHeaders.set("Content-Type", body.type);
+      } else if (!ArrayBuffer.isView(body) && body !== undefined) {
+        newHeaders.set("Content-Type", `text/plain;charset=UTF-8`);
+      }
+      return newHeaders;
     } catch (e) {
       throw new TypeError(
         e.message.replace(
@@ -101,12 +127,14 @@ const Request = (function () {
       configurable: false,
     },
     blob: bodyConsumer("blob", bodyBlob),
-    arrayBuffer: bodyConsumer("arrayBuffer", async (b) => {
-      return (await bodyBytes(b)).buffer;
+    arrayBuffer: bodyConsumer("arrayBuffer", async (b, boundary) => {
+      return (await bodyBytes(b, boundary)).buffer;
     }),
     bytes: bodyConsumer("bytes", bodyBytes),
     text: bodyConsumer("text", bodyText),
-    json: bodyConsumer("json", (b) => bodyText(b).then(JSON.parse)),
+    json: bodyConsumer("json", async (b, boundary) => {
+      return JSON.parse(await bodyText(b, boundary));
+    }),
     formData: bodyConsumer("formData", bodyFormData),
   });
 
@@ -134,7 +162,10 @@ const Request = (function () {
           );
         }
         this[Symbol._wpJSCorePrivate].bodyUsed = true;
-        return consume(this[Symbol._wpJSCorePrivate].options.body);
+        return consume(
+          this[Symbol._wpJSCorePrivate].options.body,
+          this[Symbol._wpJSCorePrivate].formDataBoundary,
+        );
       },
       enumerable: false,
       configurable: false,
@@ -149,43 +180,45 @@ const Request = (function () {
     return uint8Array;
   }
 
-  function uint8ArrayToString(array) {
-    return Array.prototype.map
-      .call(array, (c) => String.fromCharCode(c))
-      .join("");
-  }
-
-  async function bodyBytes(body) {
+  async function bodyBytes(body, formDataBoundary) {
     if (body instanceof Blob) {
       return await body.bytes();
     } else if (body === undefined) {
       return new Uint8Array([]);
     } else if (ArrayBuffer.isView(body)) {
       return new Uint8Array(body.buffer);
+    } else if (body instanceof FormData) {
+      return stringToUint8Array(
+        await _wpJSCoreEncodedFormData(body, formDataBoundary),
+      );
     } else {
       return stringToUint8Array(body.toString());
     }
   }
 
-  async function bodyText(body) {
+  async function bodyText(body, formDataBoundary) {
     if (body instanceof Blob) {
       return await body.text();
     } else if (body === undefined) {
       return "";
     } else if (ArrayBuffer.isView(body)) {
-      return uint8ArrayToString(new Uint8Array(body.buffer));
+      return _wpJSCoreUint8ArrayToString(new Uint8Array(body.buffer));
+    } else if (body instanceof FormData) {
+      return await _wpJSCoreEncodedFormData(body, formDataBoundary);
     } else {
       return body.toString();
     }
   }
 
-  async function bodyBlob(body) {
+  async function bodyBlob(body, formDataBoundary) {
     if (body instanceof Blob) {
       return body;
     } else if (body === undefined) {
       return new Blob();
     } else if (ArrayBuffer.isView(body)) {
       return new Blob([await bodyText(body)]);
+    } else if (body instanceof FormData) {
+      return new Blob([await _wpJSCoreEncodedFormData(body, formDataBoundary)]);
     } else {
       return new Blob([body.toString()]);
     }
