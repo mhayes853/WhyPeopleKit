@@ -675,7 +675,7 @@
           .get("content-type")
           """
         )
-      expectNoDifference(value?.toString(), "text/plain;charset=UTF-8")
+      expectNoDifference(value?.toString(), "text/plain; charset=UTF-8")
     }
 
     @Test("Sets Content-Type Header to Blob type When Body is Blob")

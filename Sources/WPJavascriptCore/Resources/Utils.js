@@ -25,3 +25,17 @@ function _wpJSCoreEnsureMinArgConstructor(clazz, args, expected) {
     );
   }
 }
+
+function _wpJSCoreUint8ArrayToString(array) {
+  return Array.prototype.map
+    .call(array, (c) => String.fromCharCode(c))
+    .join("");
+}
+
+function _wpJSCoreStringToUint8Array(str) {
+  const uint8Array = new Uint8Array(str.length);
+  for (let i = 0; i < str.length; i++) {
+    uint8Array[i] = str.charCodeAt(i);
+  }
+  return uint8Array;
+}
