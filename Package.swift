@@ -174,7 +174,7 @@ let package = Package(
         .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
         .product(name: "CustomDump", package: "swift-custom-dump")
       ],
-      resources: [.process("Resources")]
+      resources: [.process("js")]
     ),
     .testTarget(
       name: "WPJavascriptCoreTests",

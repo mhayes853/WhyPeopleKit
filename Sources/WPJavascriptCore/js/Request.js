@@ -7,13 +7,11 @@ const Request = (function () {
         "The provided value is not of type 'RequestInit'.",
       );
     }
-    const formDataBoundary = _wpJSCoreFormDataBoundary();
     const { requestOptions, ...rest } =
       urlOrRequest instanceof Request
         ? {
             url: urlOrRequest[Symbol._wpJSCorePrivate].url,
             bodyUsed: urlOrRequest[Symbol._wpJSCorePrivate].bodyUsed,
-            formDataBoundary,
             requestOptions: {
               ...urlOrRequest[Symbol._wpJSCorePrivate].options,
               ...options,
@@ -21,7 +19,6 @@ const Request = (function () {
           }
         : {
             url: urlOrRequest.toString(),
-            formDataBoundary,
             bodyUsed: false,
             requestOptions: options,
           };
