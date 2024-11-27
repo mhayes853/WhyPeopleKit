@@ -21,8 +21,7 @@
     @_disfavoredOverload
     public func install(_ installables: [any JSContextInstallable]) {
       self.setObject(JSValue(privateSymbolIn: self), forPath: "Symbol._wpJSCorePrivate")
-      let url = Bundle.module.assumingURL(forResource: "Utils", withExtension: "js")
-      self.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
+      let installables = [.wpJSCoreBundled(paths: ["Utils.js"])] + installables
       for installable in installables {
         installable.install(in: self)
       }
@@ -49,6 +48,47 @@
       for installer in self.installers {
         installer.install(in: context)
       }
+    }
+  }
+
+  // MARK: - Bundle JS Context Installable
+
+  /// A ``JSContextInstallable`` that loads Javascript files from a bundle.
+  public struct BundleFilesJSContextInstaller: JSContextInstallable {
+    let paths: [String]
+    let bundle: Bundle
+
+    public func install(in context: JSContext) {
+      for path in self.paths {
+        guard let url = self.bundle.url(forResource: path, withExtension: nil) else { continue }
+        context.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
+      }
+    }
+  }
+
+  extension JSContextInstallable where Self == BundleFilesJSContextInstaller {
+    /// An installable that loads the contents of the specified bundle pats relative to a `Bundle`.
+    ///
+    /// - Parameters:
+    ///   - bundlePaths: A paths relative to a `Bundle`.
+    ///   - bundle: The `Bundle` to load from (defaults to the main bundle).
+    /// - Returns: An installable.
+    public static func bundled(path bundlePath: String, in bundle: Bundle = .main) -> Self {
+      BundleFilesJSContextInstaller(paths: [bundlePath], bundle: bundle)
+    }
+
+    /// An installable that loads the contents of the specified bundle paths relative to a `Bundle`.
+    ///
+    /// - Parameters:
+    ///   - bundlePaths: An array of paths relative to a `Bundle`.
+    ///   - bundle: The `Bundle` to load from (defaults to the main bundle).
+    /// - Returns: An installable.
+    public static func bundled(paths bundlePaths: [String], in bundle: Bundle = .main) -> Self {
+      BundleFilesJSContextInstaller(paths: bundlePaths, bundle: bundle)
+    }
+
+    static func wpJSCoreBundled(paths bundledPaths: [String]) -> Self {
+      .bundled(paths: bundledPaths, in: .module)
     }
   }
 
@@ -85,21 +125,19 @@
 
   // MARK: - DOMException
 
-  extension JSContextInstallable where Self == FilesJSContextInstallable {
+  extension JSContextInstallable where Self == BundleFilesJSContextInstaller {
     /// An installable that installs the `DOMException` class.
     public static var domException: Self {
-      let url = Bundle.module.assumingURL(forResource: "DOMException", withExtension: "js")
-      return .file(at: url)
+      .wpJSCoreBundled(paths: ["DOMException.js"])
     }
   }
 
   // MARK: - Headers
 
-  extension JSContextInstallable where Self == FilesJSContextInstallable {
+  extension JSContextInstallable where Self == BundleFilesJSContextInstaller {
     /// An installable that installs the `Headers` class.
     public static var headers: Self {
-      let url = Bundle.module.assumingURL(forResource: "Headers", withExtension: "js")
-      return .file(at: url)
+      .wpJSCoreBundled(paths: ["Headers.js"])
     }
   }
 
@@ -108,8 +146,7 @@
   extension JSContextInstallable where Self == CombinedJSContextInstallable {
     /// An installable that installs the `FormData` class.
     public static var formData: Self {
-      let url = Bundle.module.assumingURL(forResource: "FormData", withExtension: "js")
-      return combineInstallers([.jsFileClass, .file(at: url)])
+      combineInstallers([.jsFileClass, .wpJSCoreBundled(paths: ["FormData.js"])])
     }
   }
 #endif
