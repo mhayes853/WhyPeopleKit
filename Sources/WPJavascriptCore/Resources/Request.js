@@ -86,17 +86,17 @@ const Request = (function () {
       enumerable: true,
       configurable: true,
     },
-    method: _wpJSCoreRequestOptionsProperty("method", "GET"),
-    headers: _wpJSCoreRequestOptionsProperty("headers", new Headers()),
-    signal: _wpJSCoreRequestOptionsProperty("signal"),
-    credentials: _wpJSCoreRequestOptionsProperty("credentials", "same-origin"),
-    cache: _wpJSCoreRequestOptionsProperty("cache", "default"),
-    integrity: _wpJSCoreRequestOptionsProperty("integrity", ""),
-    keepalive: _wpJSCoreRequestOptionsProperty("keepalive", false),
-    mode: _wpJSCoreRequestOptionsProperty("mode", "cors"),
-    redirect: _wpJSCoreRequestOptionsProperty("redirect", "follow"),
-    referrer: _wpJSCoreRequestOptionsProperty("referrer", "about:client"),
-    referrerPolicy: _wpJSCoreRequestOptionsProperty("referrerPolicy"),
+    method: optionsProperty("method", "GET"),
+    headers: optionsProperty("headers", new Headers()),
+    signal: optionsProperty("signal"),
+    credentials: optionsProperty("credentials", "same-origin"),
+    cache: optionsProperty("cache", "default"),
+    integrity: optionsProperty("integrity", ""),
+    keepalive: optionsProperty("keepalive", false),
+    mode: optionsProperty("mode", "cors"),
+    redirect: optionsProperty("redirect", "follow"),
+    referrer: optionsProperty("referrer", "about:client"),
+    referrerPolicy: optionsProperty("referrerPolicy"),
     clone: {
       value: function () {
         return new Request(this);
@@ -104,15 +104,15 @@ const Request = (function () {
       enumerable: false,
       configurable: false,
     },
-    blob: bodyConsumer("blob"),
-    arrayBuffer: bodyConsumer("arrayBuffer"),
-    bytes: bodyConsumer("bytes"),
-    text: bodyConsumer("text"),
-    json: bodyConsumer("json"),
-    formData: bodyConsumer("formData"),
+    blob: _wpJSCoreHTTPBodyConsumerProperty("blob"),
+    arrayBuffer: _wpJSCoreHTTPBodyConsumerProperty("arrayBuffer"),
+    bytes: _wpJSCoreHTTPBodyConsumerProperty("bytes"),
+    text: _wpJSCoreHTTPBodyConsumerProperty("text"),
+    json: _wpJSCoreHTTPBodyConsumerProperty("json"),
+    formData: _wpJSCoreHTTPBodyConsumerProperty("formData"),
   });
 
-  function _wpJSCoreRequestOptionsProperty(path, defaultValue) {
+  function optionsProperty(path, defaultValue) {
     const mapping =
       OPTIONS_PROPERTY_MAPPINGS[path] ?? DEFAULT_OPTIONS_PROPERTY_MAPPING;
     return {
@@ -122,24 +122,6 @@ const Request = (function () {
       },
       enumerable: true,
       configurable: true,
-    };
-  }
-
-  function bodyConsumer(methodName) {
-    return {
-      value: function () {
-        if (this[Symbol._wpJSCorePrivate].bodyUsed) {
-          throw _wpJSCoreFailedToExecute(
-            "Request",
-            methodName,
-            "body stream already read",
-          );
-        }
-        this[Symbol._wpJSCorePrivate].bodyUsed = true;
-        return this[Symbol._wpJSCorePrivate].body[methodName]();
-      },
-      enumerable: false,
-      configurable: false,
     };
   }
 

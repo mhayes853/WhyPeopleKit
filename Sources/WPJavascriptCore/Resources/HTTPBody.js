@@ -161,6 +161,24 @@ class _WPJSCoreFormDataBody extends _WPJSCoreHTTPBody {
   }
 }
 
+function _wpJSCoreHTTPBodyConsumerProperty(methodName) {
+  return {
+    value: function () {
+      if (this[Symbol._wpJSCorePrivate].bodyUsed) {
+        throw _wpJSCoreFailedToExecute(
+          "Request",
+          methodName,
+          "body stream already read",
+        );
+      }
+      this[Symbol._wpJSCorePrivate].bodyUsed = true;
+      return this[Symbol._wpJSCorePrivate].body[methodName]();
+    },
+    enumerable: false,
+    configurable: false,
+  };
+}
+
 function _wpJSCoreHTTPBody(rawBody, bodyKind) {
   let body;
   if (rawBody instanceof Blob) {
