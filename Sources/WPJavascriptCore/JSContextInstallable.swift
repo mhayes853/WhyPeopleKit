@@ -6,25 +6,15 @@
 
   /// A protocol for installing functionallity into a `JSContext`.
   public protocol JSContextInstallable {
-    /// A Hashable value that can be used to deduplicate installs.
-    ///
-    /// If this value is nil, then this installable can be installed multiple times.
-    var installKey: AnyHashable? { get }
-
     /// Installs the functionallity of this installable into the specified context.
     ///
     /// - Parameter context: The `JSContext` to install the functionallity to.
     func install(in context: JSContext)
   }
 
-  extension JSContextInstallable {
-    public var installKey: AnyHashable? { nil }
-  }
-
   // MARK: - Install
 
   extension JSContext {
-    private static nonisolated(unsafe) let installKeysKey = malloc(1)!
     private static nonisolated(unsafe) let installLockKey = malloc(1)!
 
     /// Installs the specified installables to this context.
@@ -35,12 +25,6 @@
       self.installLock.withLock {
         self.setObject(JSValue(privateSymbolIn: self), forPath: "Symbol._wpJSCorePrivate")
         for installable in [.wpJSCoreBundled(path: "Utils.js")] + installables {
-          if let key = installable.installKey, self.installedKeys.contains(key) {
-            continue
-          }
-          if let key = installable.installKey {
-            self.installedKeys.insert(key)
-          }
           installable.install(in: self)
         }
       }
@@ -64,15 +48,52 @@
         )
       }
     }
+  }
 
-    private var installedKeys: Set<AnyHashable> {
+  // MARK: - Deduplicate
+
+  extension JSContextInstallable where Self: Identifiable {
+    /// Ensures this installable only gets installed once per `JSContext` based on its unique
+    /// `id` property.
+    ///
+    /// The `id` property of this installable is used to detect if it has been installed on a
+    /// particular `JSContext`. The `JSContext` stores a list of all installed ids, and will not
+    /// install this installable if the context's list contains this installble's id.
+    ///
+    /// - Returns: An installable.
+    public func deduplicated() -> _DeduplicatedInstallable<Self> {
+      _DeduplicatedInstallable(base: self)
+    }
+  }
+
+  public struct _DeduplicatedInstallable<
+    Base: JSContextInstallable & Identifiable
+  >: JSContextInstallable {
+    private let base: Base
+
+    fileprivate init(base: Base) {
+      self.base = base
+    }
+
+    public func install(in context: JSContext) {
+      guard !context.installedIds.contains(self.base.id) else { return }
+      self.base.install(in: context)
+      context.installedIds.insert(self.base.id)
+    }
+  }
+
+  extension _DeduplicatedInstallable: Sendable where Base: Sendable {}
+
+  extension JSContext {
+    private static nonisolated(unsafe) let installIdsKey = malloc(1)!
+    fileprivate var installedIds: Set<AnyHashable> {
       get {
-        objc_getAssociatedObject(self, Self.installKeysKey) as? Set<AnyHashable> ?? []
+        objc_getAssociatedObject(self, Self.installIdsKey) as? Set<AnyHashable> ?? []
       }
       set {
         objc_setAssociatedObject(
           self,
-          Self.installKeysKey,
+          Self.installIdsKey,
           newValue,
           .OBJC_ASSOCIATION_RETAIN_NONATOMIC
         )
@@ -104,22 +125,30 @@
   // MARK: - Bundle JS Context Installable
 
   /// A ``JSContextInstallable`` that loads Javascript files from a bundle.
-  public struct BundleFileJSContextInstaller: JSContextInstallable {
-    fileprivate struct Values: Hashable {
-      let path: String
-      let bundle: Bundle
-    }
+  public struct BundleFileJSContextInstaller: JSContextInstallable, Sendable {
+    private let inner: _DeduplicatedInstallable<Inner>
 
-    fileprivate let values: Values
-
-    public var installKey: AnyHashable {
-      self.values
+    init(path: String, bundle: Bundle) {
+      self.inner = Inner(path: path, bundle: bundle).deduplicated()
     }
 
     public func install(in context: JSContext) {
-      guard let url = self.values.bundle.url(forResource: self.values.path, withExtension: nil)
-      else { return }
-      context.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
+      self.inner.install(in: context)
+    }
+  }
+
+  extension BundleFileJSContextInstaller {
+    private struct Inner: Identifiable, Hashable, JSContextInstallable, Sendable {
+      let path: String
+      let bundle: Bundle
+
+      var id: Self { self }
+
+      func install(in context: JSContext) {
+        guard let url = self.bundle.url(forResource: self.path, withExtension: nil)
+        else { return }
+        context.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
+      }
     }
   }
 
@@ -131,29 +160,11 @@
     ///   - bundle: The `Bundle` to load from (defaults to the main bundle).
     /// - Returns: An installable.
     public static func bundled(path bundlePath: String, in bundle: Bundle = .main) -> Self {
-      BundleFileJSContextInstaller(
-        values: BundleFileJSContextInstaller.Values(path: bundlePath, bundle: bundle)
-      )
+      BundleFileJSContextInstaller(path: bundlePath, bundle: bundle)
     }
 
     static func wpJSCoreBundled(path bundledPath: String) -> Self {
       .bundled(path: bundledPath, in: .module)
-    }
-  }
-
-  extension JSContextInstallable where Self == CombinedJSContextInstallable {
-    /// An installable that loads the contents of the specified bundle paths relative to a `Bundle`.
-    ///
-    /// - Parameters:
-    ///   - bundlePaths: An array of paths relative to a `Bundle`.
-    ///   - bundle: The `Bundle` to load from (defaults to the main bundle).
-    /// - Returns: An installable.
-    public static func bundled(paths bundlePaths: [String], in bundle: Bundle = .main) -> Self {
-      combineInstallers(bundlePaths.map { .bundled(path: $0, in: bundle) })
-    }
-
-    static func wpJSCoreBundled(paths bundledPaths: [String]) -> Self {
-      .bundled(paths: bundledPaths, in: .module)
     }
   }
 
@@ -190,28 +201,49 @@
 
   // MARK: - DOMException
 
-  extension JSContextInstallable where Self == CombinedJSContextInstallable {
-    /// An installable that installs the `DOMException` class.
-    public static var domException: Self {
-      .wpJSCoreBundled(paths: ["DOMException.js"])
+  public struct JSDOMExceptionInstaller: JSContextInstallable {
+    private let base = BundleFileJSContextInstaller.wpJSCoreBundled(path: "DOMException.js")
+
+    public func install(in context: JSContext) {
+      self.base.install(in: context)
     }
+  }
+
+  extension JSContextInstallable where Self == JSDOMExceptionInstaller {
+    /// An installable that installs the `DOMException` class.
+    public static var domException: Self { JSDOMExceptionInstaller() }
   }
 
   // MARK: - Headers
 
-  extension JSContextInstallable where Self == CombinedJSContextInstallable {
-    /// An installable that installs the `Headers` class.
-    public static var headers: Self {
-      .wpJSCoreBundled(paths: ["Headers.js"])
+  public struct JSHeadersInstaller: JSContextInstallable {
+    private let base = BundleFileJSContextInstaller.wpJSCoreBundled(path: "Headers.js")
+
+    public func install(in context: JSContext) {
+      self.base.install(in: context)
     }
+  }
+
+  extension JSContextInstallable where Self == JSHeadersInstaller {
+    /// An installable that installs the `Headers` class.
+    public static var headers: Self { JSHeadersInstaller() }
   }
 
   // MARK: - FormData
 
-  extension JSContextInstallable where Self == CombinedJSContextInstallable {
-    /// An installable that installs the `FormData` class.
-    public static var formData: Self {
-      combineInstallers([.jsFileClass, .wpJSCoreBundled(paths: ["FormData.js"])])
+  public struct JSFormDataInstaller: JSContextInstallable {
+    private let base = combineInstallers([
+      .jsFileClass,
+      .wpJSCoreBundled(path: "FormData.js")
+    ])
+
+    public func install(in context: JSContext) {
+      self.base.install(in: context)
     }
+  }
+
+  extension JSContextInstallable where Self == JSFormDataInstaller {
+    /// An installable that installs the `FormData` class.
+    public static var formData: Self { JSFormDataInstaller() }
   }
 #endif

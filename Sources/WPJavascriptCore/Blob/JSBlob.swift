@@ -206,7 +206,7 @@
 
   // MARK: - Blob Installer
 
-  public struct JSBlobInstaller: JSContextInstallable {
+  public struct JSBlobInstaller: JSContextInstallable, Sendable {
     public func install(in context: JSContext) {
       context.setObject(JSBlob.self, forPath: "Blob")
     }
