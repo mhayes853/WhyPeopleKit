@@ -23,17 +23,13 @@
 
   extension String: JSBlobStorage {
     public func utf8Bytes(startIndex: Int, endIndex: Int) -> String.UTF8View {
-      let startIndex = self.index(self.startIndex, offsetBy: startIndex)
-      let endIndex = self.index(self.startIndex, offsetBy: endIndex)
-      return String(Substring(self.utf8[startIndex..<endIndex])).utf8
+      self.utf8.utf8Bytes(startIndex: startIndex, endIndex: endIndex)
     }
   }
 
   extension Substring: JSBlobStorage {
     public func utf8Bytes(startIndex: Int, endIndex: Int) -> String.UTF8View {
-      let startIndex = self.index(self.startIndex, offsetBy: startIndex)
-      let endIndex = self.index(self.startIndex, offsetBy: endIndex)
-      return String(Substring(self.utf8[startIndex..<endIndex])).utf8
+      self.utf8.utf8Bytes(startIndex: startIndex, endIndex: endIndex)
     }
   }
 
@@ -45,13 +41,11 @@
     public var utf8SizeInBytes: Int { self.count }
 
     public func utf8Bytes(startIndex: Int, endIndex: Int) -> Self {
-      let startIndex = self.index(self.startIndex, offsetBy: startIndex)
-      let endIndex = self.index(self.startIndex, offsetBy: endIndex)
-      return String(Substring(self[startIndex..<endIndex])).utf8
+      self[self.indexRange].utf8Bytes(startIndex: startIndex, endIndex: endIndex)
     }
   }
 
-  extension String.UTF8View.SubSequence: JSBlobStorage {
+  extension Substring.UTF8View: JSBlobStorage {
     public var utf8SizeInBytes: Int { self.count }
 
     public func utf8Bytes(startIndex: Int, endIndex: Int) -> String.UTF8View {
