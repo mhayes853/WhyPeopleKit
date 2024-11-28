@@ -10,8 +10,7 @@
         Task { try await self.sleep(controller: transfer.value, time: time) }
       }
       context.setObject(timeout, forPath: "_wpJSCoreAbortSignalTimeout")
-      let url = Bundle.module.assumingURL(forResource: "AbortController", withExtension: "js")
-      try context.install([.domException, .file(at: url)])
+      try context.install([.domException, .wpJSCoreBundled(path: "AbortController.js")])
     }
 
     private func sleep(controller: JSValue, time: TimeInterval) async throws {
