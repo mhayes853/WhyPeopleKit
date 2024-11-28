@@ -7,8 +7,8 @@
   struct JSFormDataTests {
     private let context = JSContext()!
 
-    init() {
-      self.context.install([.formData, .consoleLogging])
+    init() throws {
+      try self.context.install([.formData, .consoleLogging])
       self.context.exceptionHandler = { _, value in print(value) }
     }
 

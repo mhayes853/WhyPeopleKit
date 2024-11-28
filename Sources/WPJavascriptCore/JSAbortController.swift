@@ -4,14 +4,14 @@
   public struct JSAbortControllerInstaller: JSContextInstallable, Sendable {
     let sleep: @Sendable (TimeInterval) async throws -> Void
 
-    public func install(in context: JSContext) {
+    public func install(in context: JSContext) throws {
       let timeout: @convention(block) (JSValue, TimeInterval) -> Void = { controller, time in
         let transfer = UnsafeJSValueTransfer(value: controller)
         Task { try await self.sleep(controller: transfer.value, time: time) }
       }
       context.setObject(timeout, forPath: "_wpJSCoreAbortSignalTimeout")
       let url = Bundle.module.assumingURL(forResource: "AbortController", withExtension: "js")
-      context.install([.domException, .file(at: url)])
+      try context.install([.domException, .file(at: url)])
     }
 
     private func sleep(controller: JSValue, time: TimeInterval) async throws {

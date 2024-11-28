@@ -8,8 +8,8 @@
   struct JSRequestTests {
     private let context = JSContext()!
 
-    init() {
-      self.context.install([.consoleLogging, .request])
+    init() throws {
+      try self.context.install([.consoleLogging, .request])
       self.context.exceptionHandler = { _, value in print(value) }
     }
 

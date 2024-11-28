@@ -4,7 +4,7 @@
   import CustomDump
 
   // Available: DataView, TypedArray, ArrayBuffer, String
-  // TODO: Request, Response, fetch, ReadableStream
+  // TODO: Response, fetch, ReadableStream
   // Done: AbortController, AbortSignal, Headers, Blob, File, FormData
 
   @Suite("JSFetch tests")
@@ -15,8 +15,8 @@
     struct JSHeadersTests {
       private let context = JSContext()!
 
-      init() {
-        self.context.install([.fetch, .consoleLogging])
+      init() throws {
+        try self.context.install([.fetch, .consoleLogging])
         self.context.exceptionHandler = { _, value in print(value) }
       }
 

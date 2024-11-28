@@ -9,8 +9,8 @@
       .wpJSCoreBundled(path: "Request.js")
     ])
 
-    public func install(in context: JSContext) {
-      self.base.install(in: context)
+    public func install(in context: JSContext) throws {
+      try self.base.install(in: context)
     }
   }
 

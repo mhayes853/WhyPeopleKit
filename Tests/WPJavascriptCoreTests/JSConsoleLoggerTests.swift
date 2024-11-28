@@ -9,8 +9,8 @@
     private let context = JSContext()!
     private let logger = TestLogger()
 
-    init() {
-      self.context.install([self.logger])
+    init() throws {
+      try self.context.install([self.logger])
     }
 
     @Test("Basic String Log")

@@ -31,8 +31,8 @@
     /// Installs the `fetch` function in the specified context.
     ///
     /// - Parameter context: A `JSContext`.
-    public func install(in context: JSContext) {
-      context.install([
+    public func install(in context: JSContext) throws {
+      try context.install([
         .jsFileClass,
         .abortController,
         .headers,

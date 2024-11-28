@@ -9,7 +9,7 @@
     /// Installs the functionallity of this installable into the specified context.
     ///
     /// - Parameter context: The `JSContext` to install the functionallity to.
-    func install(in context: JSContext)
+    func install(in context: JSContext) throws
   }
 
   // MARK: - Install
@@ -20,12 +20,11 @@
     /// Installs the specified installables to this context.
     ///
     /// - Parameter installables: A list of ``JSContextInstallable``s.
-    @_disfavoredOverload
-    public func install(_ installables: [any JSContextInstallable]) {
-      self.installLock.withLock {
+    public func install(_ installables: [any JSContextInstallable]) throws {
+      try self.installLock.withLock {
         self.setObject(JSValue(privateSymbolIn: self), forPath: "Symbol._wpJSCorePrivate")
         for installable in [.wpJSCoreBundled(path: "Utils.js")] + installables {
-          installable.install(in: self)
+          try installable.install(in: self)
         }
       }
     }
@@ -75,9 +74,9 @@
       self.base = base
     }
 
-    public func install(in context: JSContext) {
+    public func install(in context: JSContext) throws {
       guard !context.installedIds.contains(self.base.id) else { return }
-      self.base.install(in: context)
+      try self.base.install(in: context)
       context.installedIds.insert(self.base.id)
     }
   }
@@ -117,8 +116,8 @@
   public struct CombinedJSContextInstallable: JSContextInstallable {
     let installers: [any JSContextInstallable]
 
-    public func install(in context: JSContext) {
-      context.install(self.installers)
+    public func install(in context: JSContext) throws {
+      try context.install(self.installers)
     }
   }
 
@@ -132,8 +131,8 @@
       self.inner = Inner(path: path, bundle: bundle).deduplicated()
     }
 
-    public func install(in context: JSContext) {
-      self.inner.install(in: context)
+    public func install(in context: JSContext) throws {
+      try self.inner.install(in: context)
     }
   }
 
@@ -144,10 +143,11 @@
 
       var id: Self { self }
 
-      func install(in context: JSContext) {
-        guard let url = self.bundle.url(forResource: self.path, withExtension: nil)
-        else { return }
-        context.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
+      func install(in context: JSContext) throws {
+        guard let url = self.bundle.url(forResource: self.path, withExtension: nil) else {
+          throw URLError(.fileDoesNotExist)
+        }
+        context.evaluateScript(try String(contentsOf: url), withSourceURL: url)
       }
     }
   }
@@ -174,9 +174,9 @@
   public struct FilesJSContextInstallable: JSContextInstallable {
     let urls: [URL]
 
-    public func install(in context: JSContext) {
+    public func install(in context: JSContext) throws {
       for url in urls {
-        context.evaluateScript(try! String(contentsOf: url), withSourceURL: url)
+        context.evaluateScript(try String(contentsOf: url), withSourceURL: url)
       }
     }
   }
@@ -204,8 +204,8 @@
   public struct JSDOMExceptionInstaller: JSContextInstallable {
     private let base = BundleFileJSContextInstaller.wpJSCoreBundled(path: "DOMException.js")
 
-    public func install(in context: JSContext) {
-      self.base.install(in: context)
+    public func install(in context: JSContext) throws {
+      try self.base.install(in: context)
     }
   }
 
@@ -219,8 +219,8 @@
   public struct JSHeadersInstaller: JSContextInstallable {
     private let base = BundleFileJSContextInstaller.wpJSCoreBundled(path: "Headers.js")
 
-    public func install(in context: JSContext) {
-      self.base.install(in: context)
+    public func install(in context: JSContext) throws {
+      try self.base.install(in: context)
     }
   }
 
@@ -237,8 +237,8 @@
       .wpJSCoreBundled(path: "FormData.js")
     ])
 
-    public func install(in context: JSContext) {
-      self.base.install(in: context)
+    public func install(in context: JSContext) throws {
+      try self.base.install(in: context)
     }
   }
 

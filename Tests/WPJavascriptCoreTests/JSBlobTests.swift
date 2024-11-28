@@ -7,8 +7,8 @@
   struct JSBlobTests {
     private let context = JSContext()!
 
-    init() {
-      self.context.install([.fetch, .consoleLogging])
+    init() throws {
+      try self.context.install([.fetch, .consoleLogging])
       self.context.exceptionHandler = { _, value in print(value) }
     }
 

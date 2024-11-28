@@ -7,8 +7,8 @@
   struct JSFileTests {
     private let context = JSContext()!
 
-    init() {
-      self.context.install([.consoleLogging, .fetch])
+    init() throws {
+      try self.context.install([.consoleLogging, .fetch])
       self.context.exceptionHandler = { _, value in print(value) }
     }
 

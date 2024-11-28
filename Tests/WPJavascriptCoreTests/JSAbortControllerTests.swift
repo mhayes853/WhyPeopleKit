@@ -9,9 +9,9 @@
     private let context = JSContext()!
     private let testClock = TestClock()
 
-    init() {
+    init() throws {
       let clock = self.testClock
-      self.context.install([
+      try self.context.install([
         .abortController { try await clock.sleep(for: .seconds($0)) },
         .consoleLogging
       ])
@@ -233,10 +233,10 @@
     }
 
     @Test("Does not Log Internal Class Variables")
-    func doesNotLogVars() {
+    func doesNotLogVars() throws {
       let logger = TestLogger()
       let context = JSContext()!
-      context.install([.abortController, logger])
+      try context.install([.abortController, logger])
 
       context.evaluateScript(
         """

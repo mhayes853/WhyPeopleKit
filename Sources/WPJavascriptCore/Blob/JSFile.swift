@@ -189,8 +189,8 @@
   // MARK: - Installer
 
   public struct JSFileInstaller: JSContextInstallable, Sendable {
-    public func install(in context: JSContext) {
-      context.install([.blob])
+    public func install(in context: JSContext) throws {
+      try context.install([.blob])
       context.setObject(JSFile.self, forPath: "File")
     }
   }
