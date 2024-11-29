@@ -6,6 +6,7 @@
     private let base = combineInstallers([
       .formData, .headers, .abortController,
       .wpJSCoreBundled(path: "HTTPBody.js"),
+      .wpJSCoreBundled(path: "HTTPOptions.js"),
       .wpJSCoreBundled(path: "Request.js")
     ])
 

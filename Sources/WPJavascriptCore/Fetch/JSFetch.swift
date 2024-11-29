@@ -37,6 +37,7 @@
         .abortController,
         .headers,
         .request,
+        .response,
         .wpJSCoreBundled(path: "fetch.js")
       ])
       let fetch: @convention(block) (JSValue) -> JSValue = { _ in

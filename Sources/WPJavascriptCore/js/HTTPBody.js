@@ -1,5 +1,7 @@
+const _WPJSCoreBodyKind = { Request: "Request", Response: "Response" };
+
 class _WPJSCoreHTTPBody {
-  bodyKind = "Request";
+  bodyKind = _WPJSCoreBodyKind.Request;
 
   get contentTypeHeader() {
     return null;
@@ -114,7 +116,7 @@ class _WPJSCoreArrayBufferBody extends _WPJSCoreHTTPBody {
 
   constructor(buffer) {
     super();
-    this.#buffer = buffer;
+    this.#buffer = buffer.transfer();
   }
 
   async text() {
@@ -122,7 +124,7 @@ class _WPJSCoreArrayBufferBody extends _WPJSCoreHTTPBody {
   }
 
   async bytes() {
-    return new Uint8Array(this.#buffer.transfer());
+    return new Uint8Array(this.#buffer);
   }
 
   async blob() {
@@ -161,12 +163,12 @@ class _WPJSCoreFormDataBody extends _WPJSCoreHTTPBody {
   }
 }
 
-function _wpJSCoreHTTPBodyConsumerProperty(methodName) {
+function _wpJSCoreHTTPBodyConsumerProperty(methodName, bodyKind) {
   return {
     value: function () {
       if (this[Symbol._wpJSCorePrivate].bodyUsed) {
         throw _wpJSCoreFailedToExecute(
-          "Request",
+          bodyKind,
           methodName,
           "body stream already read",
         );
@@ -177,6 +179,24 @@ function _wpJSCoreHTTPBodyConsumerProperty(methodName) {
     enumerable: false,
     configurable: false,
   };
+}
+
+function _wpJSCoreHTTPHeaders(headers, body, bodyKind) {
+  try {
+    const newHeaders = new Headers(headers);
+    if (newHeaders.has("Content-Type") || !body.contentTypeHeader) {
+      return newHeaders;
+    }
+    newHeaders.set("Content-Type", body.contentTypeHeader);
+    return newHeaders;
+  } catch (e) {
+    throw new TypeError(
+      e.message.replace(
+        "Failed to construct 'Headers':",
+        `Failed to construct '${bodyKind}': Failed to read the 'headers' property from '${bodyKind}Init':`,
+      ),
+    );
+  }
 }
 
 function _wpJSCoreHTTPBody(rawBody, bodyKind) {
