@@ -1,4 +1,10 @@
 function Response(responseBody, options) {
+  if (options !== undefined && typeof options !== "object") {
+    throw _wpJSCoreFailedToConstruct(
+      "Response",
+      "The provided value is not of type 'ResponseInit'.",
+    );
+  }
   const body = _wpJSCoreHTTPBody(responseBody, _WPJSCoreBodyKind.Response);
   this[Symbol._wpJSCorePrivate] = {
     body,
@@ -6,11 +12,7 @@ function Response(responseBody, options) {
     bodyUsed: false,
     options: {
       ...options,
-      headers: _wpJSCoreHTTPHeaders(
-        options?.headers,
-        body,
-        _WPJSCoreBodyKind.Response,
-      ),
+      headers: _wpJSCoreHTTPHeaders(options?.headers, body),
     },
   };
 }
@@ -53,7 +55,15 @@ Response.json = function (jsonSerializeable, options) {
     [jsonSerializeable, options],
     1,
   );
-  return new Response(JSON.stringify(jsonSerializeable), options);
+  const rawBody = JSON.stringify(jsonSerializeable);
+  const headers = _wpJSCoreHTTPHeaders(
+    options?.headers,
+    _WPJSCoreNullishBody.Response,
+  );
+  if (!headers.has("content-type")) {
+    headers.set("content-type", "application/json");
+  }
+  return new Response(rawBody, { ...options, headers });
 };
 
 Object.defineProperties(Response.prototype, {

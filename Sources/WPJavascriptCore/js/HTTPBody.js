@@ -41,8 +41,14 @@ class _WPJSCoreHTTPBody {
 }
 
 class _WPJSCoreNullishBody extends _WPJSCoreHTTPBody {
-  static Request = new _WPJSCoreNullishBody();
-  static Response = new _WPJSCoreNullishBody();
+  static Request = _WPJSCoreNullishBody.ofKind(_WPJSCoreBodyKind.Request);
+  static Response = _WPJSCoreNullishBody.ofKind(_WPJSCoreBodyKind.Response);
+
+  static ofKind(bodyKind) {
+    const body = new _WPJSCoreNullishBody();
+    body.bodyKind = bodyKind;
+    return body;
+  }
 
   async text() {
     return "";
@@ -181,7 +187,7 @@ function _wpJSCoreHTTPBodyConsumerProperty(methodName, bodyKind) {
   };
 }
 
-function _wpJSCoreHTTPHeaders(headers, body, bodyKind) {
+function _wpJSCoreHTTPHeaders(headers, body) {
   try {
     const newHeaders = new Headers(headers);
     if (newHeaders.has("Content-Type") || !body.contentTypeHeader) {
@@ -193,7 +199,7 @@ function _wpJSCoreHTTPHeaders(headers, body, bodyKind) {
     throw new TypeError(
       e.message.replace(
         "Failed to construct 'Headers':",
-        `Failed to construct '${bodyKind}': Failed to read the 'headers' property from '${bodyKind}Init':`,
+        `Failed to construct '${body.bodyKind}': Failed to read the 'headers' property from '${body.bodyKind}Init':`,
       ),
     );
   }

@@ -7,11 +7,15 @@
 
   /// A data type that implements Promise functionallity over a `JSValue`.
   public struct JSPromise: Sendable {
+    private let transfer: UnsafeJSValueTransfer
+
     /// The underlying `JSValue` of this promise.
-    public let value: JSValue
+    public var value: JSValue {
+      self.transfer.value
+    }
 
     private init(_ value: JSValue) {
-      self.value = value
+      self.transfer = UnsafeJSValueTransfer(value: value)
     }
   }
 
@@ -28,7 +32,7 @@
         return nil
       }
       guard value.isInstance(of: promiseConstructor) else { return nil }
-      self.value = value
+      self.transfer = UnsafeJSValueTransfer(value: value)
     }
   }
 
@@ -178,7 +182,7 @@
     public init(in context: JSContext, perform fn: (Continuation) -> Void) {
       let continuation = Continuation(context: context)
       fn(continuation)
-      self.value = continuation.value
+      self.transfer = UnsafeJSValueTransfer(value: continuation.value)
     }
   }
 

@@ -13,6 +13,18 @@
       self.context.exceptionHandler = { _, value in print(value) }
     }
 
+    @Test("Construct With Non-Object RequestInit")
+    func nonObjectRequestInit() {
+      expectErrorMessage(
+        js: """
+          new Response("foo", "")
+          """,
+        message:
+          "Failed to construct 'Response': The provided value is not of type 'ResponseInit'.",
+        in: self.context
+      )
+    }
+
     @Test(
       "Valid Headers",
       arguments: [
@@ -626,6 +638,30 @@
         {"a":"Hello"}
         """
       )
+    }
+
+    @Test("JSON Response Uses application/json as the Content Type Header")
+    func applicationJSON() async throws {
+      let value = self.context
+        .evaluateScript(
+          """
+          Response.json({ a: "Hello" }).headers.get("content-type")
+          """
+        )
+      expectNoDifference(value?.toString(), "application/json")
+    }
+
+    @Test("JSON Response Does Not Override Predefined Content Type Header")
+    func jsonDoesNotOverrideHeader() async throws {
+      let value = self.context
+        .evaluateScript(
+          """
+          Response.json({ a: "Hello" }, { headers: { "Content-Type": "application/pdf" } })
+            .headers
+            .get("content-type")
+          """
+        )
+      expectNoDifference(value?.toString(), "application/pdf")
     }
   }
 #endif

@@ -38,11 +38,7 @@ function Request(urlOrRequest, options) {
     body,
     options: {
       ...requestOptions,
-      headers: _wpJSCoreHTTPHeaders(
-        requestOptions?.headers,
-        body,
-        _WPJSCoreBodyKind.Request,
-      ),
+      headers: _wpJSCoreHTTPHeaders(requestOptions?.headers, body),
     },
   };
 }
