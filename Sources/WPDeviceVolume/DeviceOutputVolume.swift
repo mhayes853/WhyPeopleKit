@@ -1,3 +1,5 @@
+import WPFoundation
+
 // MARK: - DeviceOutputVolumeStatus
 
 /// A status of a device's output volume.
@@ -73,13 +75,13 @@ extension DeviceOutputVolume {
 /// that closure to cleanup any resources acquired by the subscription. The cancellation closure
 /// is automatically invoked when the subscription is deallocated.
 public final class DeviceOutputVolumeSubscription: Sendable {
-  private let onCancel: @Sendable () -> Void
+  private let onCancel: Lock<(@Sendable () -> Void)?>
 
   /// Initializes a subscription with a closure that runs when the subscription is cancelled.
   ///
   /// - Parameter onCancel: A closure to cleanup any resources used by the subscription.
   public init(onCancel: @Sendable @escaping () -> Void) {
-    self.onCancel = onCancel
+    self.onCancel = Lock(onCancel)
   }
 
   deinit {
@@ -88,6 +90,9 @@ public final class DeviceOutputVolumeSubscription: Sendable {
 
   /// Cancels this subscription.
   public func cancel() {
-    self.onCancel()
+    self.onCancel.withLock { cancel in
+      defer { cancel = nil }
+      cancel?()
+    }
   }
 }
