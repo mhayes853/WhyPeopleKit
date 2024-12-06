@@ -183,21 +183,8 @@
           return
         }
         let storage = JSFetchResponseBlobStorage(contentLength: response.expectedContentLength)
-        var headers = response.allHeaderFields
+        let (cookies, headers) = response.cookieFilteredHeaders
         if dataTask.currentRequest?.httpShouldHandleCookies == true {
-          var cookies = [HTTPCookie]()
-          for (key, value) in response.allHeaderFields {
-            guard let strKey = key.base as? String, let value = value as? String else { continue }
-            guard
-              let cookie =
-                HTTPCookie.cookies(withResponseHeaderFields: [strKey: value], for: response.url!)
-                .first
-            else { continue }
-            cookies.append(cookie)
-            if cookie.isHTTPOnly {
-              headers.removeValue(forKey: key)
-            }
-          }
           session.configuration.httpCookieStorage?
             .setCookies(cookies, for: response.url, mainDocumentURL: response.url)
         }
@@ -206,7 +193,6 @@
             response: response,
             headers: headers,
             body: storage,
-            mimeType: response.mimeType.map { MIMEType(rawValue: $0) } ?? .empty,
             didRedirect: state.didRedirect,
             in: continuation.context
           )
@@ -339,6 +325,30 @@
     }
   }
 
+  // MARK: - Cookie Filtering
+
+  extension HTTPURLResponse {
+    fileprivate var cookieFilteredHeaders: ([HTTPCookie], [AnyHashable: Any]) {
+      var headers = self.allHeaderFields
+      var cookies = [HTTPCookie]()
+      for (key, value) in self.allHeaderFields {
+        guard let strKey = key.base as? String, let value = value as? String,
+          let url = self.url
+        else { continue }
+        guard
+          let cookie =
+            HTTPCookie.cookies(withResponseHeaderFields: [strKey: value], for: url)
+            .first
+        else { continue }
+        cookies.append(cookie)
+        if cookie.isHTTPOnly {
+          headers.removeValue(forKey: key)
+        }
+      }
+      return (cookies, headers)
+    }
+  }
+
   // MARK: - Response
 
   extension JSValue {
@@ -346,7 +356,6 @@
       response: HTTPURLResponse,
       headers: [AnyHashable: Any],
       body: some JSBlobStorage,
-      mimeType: MIMEType,
       didRedirect: Bool,
       in context: JSContext
     ) -> JSValue? {
@@ -355,7 +364,10 @@
       responseInit.setValue(response.localizedStatusText, forPath: "statusText")
       responseInit.setValue(headers, forPath: "headers")
       let response = context.objectForKeyedSubscript("Response")
-        .construct(withArguments: [JSBlob(storage: body, type: mimeType), responseInit])
+        .construct(withArguments: [
+          JSBlob(storage: body, type: response.mimeType.map { MIMEType(rawValue: $0) } ?? .empty),
+          responseInit
+        ])
       let privateSymbol = context.evaluateScript("Symbol._wpJSCorePrivate")
       response?.objectForKeyedSubscript(privateSymbol)
         .setValue(didRedirect, forPath: "options.redirected")
