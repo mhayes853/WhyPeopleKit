@@ -449,8 +449,8 @@
     @Test("Request Response Headers")
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func responseHeaders() async throws {
-      try await withTestURLSessionHandler { _ in
-        return (200, .data(Data("test".utf8)))
+      try await withTestURLSessionHandlerAndHeaders { _ in
+        return (200, .data(Data("test".utf8)), ["Foo": "bar"])
       } perform: { session in
         try self.context.install([.fetch(session: session)])
         let promise = self.context
@@ -463,7 +463,7 @@
         let value = try await promise?.resolvedValue
         expectHeaders(
           from: value,
-          toEqual: [["content-length", "4"], ["content-type", "text/plain"]]
+          toEqual: [["foo", "bar"], ["content-length", "4"], ["content-type", "text/plain"]]
         )
       }
     }
@@ -571,6 +571,113 @@
       let value = try await promise?.resolvedValue
       expectNoDifference(value?.atIndex(0).objectForKeyedSubscript("status").toInt32(), 200)
       expectNoDifference(value?.atIndex(1).objectForKeyedSubscript("status").toInt32(), 200)
+    }
+
+    @Test("Includes Non-HTTP Only Cookie In Response Headers")
+    func includesCookieInResponseHeaders() async throws {
+      let cookie = "key=value; path=/; expires=Wed, 8 Sep 2027 07:28:00 GMT; domain=www.example.com"
+      try await withTestURLSessionHandlerAndHeaders { _ in
+        (200, .data(Data("test".utf8)), ["Set-Cookie": cookie])
+      } perform: { session in
+        try self.context.install([.fetch(session: session)])
+        let promise = self.context
+          .evaluateScript(
+            """
+            fetch("https://www.example.com", { credentials: "include" })
+              .then((r) => r.headers.getSetCookie())
+            """
+          )
+          .toPromise()
+        let value = try await promise?.resolvedValue
+        expectNoDifference(value?.toArray().map { $0 as? String }, [cookie])
+      }
+    }
+
+    @Test("Excludes HTTP Only Cookie In Response Headers")
+    func excludesCookieInResponseHeaders() async throws {
+      let cookie =
+        "key=value; path=/; expires=Wed, 8 Sep 2027 07:28:00 GMT; domain=www.example.com; httponly"
+      try await withTestURLSessionHandlerAndHeaders { _ in
+        (200, .data(Data("test".utf8)), ["Set-Cookie": cookie])
+      } perform: { session in
+        try self.context.install([.fetch(session: session)])
+        let promise = self.context
+          .evaluateScript(
+            """
+            fetch("https://www.example.com", { credentials: "include" })
+              .then((r) => r.headers.getSetCookie())
+            """
+          )
+          .toPromise()
+        let value = try await promise?.resolvedValue
+        expectNoDifference(value?.toArray().map { $0 as? String }, [])
+      }
+    }
+
+    @Test("Sends Cookies Between Requests When Credentials is Include")
+    func sendsCookiesBetweenRequests() async throws {
+      try await confirmation { confirm in
+        try await withTestURLSessionHandlerAndHeaders { request in
+          let cookies = request.allHTTPHeaderFields?["Cookie"]
+          if cookies == "key=value" {
+            confirm()
+          }
+          return (
+            200, .data(Data("test".utf8)),
+            [
+              "Set-Cookie":
+                "key=value; path=/; expires=Wed, 8 Sep 2027 07:28:00 GMT; domain=www.example.com"
+            ]
+          )
+        } perform: { session in
+          try self.context.install([.fetch(session: session)])
+          let promise = self.context
+            .evaluateScript(
+              """
+              const request = async () => {
+                await fetch("https://www.example.com", { credentials: "include" })
+                await fetch("https://www.example.com", { credentials: "include" })
+              }
+              request()
+              """
+            )
+            .toPromise()
+          _ = try await promise?.resolvedValue
+        }
+      }
+    }
+
+    @Test("Does Not Send Cookies Between Requests When Credentials is None")
+    func doesNotSendCookiesForNoCredentials() async throws {
+      try await confirmation(expectedCount: 0) { confirm in
+        try await withTestURLSessionHandlerAndHeaders { request in
+          let cookies = request.allHTTPHeaderFields?["Cookie"]
+          if cookies == "key=value" {
+            confirm()
+          }
+          return (
+            200, .data(Data("test".utf8)),
+            [
+              "Set-Cookie":
+                "key=value; path=/; expires=Wed, 8 Sep 2027 07:28:00 GMT; domain=www.google.com"
+            ]
+          )
+        } perform: { session in
+          try self.context.install([.fetch(session: session)])
+          let promise = self.context
+            .evaluateScript(
+              """
+              const request = async () => {
+                await fetch("https://www.google.com", { credentials: "include" })
+                await fetch("https://www.google.com", { credentials: "none" })
+              }
+              request()
+              """
+            )
+            .toPromise()
+          _ = try await promise?.resolvedValue
+        }
+      }
     }
   }
 

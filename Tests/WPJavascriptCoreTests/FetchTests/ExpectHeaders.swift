@@ -9,6 +9,6 @@
       entries.append([value.atIndex(0).toString(), value.atIndex(1).toString()])
     }
     value?.invokeMethod("forEach", withArguments: [unsafeBitCast(forEach, to: JSValue.self)])
-    expectNoDifference(entries, headers)
+    expectNoDifference(Set(entries), Set(headers))
   }
 #endif

@@ -28,20 +28,35 @@ func withTestURLSessionHandler<T: Sendable>(
   handler: @Sendable @escaping (URLRequest) async throws -> (StatusCode, ResponseBody),
   perform task: @Sendable @escaping (sending URLSession) async throws -> T
 ) async throws -> T {
+  try await withTestURLSessionHandlerAndHeaders { request in
+    let (status, body) = try await handler(request)
+    return (status, body, [:])
+  } perform: {
+    try await task($0)
+  }
+}
+
+func withTestURLSessionHandlerAndHeaders<T: Sendable>(
+  handler: @Sendable @escaping (URLRequest) async throws -> (StatusCode, ResponseBody, [String: String]),
+  perform task: @Sendable @escaping (sending URLSession) async throws -> T
+) async throws -> T {
   let configuration = URLSessionConfiguration.ephemeral
   configuration.protocolClasses = [TestURLProtocol.self]
+  let session = URLSession(configuration: configuration)
   return try await TestURLSessionHandler.shared.withHandler { request in
-    let (status, value) = try await handler(request)
+    let (status, value, _headers) = try await handler(request)
+    var headers = _headers
     let data = try value.data()
+    headers["content-length"] = "\(data.count)"
     let response = HTTPURLResponse(
       url: request.url!,
       statusCode: status,
       httpVersion: nil,
-      headerFields: ["content-length": "\(data.count)"]
+      headerFields: headers
     )!
     return (response, data)
   } perform: {
-    try await task(URLSession(configuration: configuration))
+    try await task(session)
   }
 }
 

@@ -6,7 +6,6 @@
 
   public struct JSFetchInstaller: Sendable, JSContextInstallable {
     let session: URLSession
-    let cookieStorage: HTTPCookieStorage
 
     public func install(in context: JSContext) throws {
       try context.install([
@@ -36,7 +35,11 @@
         return nil
       }
       return JSFetchTask(
-        request: URLRequest(url: url, request: request),
+        request: URLRequest(
+          url: url,
+          request: request,
+          cookieStorage: self.session.configuration.httpCookieStorage
+        ),
         session: self.session
       )
     }
@@ -50,15 +53,14 @@
     ///
     /// - Parameters:
     ///   - sessionConfiguration: The configuration to use for the underlying `URLSession` that makes HTTP requests.
-    ///   - cookieStorage: The underlying `HTTPCookieStorage` to use when making HTTP requests.
     /// - Returns: An installable.
-    public static func fetch(
-      sessionConfiguration: URLSessionConfiguration,
-      cookieStorage: HTTPCookieStorage = .shared
-    ) -> Self {
+    public static func fetch(sessionConfiguration: URLSessionConfiguration) -> Self {
       JSFetchInstaller(
-        session: .jsFetch(configuration: sessionConfiguration),
-        cookieStorage: cookieStorage
+        session: URLSession(
+          configuration: sessionConfiguration,
+          delegate: JSURLSessionDataDelegate(isShared: true),
+          delegateQueue: nil
+        )
       )
     }
 
@@ -66,24 +68,10 @@
     ///
     /// - Parameters:
     ///   - session: The underlying `URLSession` to use to make HTTP requests.
-    ///   - cookieStorage: The underlying `HTTPCookieStorage` to use when making HTTP requests.
     /// - Returns: An installable.
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
-    public static func fetch(
-      session: URLSession,
-      cookieStorage: HTTPCookieStorage = .shared
-    ) -> Self {
-      JSFetchInstaller(session: session, cookieStorage: cookieStorage)
-    }
-  }
-
-  extension URLSession {
-    fileprivate static func jsFetch(configuration: URLSessionConfiguration) -> URLSession {
-      URLSession(
-        configuration: configuration,
-        delegate: JSURLSessionDataDelegate(isShared: true),
-        delegateQueue: nil
-      )
+    public static func fetch(session: URLSession) -> Self {
+      JSFetchInstaller(session: session)
     }
   }
 
@@ -195,9 +183,28 @@
           return
         }
         let storage = JSFetchResponseBlobStorage(contentLength: response.expectedContentLength)
+        var headers = response.allHeaderFields
+        if dataTask.currentRequest?.httpShouldHandleCookies == true {
+          var cookies = [HTTPCookie]()
+          for (key, value) in response.allHeaderFields {
+            guard let strKey = key.base as? String, let value = value as? String else { continue }
+            guard
+              let cookie =
+                HTTPCookie.cookies(withResponseHeaderFields: [strKey: value], for: response.url!)
+                .first
+            else { continue }
+            cookies.append(cookie)
+            if cookie.isHTTPOnly {
+              headers.removeValue(forKey: key)
+            }
+          }
+          session.configuration.httpCookieStorage?
+            .setCookies(cookies, for: response.url, mainDocumentURL: response.url)
+        }
         continuation.resume(
           resolving: JSValue.response(
             response: response,
+            headers: headers,
             body: storage,
             mimeType: response.mimeType.map { MIMEType(rawValue: $0) } ?? .empty,
             didRedirect: state.didRedirect,
@@ -299,12 +306,17 @@
   // MARK: - Request
 
   extension URLRequest {
-    fileprivate init(url: URL, request: JSValue) {
+    fileprivate init(url: URL, request: JSValue, cookieStorage: HTTPCookieStorage?) {
       self.init(url: url)
       var requestCopy = self
+      requestCopy.httpShouldHandleCookies = request.objectForKeyedSubscript("includeCookies")
+        .toBool()
       requestCopy.httpMethod = request.objectForKeyedSubscript("method").toString()
       requestCopy.httpBody = (request.objectForKeyedSubscript("body").toArray() as? [UInt8])
         .map { Data($0) }
+      if let cookies = cookieStorage?.cookies(for: url), requestCopy.httpShouldHandleCookies {
+        requestCopy.allHTTPHeaderFields = HTTPCookie.requestHeaderFields(with: cookies)
+      }
       let onEach: @convention(block) (JSValue) -> Void = {
         requestCopy.addValue($0.atIndex(1).toString(), forHTTPHeaderField: $0.atIndex(0).toString())
       }
@@ -332,6 +344,7 @@
   extension JSValue {
     fileprivate static func response(
       response: HTTPURLResponse,
+      headers: [AnyHashable: Any],
       body: some JSBlobStorage,
       mimeType: MIMEType,
       didRedirect: Bool,
@@ -340,7 +353,7 @@
       let responseInit = JSValue(newObjectIn: context)!
       responseInit.setValue(response.statusCode, forPath: "status")
       responseInit.setValue(response.localizedStatusText, forPath: "statusText")
-      responseInit.setValue(response.allHeaderFields, forPath: "headers")
+      responseInit.setValue(headers, forPath: "headers")
       let response = context.objectForKeyedSubscript("Response")
         .construct(withArguments: [JSBlob(storage: body, type: mimeType), responseInit])
       let privateSymbol = context.evaluateScript("Symbol._wpJSCorePrivate")

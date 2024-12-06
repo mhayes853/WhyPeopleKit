@@ -61,7 +61,7 @@ Object.defineProperties(Request.prototype, {
   method: _wpJSCoreHTTPOptionsProperty("method", "GET"),
   headers: _wpJSCoreHTTPOptionsProperty("headers", new Headers()),
   signal: _wpJSCoreHTTPOptionsProperty("signal"),
-  credentials: _wpJSCoreHTTPOptionsProperty("credentials", "same-origin"),
+  credentials: _wpJSCoreHTTPOptionsProperty("credentials", "include"),
   cache: _wpJSCoreHTTPOptionsProperty("cache", "default"),
   integrity: _wpJSCoreHTTPOptionsProperty("integrity", ""),
   keepalive: _wpJSCoreHTTPOptionsProperty("keepalive", false),

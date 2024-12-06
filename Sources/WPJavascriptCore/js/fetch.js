@@ -10,6 +10,7 @@ async function fetch(urlOrRequest, requestInit) {
     url: request.url,
     method: request.method,
     headers: request.headers,
+    includeCookies: request.credentials === "include",
     body: await request.bytes(),
   });
 
