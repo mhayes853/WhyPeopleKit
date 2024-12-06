@@ -44,7 +44,23 @@
 
   extension JSContextInstallable where Self == JSFetchInstaller {
     /// An installable that installs a fetch implementation.
-    public static var fetch: Self { JSFetchInstaller(session: .shared, cookieStorage: .shared) }
+    public static var fetch: Self { .fetch(sessionConfiguration: .default) }
+
+    /// An installable that installs a fetch implementation.
+    ///
+    /// - Parameters:
+    ///   - sessionConfiguration: The configuration to use for the underlying `URLSession` that makes HTTP requests.
+    ///   - cookieStorage: The underlying `HTTPCookieStorage` to use when making HTTP requests.
+    /// - Returns: An installable.
+    public static func fetch(
+      sessionConfiguration: URLSessionConfiguration,
+      cookieStorage: HTTPCookieStorage = .shared
+    ) -> Self {
+      JSFetchInstaller(
+        session: .jsFetch(configuration: sessionConfiguration),
+        cookieStorage: cookieStorage
+      )
+    }
 
     /// An installable that installs a fetch implementation.
     ///
@@ -52,11 +68,22 @@
     ///   - session: The underlying `URLSession` to use to make HTTP requests.
     ///   - cookieStorage: The underlying `HTTPCookieStorage` to use when making HTTP requests.
     /// - Returns: An installable.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     public static func fetch(
       session: URLSession,
       cookieStorage: HTTPCookieStorage = .shared
     ) -> Self {
       JSFetchInstaller(session: session, cookieStorage: cookieStorage)
+    }
+  }
+
+  extension URLSession {
+    fileprivate static func jsFetch(configuration: URLSessionConfiguration) -> URLSession {
+      URLSession(
+        configuration: configuration,
+        delegate: JSURLSessionDataDelegate(isShared: true),
+        delegateQueue: nil
+      )
     }
   }
 
@@ -70,13 +97,16 @@
   @objc private final class JSFetchTask: NSObject, Sendable {
     private let request: URLRequest
     private let session: URLSession
-    private let state = Lock<
-      (task: URLSessionDataTask?, delegate: JSURLSessionDataDelegate)
-    >((nil, JSURLSessionDataDelegate()))
+    private let state: Lock<(task: URLSessionDataTask?, delegate: JSURLSessionDataDelegate)>
 
     init(request: URLRequest, session: URLSession) {
       self.request = request
       self.session = session
+      if let delegate = session.delegate as? JSURLSessionDataDelegate {
+        self.state = Lock((nil, delegate))
+      } else {
+        self.state = Lock((nil, JSURLSessionDataDelegate(isShared: false)))
+      }
     }
   }
 
@@ -84,23 +114,25 @@
     func perform() -> JSValue {
       JSPromise(in: .current()) { continuation in
         self.state.withLock { state in
-          state.delegate.addFetchContinuation(continuation)
-          guard !state.delegate.rejectIfCancelled() else { return }
-          state.task = self.session.dataTask(with: self.request)
-          if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
-            state.task?.delegate = state.delegate
+          let task = state.task ?? self.session.dataTask(with: self.request)
+          state.task = task
+          state.delegate.addFetchContinuation(continuation, for: task.taskIdentifier)
+          guard !state.delegate.rejectIfCancelled(for: task.taskIdentifier) else { return }
+          if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *), !state.delegate.isShared {
+            task.delegate = state.delegate
           }
-          state.task?.resume()
+          task.resume()
         }
       }
       .value
     }
 
     func cancel(_ reason: JSValue) {
-      self.state.withLock {
-        $0.delegate.markCancelReason(reason: reason)
-        $0.task?.cancel()
-        $0.task = nil
+      let transfer = UnsafeJSValueTransfer(value: reason)
+      self.state.withLock { state in
+        let task = state.task ?? self.session.dataTask(with: self.request)
+        state.delegate.markCancelReason(reason: transfer, for: task.taskIdentifier)
+        task.cancel()
       }
     }
   }
@@ -108,29 +140,33 @@
   // MARK: - Delegate
 
   private final class JSURLSessionDataDelegate: NSObject {
-    private let state = Lock<
-      (
-        body: JSFetchResponseBlobStorage?,
-        cancelReason: JSValue?,
-        didRedirect: Bool,
-        continuation: JSPromise.Continuation?
-      )
-    >(
-      (nil, nil, false, nil)
+    typealias TaskID = Int
+    private typealias State = (
+      body: JSFetchResponseBlobStorage?,
+      cancelReason: JSValue?,
+      didRedirect: Bool,
+      continuation: JSPromise.Continuation?
     )
+
+    let isShared: Bool
+    private let state = Lock([TaskID: State]())
+
+    init(isShared: Bool) {
+      self.isShared = isShared
+    }
   }
 
   extension JSURLSessionDataDelegate {
-    func addFetchContinuation(_ continuation: JSPromise.Continuation) {
-      self.state.withLock { $0.continuation = continuation }
+    func addFetchContinuation(_ continuation: JSPromise.Continuation, for taskId: TaskID) {
+      self.editState(for: taskId) { $0.continuation = continuation }
     }
 
-    func markCancelReason(reason: JSValue) {
-      self.state.withLock { $0.cancelReason = reason }
+    func markCancelReason(reason: UnsafeJSValueTransfer, for taskId: TaskID) {
+      self.editState(for: taskId) { $0.cancelReason = reason.value }
     }
 
-    func rejectIfCancelled() -> Bool {
-      self.state.withLock { state in
+    func rejectIfCancelled(for taskId: TaskID) -> Bool {
+      self.editState(for: taskId) { state in
         if let cancelReason = state.cancelReason {
           state.continuation?.resume(rejecting: cancelReason)
           return true
@@ -147,7 +183,7 @@
       didReceive response: URLResponse,
       completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void
     ) {
-      self.state.withLock { state in
+      self.editState(for: dataTask.taskIdentifier) { state in
         guard let continuation = state.continuation else { return }
         guard let response = response as? HTTPURLResponse else {
           continuation.resume(
@@ -180,14 +216,12 @@
       newRequest request: URLRequest,
       completionHandler: @escaping @Sendable (URLRequest?) -> Void
     ) {
-      self.state.withLock { $0.didRedirect = true }
+      self.editState(for: task.taskIdentifier) { $0.didRedirect = true }
       completionHandler(request)
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-      self.state.withLock { state in
-        state.body?.resume(with: data)
-      }
+      self.editState(for: dataTask.taskIdentifier) { $0.body?.resume(with: data) }
     }
 
     func urlSession(
@@ -195,7 +229,7 @@
       task: URLSessionTask,
       didCompleteWithError error: (any Error)?
     ) {
-      self.state.withLock { state in
+      self.editState(for: task.taskIdentifier) { state in
         guard let continuation = state.continuation, let error else { return }
         if let error = error as? URLError, error.code == .cancelled {
           continuation.resume(rejecting: state.cancelReason)
@@ -209,6 +243,15 @@
         }
         state.body?.resume(with: error)
       }
+    }
+  }
+
+  extension JSURLSessionDataDelegate {
+    private func editState<T: Sendable>(
+      for taskId: TaskID,
+      operation: @Sendable (inout State) -> T
+    ) -> T {
+      self.state.withLock { operation(&$0[taskId, default: (nil, nil, false, nil)]) }
     }
   }
 

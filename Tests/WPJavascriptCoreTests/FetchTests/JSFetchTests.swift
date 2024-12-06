@@ -25,6 +25,7 @@
         """
       ]
     )
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func fetchesCorrectURL(parameters: String) async throws {
       try await withTestURLSessionHandler { request in
         if request.url != URL(string: "https://www.example.com") {
@@ -53,6 +54,7 @@
         (500, "internal server error")
       ]
     )
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func fetchStatusText(code: Int32, text: String) async throws {
       try await withTestURLSessionHandler { request in
         return (Int(code), .empty)
@@ -73,6 +75,7 @@
     }
 
     @Test("Pushes Correct Headers")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func pushesHeaders() async throws {
       let expectedHeaders = [
         "content-type": "application/json",
@@ -103,6 +106,7 @@
     }
 
     @Test("Uses Correct Request Method By Default")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func usesCorrectDefaultMethod() async throws {
       try await withTestURLSessionHandler { request in
         expectNoDifference(request.httpMethod, "GET")
@@ -123,6 +127,7 @@
     }
 
     @Test("Uses Correct Request Method")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func usesCorrectSpecifiedMethod() async throws {
       try await withTestURLSessionHandler { request in
         expectNoDifference(request.httpMethod, "POST")
@@ -143,6 +148,7 @@
     }
 
     @Test("Pushes Body")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func pushesBody() async throws {
       let expectedBodyData = try JSONEncoder().encode(TestBody(a: "Test", b: 42))
       try await withTestURLSessionHandler { request in
@@ -167,6 +173,7 @@
     }
 
     @Test("Pushes JS File Body as Raw Data")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func pushesJSFileBody() async throws {
       let expectedBodyData = try JSONEncoder().encode(TestBody(a: "Test", b: 42))
       try await withTestURLSessionHandler { request in
@@ -191,6 +198,7 @@
     }
 
     @Test("Pushes Native File Body as Data")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func pushesNativeFileBody() async throws {
       let url = URL.temporaryDirectory.appending(path: "\(UUID()).json")
       let expectedBodyData = try JSONEncoder().encode(TestBody(a: "Test", b: 42))
@@ -215,6 +223,7 @@
     }
 
     @Test("Throws Error When Invalid URL")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func invalidURL() async throws {
       try self.context.install([.fetch])
       try await expectPromiseRejectedErrorMessage(
@@ -230,6 +239,7 @@
       "Throws Error When Non-HTTP URL",
       arguments: [("blob://test.com", "blob"), ("file:///test.txt", "file")]
     )
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func nonHTTPURL(url: String, scheme: String) async throws {
       try self.context.install([.fetch])
       try await expectPromiseRejectedErrorMessage(
@@ -242,6 +252,7 @@
     }
 
     @Test("Fetch JSON")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func fetchJSON() async throws {
       let expectedBody = TestBody(a: "Hello", b: 2)
       try await withTestURLSessionHandler { request in
@@ -266,6 +277,7 @@
     }
 
     @Test("Fetch Text")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func fetchText() async throws {
       try await withTestURLSessionHandler { request in
         if request.url != URL(string: "https://example.com/api/test") {
@@ -288,6 +300,7 @@
     }
 
     @Test("Fetch Bytes")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func fetchBytes() async throws {
       try await withTestURLSessionHandler { request in
         if request.url != URL(string: "https://example.com/api/test") {
@@ -310,6 +323,7 @@
     }
 
     @Test("Throws Error When Non-HTTP Response")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func nonHTTPResponse() async throws {
       let configuration = URLSessionConfiguration.ephemeral
       configuration.protocolClasses = [NonHTTPResponseProtocol.self]
@@ -326,6 +340,7 @@
     }
 
     @Test("Throws Abort Error When Request Aborted Before Fetching")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func throwsAbortErrorBeforeFetch() async throws {
       try await withTestURLSessionHandler { _ in
         reportIssue("Should not make request.")
@@ -349,6 +364,7 @@
     }
 
     @Test("Throws Abort Error When Request Aborted When Loading Body")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func throwsAbortErrorWhenLoadingBody() async throws {
       try await withTestURLSessionHandler { _ in
         reportIssue("Should not make request.")
@@ -372,6 +388,7 @@
     }
 
     @Test("Throws Abort Error When Request Aborted During Fetch")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func throwsAbortErrorDuringFetch() async throws {
       try await withTestURLSessionHandler { _ in
         return (500, .empty)
@@ -394,6 +411,7 @@
     }
 
     @Test("Resolves After Request Completes")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func resolvesAfterRequest() async throws {
       let configuration = URLSessionConfiguration.ephemeral
       configuration.protocolClasses = [NoBodyResponseProtocol.self]
@@ -412,6 +430,7 @@
     }
 
     @Test("Throws Error When Request Throws")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func throwsWhenRequestThrows() async throws {
       try await withTestURLSessionHandler { _ in
         throw URLError(.networkConnectionLost)
@@ -428,6 +447,7 @@
     }
 
     @Test("Request Response Headers")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func responseHeaders() async throws {
       try await withTestURLSessionHandler { _ in
         return (200, .data(Data("test".utf8)))
@@ -449,6 +469,7 @@
     }
 
     @Test("Normal Response is Not Redirected")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func notRedirected() async throws {
       try await withTestURLSessionHandler { _ in
         return (200, .data(Data("test".utf8)))
@@ -468,6 +489,7 @@
     }
 
     @Test("Response Indicates Redirects")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func responseIndicatesRedirects() async throws {
       let configuration = URLSessionConfiguration.ephemeral
       configuration.protocolClasses = [RedirectProtocol.self]
@@ -503,8 +525,52 @@
       let value = try await promise?.resolvedValue
       expectNoDifference(value?.objectForKeyedSubscript("status").toInt32(), 200)
       expectNoDifference(value?.objectForKeyedSubscript("ok").toBool(), true)
-      let html = try value?.objectForKeyedSubscript("body").toString()
+      let html = value?.objectForKeyedSubscript("body").toString()
       assertSnapshot(of: try #require(html), as: .htmlString)
+    }
+
+    @Test("Handles Parallel Requests")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
+    func parallelRequests() async throws {
+      try await withTestURLSessionHandler { request in
+        if request.url == URL(string: "https://www.google.com") {
+          return (200, .data(Data("google".utf8)))
+        } else {
+          return (201, .data(Data("created".utf8)))
+        }
+      } perform: { session in
+        try self.context.install([.fetch(session: session)])
+        let promise = self.context
+          .evaluateScript(
+            """
+            const f1 = fetch("https://www.google.com").then((r) => r.text())
+            const f2 = fetch("https://www.example.com").then((r) => r.text())
+            Promise.all([f1, f2])
+            """
+          )
+          .toPromise()
+
+        let value = try await promise?.resolvedValue
+        expectNoDifference(value?.atIndex(0).toString(), "google")
+        expectNoDifference(value?.atIndex(1).toString(), "created")
+      }
+    }
+
+    @Test("Handles Parallel Live Requests")
+    func parallelLiveRequests() async throws {
+      try self.context.install([.fetch])
+      let promise = self.context
+        .evaluateScript(
+          """
+          const f1 = fetch("https://www.google.com")
+          const f2 = fetch("https://www.example.com")
+          Promise.all([f1, f2])
+          """
+        )
+        .toPromise()
+      let value = try await promise?.resolvedValue
+      expectNoDifference(value?.atIndex(0).objectForKeyedSubscript("status").toInt32(), 200)
+      expectNoDifference(value?.atIndex(1).objectForKeyedSubscript("status").toInt32(), 200)
     }
   }
 
