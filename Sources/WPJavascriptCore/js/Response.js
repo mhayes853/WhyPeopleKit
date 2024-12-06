@@ -67,33 +67,21 @@ Response.json = function (jsonSerializeable, options) {
 };
 
 Object.defineProperties(Response.prototype, {
-  bodyUsed: {
-    get: function () {
-      return this[Symbol._wpJSCorePrivate].bodyUsed;
-    },
-    enumerable: true,
-    configurable: false,
-  },
-  clone: {
-    value: function () {
-      const response = new Response();
-      const state = this[Symbol._wpJSCorePrivate];
-      response[Symbol._wpJSCorePrivate] = {
-        ...state,
-        body: _wpJSCoreHTTPBody(state.rawBody, _WPJSCoreBodyKind.Response),
-      };
-      return response;
-    },
-    enumerable: false,
-    configurable: false,
-  },
-  ok: {
-    get: function () {
-      return this.status >= 200 && this.status < 300;
-    },
-    enumerable: false,
-    configurable: false,
-  },
+  bodyUsed: _wpJSCoreReadonlyProperty(function () {
+    return this[Symbol._wpJSCorePrivate].bodyUsed;
+  }),
+  clone: _wpJSCoreFunctionProperty(function () {
+    const response = new Response();
+    const state = this[Symbol._wpJSCorePrivate];
+    response[Symbol._wpJSCorePrivate] = {
+      ...state,
+      body: _wpJSCoreHTTPBody(state.rawBody, _WPJSCoreBodyKind.Response),
+    };
+    return response;
+  }),
+  ok: _wpJSCoreReadonlyProperty(function () {
+    return this.status >= 200 && this.status < 300;
+  }),
   status: _wpJSCoreHTTPOptionsProperty("status", 200),
   headers: _wpJSCoreHTTPOptionsProperty("headers", new Headers()),
   statusText: _wpJSCoreHTTPOptionsProperty("statusText", ""),

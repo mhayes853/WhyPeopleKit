@@ -3,21 +3,12 @@ function AbortController() {
 }
 
 Object.defineProperties(AbortController.prototype, {
-  signal: {
-    get: function () {
-      return this[Symbol._wpJSCorePrivate];
-    },
-    enumerable: true,
-    configurable: true,
-  },
-  abort: {
-    value: function (reason) {
-      const signal = this[Symbol._wpJSCorePrivate];
-      signal[Symbol._wpJSCorePrivate].abort(signal, reason);
-    },
-    enumerable: false,
-    configurable: true,
-  },
+  signal: _wpJSCoreReadonlyProperty(function () {
+    return this[Symbol._wpJSCorePrivate];
+  }),
+  abort: _wpJSCoreFunctionProperty(function (reason) {
+    this[Symbol._wpJSCorePrivate]._wpJSCoreAbort(reason);
+  }),
 });
 
 function AbortSignal(key) {
@@ -30,41 +21,16 @@ function AbortSignal(key) {
     aborted: false,
     reason: undefined,
     onabort: undefined,
-    abort: (signal, reason) => {
-      const state = signal[Symbol._wpJSCorePrivate];
-      if (state.aborted) return;
-      const event = { type: "abort", target: signal };
-      state.aborted = true;
-      state.reason = reason;
-      state.onabort?.(event);
-      for (const subscriber of state.subscribers) {
-        subscriber({ ...event });
-      }
-      for (dependentSignal of state.dependencies) {
-        dependentSignal[Symbol._wpJSCorePrivate].abort(dependentSignal, reason);
-      }
-    },
-    addDependency: (signal, other) => {
-      signal[Symbol._wpJSCorePrivate].dependencies.push(other);
-    },
   };
 }
 
 Object.defineProperties(AbortSignal.prototype, {
-  aborted: {
-    get: function () {
-      return this[Symbol._wpJSCorePrivate].aborted;
-    },
-    enumerable: true,
-    configurable: true,
-  },
-  reason: {
-    get: function () {
-      return this[Symbol._wpJSCorePrivate].reason;
-    },
-    enumerable: true,
-    configurable: true,
-  },
+  aborted: _wpJSCoreReadonlyProperty(function () {
+    return this[Symbol._wpJSCorePrivate].aborted;
+  }),
+  reason: _wpJSCoreReadonlyProperty(function () {
+    return this[Symbol._wpJSCorePrivate].reason;
+  }),
   onabort: {
     get: function () {
       return this[Symbol._wpJSCorePrivate].onabort;
@@ -75,61 +41,66 @@ Object.defineProperties(AbortSignal.prototype, {
     enumerable: true,
     configurable: true,
   },
-  throwIfAborted: {
-    value: function () {
-      const state = this[Symbol._wpJSCorePrivate];
-      if (!state.aborted) return;
-      if (state.reason) throw state.reason;
-      throw new DOMException("signal is aborted without reason", "AbortError");
-    },
-    enumerable: false,
-    configurable: true,
-  },
+  throwIfAborted: _wpJSCoreFunctionProperty(function () {
+    const state = this[Symbol._wpJSCorePrivate];
+    if (!state.aborted) return;
+    if (state.reason) throw state.reason;
+    throw new DOMException("signal is aborted without reason", "AbortError");
+  }),
   // NB: It seems that JSCore doesn't provide EventTarget, so we'll have to implement event
   // listeners by hand.
-  addEventListener: {
-    value: function (event, listener) {
-      _wpJSCoreEnsureMinArgCount(
+  addEventListener: _wpJSCoreFunctionProperty(function (event, listener) {
+    _wpJSCoreEnsureMinArgCount(
+      "addEventListener",
+      "AbortSignal",
+      [event, listener],
+      2,
+    );
+    if (typeof listener !== "object" && typeof listener !== "function") {
+      throw _wpJSCoreFailedToExecute(
+        "AbortSignal",
         "addEventListener",
-        "AbortSignal",
-        [event, listener],
-        2,
+        "parameter 2 is not of type 'Object'",
       );
-      if (typeof listener !== "object" && typeof listener !== "function") {
-        throw _wpJSCoreFailedToExecute(
-          "AbortSignal",
-          "addEventListener",
-          "parameter 2 is not of type 'Object'",
-        );
-      }
-      if (event !== "abort") return;
-      this[Symbol._wpJSCorePrivate].subscribers.push(listener);
-    },
-    enumerable: false,
-    configurable: true,
-  },
-  removeEventListener: {
-    value: function (event, listener) {
-      _wpJSCoreEnsureMinArgCount(
+    }
+    if (event !== "abort") return;
+    this[Symbol._wpJSCorePrivate].subscribers.push(listener);
+  }),
+  removeEventListener: _wpJSCoreFunctionProperty(function (event, listener) {
+    _wpJSCoreEnsureMinArgCount(
+      "removeEventListener",
+      "AbortSignal",
+      [event, listener],
+      2,
+    );
+    if (typeof listener !== "object" && typeof listener !== "function") {
+      throw _wpJSCoreFailedToExecute(
+        "AbortSignal",
         "removeEventListener",
-        "AbortSignal",
-        [event, listener],
-        2,
+        "parameter 2 is not of type 'Object'",
       );
-      if (typeof listener !== "object" && typeof listener !== "function") {
-        throw _wpJSCoreFailedToExecute(
-          "AbortSignal",
-          "removeEventListener",
-          "parameter 2 is not of type 'Object'",
-        );
-      }
-      const state = this[Symbol._wpJSCorePrivate];
-      if (event !== "abort") return;
-      state.subscribers = state.subscribers.filter((s) => s !== listener);
-    },
-    enumerable: false,
-    configurable: true,
-  },
+    }
+    const state = this[Symbol._wpJSCorePrivate];
+    if (event !== "abort") return;
+    state.subscribers = state.subscribers.filter((s) => s !== listener);
+  }),
+  _wpJSCoreAddDependency: _wpJSCoreFunctionProperty(function (other) {
+    this[Symbol._wpJSCorePrivate].dependencies.push(other);
+  }),
+  _wpJSCoreAbort: _wpJSCoreFunctionProperty(function (reason) {
+    const state = this[Symbol._wpJSCorePrivate];
+    if (state.aborted) return;
+    const event = { type: "abort", target: this };
+    state.aborted = true;
+    state.reason = reason;
+    state.onabort?.(event);
+    for (const subscriber of state.subscribers) {
+      subscriber({ ...event });
+    }
+    for (dependentSignal of state.dependencies) {
+      dependentSignal._wpJSCoreAbort(reason);
+    }
+  }),
 });
 
 AbortSignal.abort = function (reason) {
@@ -176,7 +147,7 @@ AbortSignal.any = function (signals) {
     }
   }
   for (const s of signals) {
-    s[Symbol._wpJSCorePrivate].addDependency(s, controller.signal);
+    s._wpJSCoreAddDependency(controller.signal);
   }
   return controller.signal;
 };

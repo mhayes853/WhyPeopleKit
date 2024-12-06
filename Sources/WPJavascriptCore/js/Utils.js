@@ -39,3 +39,19 @@ function _wpJSCoreStringToUint8Array(str) {
   }
   return uint8Array;
 }
+
+function _wpJSCoreFunctionProperty(fn) {
+  return {
+    value: fn,
+    enumerable: false,
+    configurable: false,
+  };
+}
+
+function _wpJSCoreReadonlyProperty(fn) {
+  return {
+    get: fn,
+    enumerable: true,
+    configurable: true,
+  };
+}

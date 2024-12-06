@@ -7,18 +7,10 @@ DOMException.prototype = Object.create(Error.prototype);
 DOMException.prototype.constructor = DOMException;
 
 Object.defineProperties(DOMException.prototype, {
-  name: {
-    get: function () {
-      return this[Symbol._wpJSCorePrivate].name;
-    },
-    enumerable: true,
-    configurable: true,
-  },
-  message: {
-    get: function () {
-      return this[Symbol._wpJSCorePrivate].message;
-    },
-    enumerable: false,
-    configurable: true,
-  },
+  name: _wpJSCoreReadonlyProperty(function () {
+    return this[Symbol._wpJSCorePrivate].name;
+  }),
+  message: _wpJSCoreReadonlyProperty(function () {
+    return this[Symbol._wpJSCorePrivate].message;
+  }),
 });

@@ -44,20 +44,12 @@ function Request(urlOrRequest, options) {
 }
 
 Object.defineProperties(Request.prototype, {
-  url: {
-    get: function () {
-      return this[Symbol._wpJSCorePrivate].url;
-    },
-    enumerable: true,
-    configurable: true,
-  },
-  bodyUsed: {
-    get: function () {
-      return this[Symbol._wpJSCorePrivate].bodyUsed;
-    },
-    enumerable: true,
-    configurable: true,
-  },
+  url: _wpJSCoreReadonlyProperty(function () {
+    return this[Symbol._wpJSCorePrivate].url;
+  }),
+  bodyUsed: _wpJSCoreReadonlyProperty(function () {
+    return this[Symbol._wpJSCorePrivate].bodyUsed;
+  }),
   method: _wpJSCoreHTTPOptionsProperty("method", "GET"),
   headers: _wpJSCoreHTTPOptionsProperty("headers", new Headers()),
   signal: _wpJSCoreHTTPOptionsProperty("signal"),
@@ -69,13 +61,9 @@ Object.defineProperties(Request.prototype, {
   redirect: _wpJSCoreHTTPOptionsProperty("redirect", "follow"),
   referrer: _wpJSCoreHTTPOptionsProperty("referrer", "about:client"),
   referrerPolicy: _wpJSCoreHTTPOptionsProperty("referrerPolicy"),
-  clone: {
-    value: function () {
-      return new Request(this);
-    },
-    enumerable: false,
-    configurable: false,
-  },
+  clone: _wpJSCoreFunctionProperty(function () {
+    return new Request(this);
+  }),
   blob: _wpJSCoreHTTPBodyConsumerProperty("blob", _WPJSCoreBodyKind.Request),
   arrayBuffer: _wpJSCoreHTTPBodyConsumerProperty(
     "arrayBuffer",

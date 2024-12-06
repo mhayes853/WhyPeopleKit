@@ -148,12 +148,12 @@ class _WPJSCoreFormDataBody extends _WPJSCoreHTTPBody {
 
   constructor(formData) {
     super();
-    this.#formData = _wpJSCoreCopyFormData(formData);
+    this.#formData = formData._wpJSCoreCopy();
     this.#boundary = _wpJSCoreFormDataBoundary();
   }
 
   async text() {
-    return await _wpJSCoreEncodedFormData(this.#formData, this.#boundary);
+    return await this.#formData._wpJSCoreEncoded(this.#boundary);
   }
 
   async bytes() {
@@ -170,21 +170,17 @@ class _WPJSCoreFormDataBody extends _WPJSCoreHTTPBody {
 }
 
 function _wpJSCoreHTTPBodyConsumerProperty(methodName, bodyKind) {
-  return {
-    value: function () {
-      if (this[Symbol._wpJSCorePrivate].bodyUsed) {
-        throw _wpJSCoreFailedToExecute(
-          bodyKind,
-          methodName,
-          "body stream already read",
-        );
-      }
-      this[Symbol._wpJSCorePrivate].bodyUsed = true;
-      return this[Symbol._wpJSCorePrivate].body[methodName]();
-    },
-    enumerable: false,
-    configurable: false,
-  };
+  return _wpJSCoreFunctionProperty(function () {
+    if (this[Symbol._wpJSCorePrivate].bodyUsed) {
+      throw _wpJSCoreFailedToExecute(
+        bodyKind,
+        methodName,
+        "body stream already read",
+      );
+    }
+    this[Symbol._wpJSCorePrivate].bodyUsed = true;
+    return this[Symbol._wpJSCorePrivate].body[methodName]();
+  });
 }
 
 function _wpJSCoreHTTPHeaders(headers, body) {

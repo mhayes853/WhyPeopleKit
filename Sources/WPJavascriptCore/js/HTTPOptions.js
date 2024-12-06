@@ -8,14 +8,10 @@ const _WPJSCORE_OPTIONS_PROPERTY_MAPPINGS = {
 
 function _wpJSCoreHTTPOptionsProperty(path, defaultValue) {
   const mapping = _WPJSCORE_OPTIONS_PROPERTY_MAPPINGS[path];
-  return {
-    get: function () {
-      const value = this[Symbol._wpJSCorePrivate].options[path];
-      return value === undefined
-        ? defaultValue
-        : (mapping?.(value) ?? value.toString());
-    },
-    enumerable: true,
-    configurable: true,
-  };
+  return _wpJSCoreReadonlyProperty(function () {
+    const value = this[Symbol._wpJSCorePrivate].options[path];
+    return value === undefined
+      ? defaultValue
+      : (mapping?.(value) ?? value.toString());
+  });
 }
