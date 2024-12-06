@@ -3,6 +3,7 @@ const _WPJSCORE_OPTIONS_PROPERTY_MAPPINGS = {
   redirected: (value) => !!value,
   headers: (value) => value,
   status: (value) => value,
+  signal: (value) => value,
 };
 
 function _wpJSCoreHTTPOptionsProperty(path, defaultValue) {

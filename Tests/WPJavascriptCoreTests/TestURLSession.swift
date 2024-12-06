@@ -2,9 +2,22 @@ import WPFoundation
 
 // MARK: - ResponseBody
 
-enum ResponseBody {
+enum ResponseBody: Sendable {
   case data(Data)
-  case json(any Encodable)
+  case json(any Encodable & Sendable)
+}
+
+extension ResponseBody {
+  static let empty = Self.data(Data())
+}
+
+extension ResponseBody {
+  fileprivate func data() throws -> Data {
+    switch self {
+    case let .data(data): data
+    case let .json(encodable): try JSONEncoder().encode(encodable)
+    }
+  }
 }
 
 // MARK: - WithTestURLSession
@@ -12,27 +25,23 @@ enum ResponseBody {
 typealias StatusCode = Int
 
 func withTestURLSessionHandler<T: Sendable>(
-  handler: @Sendable @escaping (URLRequest) throws -> (StatusCode, ResponseBody),
-  perform task: sending @escaping (URLSession) throws -> T
+  handler: @Sendable @escaping (URLRequest) async throws -> (StatusCode, ResponseBody),
+  perform task: @Sendable @escaping (sending URLSession) async throws -> T
 ) async throws -> T {
   let configuration = URLSessionConfiguration.ephemeral
   configuration.protocolClasses = [TestURLProtocol.self]
   return try await TestURLSessionHandler.shared.withHandler { request in
-    let (status, value) = try handler(request)
+    let (status, value) = try await handler(request)
+    let data = try value.data()
     let response = HTTPURLResponse(
       url: request.url!,
       statusCode: status,
       httpVersion: nil,
-      headerFields: nil
+      headerFields: ["content-length": "\(data.count)"]
     )!
-    switch value {
-    case let .data(data):
-      return (response, data)
-    case let .json(encodable):
-      return (response, try JSONEncoder().encode(encodable))
-    }
+    return (response, data)
   } perform: {
-    try task(URLSession(configuration: configuration))
+    try await task(URLSession(configuration: configuration))
   }
 }
 
@@ -41,14 +50,14 @@ func withTestURLSessionHandler<T: Sendable>(
 private final actor TestURLSessionHandler {
   static let shared = TestURLSessionHandler()
 
-  private var handler: @Sendable (URLRequest) throws -> (HTTPURLResponse, Data) = { _ in
+  private var handler: @Sendable (URLRequest) async throws -> (HTTPURLResponse, Data) = { _ in
     throw UnimplementedHandlerError()
   }
   private var currentTask: Task<any Sendable, Error>?
 
   func withHandler<T: Sendable>(
-    _ handler: @Sendable @escaping (URLRequest) throws -> (HTTPURLResponse, Data),
-    perform task: sending @escaping () throws -> T
+    _ handler: @Sendable @escaping (URLRequest) async throws -> (HTTPURLResponse, Data),
+    perform task: @Sendable @escaping () async throws -> T
   ) async throws -> T {
     while let currentTask {
       _ = try? await currentTask.value
@@ -56,16 +65,16 @@ private final actor TestURLSessionHandler {
     let currentHandler = self.handler
     self.handler = handler
     self.currentTask = Task {
-      let result = try task()
+      let result = try await task()
       self.currentTask = nil
       self.handler = currentHandler
       return result
     }
-    return try await self.currentTask?.value as! T
+    return try await self.currentTask?.cancellableValue as! T
   }
 
-  func callAsFunction(request: URLRequest) throws -> (HTTPURLResponse, Data) {
-    try self.handler(request)
+  func callAsFunction(request: URLRequest) async throws -> (HTTPURLResponse, Data) {
+    try await self.handler(request)
   }
 }
 

@@ -98,6 +98,10 @@
         (
           "new File(new Headers([[\"Key\", \"Value\"], [\"K\", \"V\"]]), \"foo.txt\")",
           "key,Valuek,V"
+        ),
+        (
+          "new File([JSON.stringify({ a: \"Test\", b: 42 })], \"test.txt\")",
+          "{\"a\":\"Test\",\"b\":42}"
         )
       ]
     )

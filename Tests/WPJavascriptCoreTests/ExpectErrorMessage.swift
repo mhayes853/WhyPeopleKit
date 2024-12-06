@@ -15,4 +15,22 @@
     context.evaluateScript(js)
     expectNoDifference(message, expected)
   }
+
+  func expectPromiseRejectedErrorMessage(
+    js: String,
+    message expected: String,
+    in context: JSContext
+  ) async throws {
+    let value = try #require(context.evaluateScript(js).toPromise())
+    do {
+      _ = try await value.resolvedValue
+      reportIssue("Expected promise to reject, but promise resolved successfully.")
+    } catch let error as JSPromiseRejectedError {
+      expectNoDifference(error.reason.objectForKeyedSubscript("message").toString(), expected)
+    } catch {
+      reportIssue(
+        "JSPromiseRejectedError was not thrown. Threw \(String(reflecting: type(of: error))) instead."
+      )
+    }
+  }
 #endif

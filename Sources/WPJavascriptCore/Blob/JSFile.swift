@@ -34,6 +34,9 @@
     /// The date this file was last modified.
     public let lastModifiedDate: Date
 
+    /// The `URL` of this file if it was not initialized through Javascript.
+    public let url: URL?
+
     #if canImport(UniformTypeIdentifiers)
       /// Creates a file from the contents of the specified `URL`.
       ///
@@ -59,6 +62,7 @@
       let storage = try FileJSBlobStorage(url: url)
       self.lastModifiedDate = storage.lastModified
       self.name = url.lastPathComponent
+      self.url = url
       super.init(storage: storage, type: type)
     }
 
@@ -137,6 +141,7 @@
     private init(name: String, date: Date, blob: JSBlob) {
       self.name = name
       self.lastModifiedDate = date
+      self.url = nil
       super.init(blob: blob)
     }
   }
