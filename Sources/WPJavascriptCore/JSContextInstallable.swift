@@ -15,36 +15,17 @@
   // MARK: - Install
 
   extension JSContext {
-    private static nonisolated(unsafe) let installLockKey = malloc(1)!
+    fileprivate static let installLock = NSRecursiveLock()
 
     /// Installs the specified installables to this context.
     ///
     /// - Parameter installables: A list of ``JSContextInstallable``s.
     public func install(_ installables: [any JSContextInstallable]) throws {
-      try self.installLock.withLock {
+      try Self.installLock.withLock {
         self.setObject(JSValue(privateSymbolIn: self), forPath: "Symbol._wpJSCorePrivate")
         for installable in [.wpJSCoreBundled(path: "Utils.js")] + installables {
           try installable.install(in: self)
         }
-      }
-    }
-
-    private var installLock: NSRecursiveLock {
-      get {
-        if let lock = objc_getAssociatedObject(self, Self.installLockKey) as? NSRecursiveLock {
-          return lock
-        }
-        let lock = NSRecursiveLock()
-        self.installLock = lock
-        return lock
-      }
-      set {
-        objc_setAssociatedObject(
-          self,
-          Self.installLockKey,
-          newValue,
-          .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-        )
       }
     }
   }
@@ -75,9 +56,11 @@
     }
 
     public func install(in context: JSContext) throws {
-      guard !context.installedIds.contains(self.base.id) else { return }
-      try self.base.install(in: context)
-      context.installedIds.insert(self.base.id)
+      try JSContext.installLock.withLock {
+        guard !context.installedIds.contains(self.base.id) else { return }
+        try self.base.install(in: context)
+        context.installedIds.insert(self.base.id)
+      }
     }
   }
 
