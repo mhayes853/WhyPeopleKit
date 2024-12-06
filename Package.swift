@@ -178,7 +178,9 @@ let package = Package(
     ),
     .testTarget(
       name: "WPJavascriptCoreTests",
-      dependencies: ["WPJavascriptCore", .product(name: "Clocks", package: "swift-clocks")]
+      dependencies: [
+        "WPJavascriptCore", "WPSnapshotTesting", .product(name: "Clocks", package: "swift-clocks")
+      ]
     ),
     .target(name: "_CWPJavascriptCore")
   ],

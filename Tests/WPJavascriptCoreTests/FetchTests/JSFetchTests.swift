@@ -3,6 +3,7 @@
   import Testing
   import CustomDump
   import IssueReporting
+  import WPSnapshotTesting
 
   @Suite("JSFetch tests")
   struct JSFetchTests: @unchecked Sendable {
@@ -483,6 +484,27 @@
       let value = try await promise?.resolvedValue
       expectNoDifference(value?.objectForKeyedSubscript("status").toInt32(), 200)
       expectNoDifference(value?.objectForKeyedSubscript("redirected").toBool(), true)
+    }
+
+    @Test("Live Fetch")
+    func liveFetch() async throws {
+      try self.context.install([.fetch])
+      let promise = self.context
+        .evaluateScript(
+          """
+          const request = async () => {
+            const resp = await fetch("https://www.example.com")
+            return { status: resp.status, ok: resp.ok, body: await resp.text() }
+          }
+          request()
+          """
+        )
+        .toPromise()
+      let value = try await promise?.resolvedValue
+      expectNoDifference(value?.objectForKeyedSubscript("status").toInt32(), 200)
+      expectNoDifference(value?.objectForKeyedSubscript("ok").toBool(), true)
+      let html = try value?.objectForKeyedSubscript("body").toString()
+      assertSnapshot(of: try #require(html), as: .htmlString)
     }
   }
 
