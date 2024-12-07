@@ -719,8 +719,8 @@
         .toPromise()
       let value = try await promise?.resolvedValue
       expectNoDifference(value?.objectForKeyedSubscript("status").toInt32(), 200)
-      let html = value?.objectForKeyedSubscript("body").toString()
-      assertSnapshot(of: try #require(html), as: .htmlString)
+      let text = value?.objectForKeyedSubscript("text").toString()
+      assertSnapshot(of: try #require(text), as: .lines)
     }
   }
 
