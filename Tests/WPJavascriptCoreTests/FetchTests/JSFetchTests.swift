@@ -574,6 +574,7 @@
     }
 
     @Test("Includes Non-HTTP Only Cookie In Response Headers")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func includesCookieInResponseHeaders() async throws {
       let cookie = "key=value; path=/; expires=Wed, 8 Sep 2027 07:28:00 GMT; domain=www.example.com"
       try await withTestURLSessionHandlerAndHeaders { _ in
@@ -594,6 +595,7 @@
     }
 
     @Test("Excludes HTTP Only Cookie In Response Headers")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func excludesCookieInResponseHeaders() async throws {
       let cookie =
         "key=value; path=/; expires=Wed, 8 Sep 2027 07:28:00 GMT; domain=www.example.com; httponly"
@@ -615,6 +617,7 @@
     }
 
     @Test("Sends Cookies Between Requests When Credentials is Include")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func sendsCookiesBetweenRequests() async throws {
       try await confirmation { confirm in
         try await withTestURLSessionHandlerAndHeaders { request in
@@ -648,6 +651,7 @@
     }
 
     @Test("Does Not Send Cookies Between Requests When Credentials is None")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
     func doesNotSendCookiesForNoCredentials() async throws {
       try await confirmation(expectedCount: 0) { confirm in
         try await withTestURLSessionHandlerAndHeaders { request in
@@ -678,6 +682,71 @@
           _ = try await promise?.resolvedValue
         }
       }
+    }
+
+    @Test("Accumulates Split Body Data Into 1 Body")
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
+    func accumulatesBodyData() async throws {
+      let configuration = URLSessionConfiguration.ephemeral
+      configuration.protocolClasses = [SplitBodyProtocol.self]
+      try self.context.install([
+        .fetch(session: URLSession(configuration: configuration))
+      ])
+      let promise = self.context
+        .evaluateScript(
+          """
+          fetch("https://www.google.com").then((r) => r.text())
+          """
+        )
+        .toPromise()
+      let value = try await promise?.resolvedValue
+      expectNoDifference(value?.toString(), "hello world")
+    }
+
+    @Test("Live Fetches a Large Data Payload")
+    func liveFetchLarge() async throws {
+      try self.context.install([.fetch])
+      let promise = self.context
+        .evaluateScript(
+          """
+          const request = async () => {
+            const resp = await fetch("https://link.testfile.org/15MB")
+            return { status: resp.status, text: await resp.text() }
+          }
+          request()
+          """
+        )
+        .toPromise()
+      let value = try await promise?.resolvedValue
+      expectNoDifference(value?.objectForKeyedSubscript("status").toInt32(), 200)
+      let html = value?.objectForKeyedSubscript("body").toString()
+      assertSnapshot(of: try #require(html), as: .htmlString)
+    }
+  }
+
+  private final class SplitBodyProtocol: URLProtocol {
+    override class func canInit(with request: URLRequest) -> Bool {
+      return true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+      return request
+    }
+
+    override func startLoading() {
+      let response = HTTPURLResponse(
+        url: request.url!,
+        statusCode: 200,
+        httpVersion: nil,
+        headerFields: ["content-length": "11"]
+      )!
+      client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+      client?.urlProtocol(self, didLoad: Data("hello".utf8))
+      client?.urlProtocol(self, didLoad: Data(" world".utf8))
+      client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {
     }
   }
 

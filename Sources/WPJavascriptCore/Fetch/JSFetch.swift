@@ -223,6 +223,7 @@
       didCompleteWithError error: (any Error)?
     ) {
       self.editState(for: task.taskIdentifier) { state in
+        state.body?.finish(with: error)
         guard let continuation = state.continuation, let error else { return }
         if let error = error as? URLError, error.code == .cancelled {
           continuation.resume(rejecting: state.cancelReason)
@@ -234,7 +235,6 @@
             )
           )
         }
-        state.body?.resume(with: error)
       }
     }
   }
@@ -251,13 +251,12 @@
   // MARK: - Response Blob Storage
 
   private final class JSFetchResponseBlobStorage {
-    private let stream: AsyncThrowingStream<String.UTF8View, any Error>
-    private let continuation: AsyncThrowingStream<String.UTF8View, any Error>.Continuation
+    private let stream: AsyncThrowingStream<Data, any Error>
+    private let continuation: AsyncThrowingStream<Data, any Error>.Continuation
     let utf8SizeInBytes: Int
 
     init(contentLength: Int64) {
-      let (stream, continuation) = AsyncThrowingStream<String.UTF8View, any Error>
-        .makeStream(bufferingPolicy: .bufferingNewest(1))
+      let (stream, continuation) = AsyncThrowingStream<Data, any Error>.makeStream()
       self.utf8SizeInBytes = Int(contentLength)
       self.stream = stream
       self.continuation = continuation
@@ -267,10 +266,11 @@
   extension JSFetchResponseBlobStorage: JSBlobStorage {
     func utf8Bytes(startIndex: Int, endIndex: Int) async throws(JSValueError) -> String.UTF8View {
       do {
-        guard let utf8 = try await self.stream.first(where: { _ in true }) else {
-          return "".utf8
+        let utf8 = try await self.stream.reduce(into: Data()) { acc, utf8 in
+          acc.append(Data(utf8))
         }
-        return utf8.utf8Bytes(startIndex: startIndex, endIndex: endIndex)
+        return String(decoding: utf8, as: UTF8.self)
+          .utf8Bytes(startIndex: startIndex, endIndex: endIndex)
       } catch {
         throw JSValueError(
           value: JSValue(newErrorFromMessage: error.localizedDescription, in: .current())
@@ -281,10 +281,10 @@
 
   extension JSFetchResponseBlobStorage {
     func resume(with data: Data) {
-      self.continuation.yield(String(decoding: data, as: UTF8.self).utf8)
+      self.continuation.yield(data)
     }
 
-    func resume(with error: any Error) {
+    func finish(with error: (any Error)?) {
       self.continuation.finish(throwing: error)
     }
   }
