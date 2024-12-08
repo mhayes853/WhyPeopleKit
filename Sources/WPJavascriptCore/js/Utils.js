@@ -8,6 +8,12 @@ function _wpJSCoreFailedToConstruct(name, message) {
   return new TypeError(`Failed to construct '${name}': ${message}`);
 }
 
+function _wpJSCoreInternalConstructorCheck(key) {
+  if (key !== Symbol._wpJSCorePrivate) {
+    throw new TypeError("Illegal constructor");
+  }
+}
+
 function _wpJSCoreEnsureMinArgCount(name, clazz, args, expected) {
   if (args.length < expected) {
     const argName = expected === 2 ? "arguments" : "argument";

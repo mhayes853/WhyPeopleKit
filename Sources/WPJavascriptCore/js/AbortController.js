@@ -12,9 +12,7 @@ Object.defineProperties(AbortController.prototype, {
 });
 
 function AbortSignal(key) {
-  if (key !== Symbol._wpJSCorePrivate) {
-    throw new TypeError("Illegal constructor");
-  }
+  _wpJSCoreInternalConstructorCheck(key);
   this[Symbol._wpJSCorePrivate] = {
     subscribers: [],
     dependencies: [],
