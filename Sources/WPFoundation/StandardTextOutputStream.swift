@@ -19,12 +19,14 @@ public struct StandardTextOutputStream: TextOutputStream {
   }
 }
 
-extension TextOutputStream where Self == StandardTextOutputStream {
-  public static var stdout: Self { StandardTextOutputStream(file: _stdout) }
-  public static var stderr: Self { StandardTextOutputStream(file: _stderr) }
-}
-
-// MARK: - Helpers
-
-private nonisolated(unsafe) let _stdout = stdout
-private nonisolated(unsafe) let _stderr = stderr
+#if canImport(Darwin)
+  extension TextOutputStream where Self == StandardTextOutputStream {
+    public static var stdout: Self { StandardTextOutputStream(file: Darwin.stdout) }
+    public static var stderr: Self { StandardTextOutputStream(file: Darwin.stderr) }
+  }
+#else
+  extension TextOutputStream where Self == StandardTextOutputStream {
+    public static var stdout: Self { StandardTextOutputStream(file: Glibc.stdout!) }
+    public static var stderr: Self { StandardTextOutputStream(file: Glibc.stderr!) }
+  }
+#endif
