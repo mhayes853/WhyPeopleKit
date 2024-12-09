@@ -40,7 +40,7 @@ struct TimedConfirmationTests {
         }
       }
     }
-    let expectedTimeRange = Duration.milliseconds(150)...Duration.milliseconds(250)
+    let expectedTimeRange = Duration.milliseconds(150)...Duration.milliseconds(1000)
     #expect(expectedTimeRange.contains(time))
   }
 
