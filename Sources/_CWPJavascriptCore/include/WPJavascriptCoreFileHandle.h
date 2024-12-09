@@ -1,3 +1,4 @@
+#if __has_include(<Foundation/Foundation.h>)
 #import <Foundation/Foundation.h>
 
 @interface WPJavascriptCoreFileHandle: NSObject
@@ -7,3 +8,4 @@
 - (NSData *) readFromOffset:(uint64_t) offset upTo:(uint64_t) count error:(NSError **)error;
 
 @end
+#endif

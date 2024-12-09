@@ -1,3 +1,4 @@
+#if __has_include(<Foundation/Foundation.h>)
 #import "include/WPJavascriptCoreFileHandle.h"
 
 @implementation WPJavascriptCoreFileHandle {
@@ -33,3 +34,4 @@
 }
 
 @end
+#endif
