@@ -223,7 +223,6 @@ extension UUIDV7 {
   /// The Foundation UUID must be compliant with RFC 9562 UUID Version 7.
   ///
   /// - Parameter uuid: A Foundation UUID.
-  @inlinable
   public init?(_ uuid: UUID) {
     self.init(rawValue: uuid)
   }
@@ -233,7 +232,6 @@ extension UUIDV7 {
   /// The Foundation UUID must be compliant with RFC 9562 UUID Version 7.
   ///
   /// - Parameter uuid: A Foundation `uuid_t`.
-  @inlinable
   public init?(uuid: uuid_t) {
     self.init(UUID(uuid: uuid))
   }
@@ -243,7 +241,6 @@ extension UUIDV7 {
   /// The UUID String must be compliant with RFC 9562 UUID Version 7.
   ///
   /// - Parameter uuidString: A UUID String.
-  @inlinable
   public init?(uuidString: String) {
     guard let uuid = UUID(uuidString: uuidString) else { return nil }
     self.init(uuid)
@@ -253,7 +250,6 @@ extension UUIDV7 {
 // MARK: - Dynamic Member Lookup
 
 extension UUIDV7 {
-  @inlinable
   public subscript<Value>(dynamicMember keyPath: KeyPath<UUID, Value>) -> Value {
     self.rawValue[keyPath: keyPath]
   }
@@ -262,16 +258,24 @@ extension UUIDV7 {
 // MARK: - Codable
 
 extension UUIDV7: Encodable {
-  @inlinable
   public func encode(to encoder: any Encoder) throws {
     try self.rawValue.encode(to: encoder)
   }
 }
 
 extension UUIDV7: Decodable {
-  @inlinable
   public init(from decoder: any Decoder) throws {
-    self.rawValue = try UUID(from: decoder)
+    let uuid = try UUID(from: decoder)
+    guard let uuid = Self(uuid) else {
+      throw DecodingError.dataCorrupted(
+        DecodingError.Context(
+          codingPath: [],
+          debugDescription:
+            "Attempted to decode a UUID with version \(uuid.version) and not version 7."
+        )
+      )
+    }
+    self = uuid
   }
 }
 
@@ -280,12 +284,10 @@ extension UUIDV7: Decodable {
 #if canImport(AppIntents)
   @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   extension UUIDV7: EntityIdentifierConvertible {
-    @inlinable
     public var entityIdentifierString: String {
       self.rawValue.entityIdentifierString
     }
 
-    @inlinable
     public static func entityIdentifier(for entityIdentifierString: String) -> UUIDV7? {
       UUID.entityIdentifier(for: entityIdentifierString).flatMap(Self.init(rawValue:))
     }
@@ -295,7 +297,6 @@ extension UUIDV7: Decodable {
 // MARK: - CustomStringConvertible
 
 extension UUIDV7: CustomStringConvertible {
-  @inlinable
   public var description: String {
     self.rawValue.description
   }
@@ -304,7 +305,6 @@ extension UUIDV7: CustomStringConvertible {
 // MARK: - CustomReflectable
 
 extension UUIDV7: CustomReflectable {
-  @inlinable
   public var customMirror: Mirror {
     self.rawValue.customMirror
   }

@@ -218,6 +218,23 @@ struct UUIDV7Tests {
     }
   }
 
+  @Test("Decode Valid UUIDV7")
+  func decodeValidUUID() throws {
+    let u = UUID(uuidString: "1915C92E-B61E-7E3E-AFEA-2B5F3EA2DCF0")!
+    let data = try JSONEncoder().encode(u)
+    let u7 = try JSONDecoder().decode(UUIDV7.self, from: data)
+    #expect(u7.rawValue == u)
+  }
+
+  @Test("Does not Decode Non-UUIDV7 UUID")
+  func invalidDecodedUUID() throws {
+    let u = UUID()
+    let data = try JSONEncoder().encode(u)
+    #expect(throws: DecodingError.self) {
+      try JSONDecoder().decode(UUIDV7.self, from: data)
+    }
+  }
+
   @Test("Generation Speed")
   func generationSpeed() {
     let clock = ContinuousClock()
