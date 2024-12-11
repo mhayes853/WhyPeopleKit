@@ -176,15 +176,31 @@ extension UUIDV7 {
   }
 
   private init(_ timeMillis: UInt64, _ bytes: inout uuid_t) {
+    // NB: We cannot just .bigEndian, because it causes a weird bug in release mode that prevents
+    // bytes from being written to correctly.
+    //
+    // This discussion seems relevant:
+    // https://forums.swift.org/t/code-generation-bug-in-release-mode-xcode-version-16-0-16a242d/74781
     withUnsafePointer(to: timeMillis) { ptr in
-      let ptr = UnsafeRawPointer(ptr)
-        .assumingMemoryBound(to: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8).self)
-      bytes.0 = ptr.pointee.5
-      bytes.1 = ptr.pointee.4
-      bytes.2 = ptr.pointee.3
-      bytes.3 = ptr.pointee.2
-      bytes.4 = ptr.pointee.1
-      bytes.5 = ptr.pointee.0
+      #if _endian(little)
+        let ptr = UnsafeRawPointer(ptr)
+          .assumingMemoryBound(to: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8).self)
+        bytes.0 = ptr.pointee.5
+        bytes.1 = ptr.pointee.4
+        bytes.2 = ptr.pointee.3
+        bytes.3 = ptr.pointee.2
+        bytes.4 = ptr.pointee.1
+        bytes.5 = ptr.pointee.0
+      #else
+        let ptr = UnsafeRawPointer(ptr).advanced(by: 2)
+          .assumingMemoryBound(to: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8).self)
+        bytes.0 = ptr.pointee.0
+        bytes.1 = ptr.pointee.1
+        bytes.2 = ptr.pointee.2
+        bytes.3 = ptr.pointee.3
+        bytes.4 = ptr.pointee.4
+        bytes.5 = ptr.pointee.5
+      #endif
     }
     bytes.6 = (bytes.6 & 0x0F) | 0x70
     bytes.8 = (bytes.8 & 0x3F) | 0x80
