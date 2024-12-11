@@ -33,19 +33,21 @@
       #expect(try #require(value as? Int) == 1)
     }
 
-    @Test(
-      "Raises issue when using an invalid key format",
-      arguments: ["hello.world", "hello world", "123key"]
-    )
-    func observeNewInvalidFormat(key: String) async throws {
-      withExpectedIssue {
-        _ = self.userDefaults.values(forKey: key)
-      }
+    #if DEBUG
+      @Test(
+        "Raises issue when using an invalid key format",
+        arguments: ["hello.world", "hello world", "123key"]
+      )
+      func observeNewInvalidFormat(key: String) async throws {
+        withExpectedIssue {
+          _ = self.userDefaults.values(forKey: key)
+        }
 
-      withExpectedIssue {
-        let observation = self.userDefaults.observeValue(forKey: key) { _ in }
-        self.userDefaults.removeObservation(observation)
+        withExpectedIssue {
+          let observation = self.userDefaults.observeValue(forKey: key) { _ in }
+          self.userDefaults.removeObservation(observation)
+        }
       }
-    }
+    #endif
   }
 #endif
