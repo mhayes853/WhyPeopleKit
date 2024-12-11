@@ -17,7 +17,7 @@
   return self;
 }
 
-- (NSData *) readFromOffset:(uint64_t) offset upTo:(uint64_t) count error:(NSError **)error {
+- (NSData *) readFromOffset:(uint64_t) offset count:(uint64_t) count error:(NSError **)error {
   NSError *fileError;
   BOOL didSeek = [handle seekToOffset:offset error:&fileError];
   if (!didSeek) {

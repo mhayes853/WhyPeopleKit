@@ -165,12 +165,10 @@
         let temp = URL.temporaryDirectory.appending(path: "\(UUID()).json")
         try "Hello world".write(to: temp, atomically: true, encoding: .utf8)
         let file = try JSFile(contentsOf: temp)
+        try FileManager.default.removeItem(at: temp)
         self.context.setObject(file, forPath: "testFile")
-        let value = try await #require(
-          self.context.evaluateScript("testFile.text()").toPromise()
-        )
-        .resolvedValue
-        expectNoDifference(value.toString(), "Hello world")
+        let value = try #require(self.context.evaluateScript("testFile.text()").toPromise())
+        await #expect(throws: Error.self) { try await value.resolvedValue }
       }
     #endif
   }

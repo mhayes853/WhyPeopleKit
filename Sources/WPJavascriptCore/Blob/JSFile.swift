@@ -163,13 +163,11 @@
     let lastModified: Date
     let utf8SizeInBytes: Int64
     private let url: URL
-    private let handle: WPJavascriptCoreFileHandle
 
     init(url: URL) throws {
       let values = try url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
       self.utf8SizeInBytes = Int64(values.fileSize ?? 0)
       self.lastModified = values.contentModificationDate ?? Date()
-      self.handle = try WPJavascriptCoreFileHandle(url: url)
       self.url = url
     }
 
@@ -181,9 +179,10 @@
       do {
         let data = try NSFileCoordinator()
           .coordinate(readingItemAt: self.url) { url in
-            try self.handle.read(
+            let handle = try WPJavascriptCoreFileHandle(url: url)
+            return try handle.read(
               fromOffset: UInt64(startIndex),
-              upTo: UInt64(endIndex - startIndex)
+              count: UInt64(endIndex - startIndex)
             )
           }
         return String(decoding: data, as: UTF8.self).utf8
