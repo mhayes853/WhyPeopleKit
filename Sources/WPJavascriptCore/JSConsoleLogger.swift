@@ -92,7 +92,7 @@
     public init() {}
 
     public func log(level: JSConsoleLoggerLevel?, message: String) {
-      var stderr = StandardTextOutputStream.stderr
+      var stderr = FileTextOutputStream.stderr
       switch level {
       case .error: print(message, to: &stderr)
       default: print(message)
