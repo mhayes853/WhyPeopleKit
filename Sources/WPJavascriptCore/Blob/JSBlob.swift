@@ -112,8 +112,8 @@
 
   extension JSBlob {
     /// Returns the UTF8 view from this blob.
-    public func utf8() async throws -> String.UTF8View {
-      try await self.indexedStorage.utf8()
+    public func utf8(context: JSContext) async throws -> String.UTF8View {
+      try await self.indexedStorage.utf8(context: context)
     }
   }
 
@@ -173,8 +173,12 @@
       var endIndex: Int
       let storage: any JSBlobStorage
 
-      func utf8() async throws(JSValueError) -> String.UTF8View {
-        try await self.storage.utf8Bytes(startIndex: self.startIndex, endIndex: self.endIndex)
+      func utf8(context: JSContext) async throws(JSValueError) -> String.UTF8View {
+        try await self.storage.utf8Bytes(
+          startIndex: self.startIndex,
+          endIndex: self.endIndex,
+          context: context
+        )
       }
 
       func utf8(
@@ -182,7 +186,9 @@
         _ map: (String.UTF8View, JSContext) -> Any?
       ) async {
         do {
-          continuation.resume(resolving: map(try await self.utf8(), continuation.context))
+          continuation.resume(
+            resolving: map(try await self.utf8(context: continuation.context), continuation.context)
+          )
         } catch {
           continuation.resume(rejecting: error.value)
         }
@@ -194,14 +200,12 @@
     utf8: String.UTF8View,
     in context: JSContext
   ) -> (JSValue, JSValue) {
-    let buffer = context.objectForKeyedSubscript("ArrayBuffer")
-      .construct(withArguments: [utf8.count])!
     let bytes = context.objectForKeyedSubscript("Uint8Array")
-      .construct(withArguments: [buffer])!
+      .construct(withArguments: [utf8.count])!
     for (index, byte) in utf8.enumerated() {
       bytes.setValue(byte, at: index)
     }
-    return (buffer, bytes)
+    return (bytes.objectForKeyedSubscript("buffer")!, bytes)
   }
 
   // MARK: - Blob Installer

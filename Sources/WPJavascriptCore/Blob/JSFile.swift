@@ -173,7 +173,11 @@
       self.url = url
     }
 
-    func utf8Bytes(startIndex: Int, endIndex: Int) throws(JSValueError) -> String.UTF8View {
+    func utf8Bytes(
+      startIndex: Int,
+      endIndex: Int,
+      context: JSContext
+    ) throws(JSValueError) -> String.UTF8View {
       do {
         let data = try NSFileCoordinator()
           .coordinate(readingItemAt: self.url) { url in
@@ -185,7 +189,7 @@
         return String(decoding: data, as: UTF8.self).utf8
       } catch {
         throw JSValueError(
-          value: JSValue(newErrorFromMessage: error.localizedDescription, in: .current())
+          value: JSValue(newErrorFromMessage: error.localizedDescription, in: context)
         )
       }
     }

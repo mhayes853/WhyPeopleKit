@@ -95,6 +95,13 @@
       expectNoDifference(value, [0x66, 0x6F, 0x6F])
     }
 
+    @Test("Native Bytes")
+    func nativeBytes() async throws {
+      let blob = JSBlob(storage: "foo", type: .text)
+      let utf8 = try await blob.utf8(context: self.context)
+      expectNoDifference(String(utf8), "foo")
+    }
+
     @Test("Array Buffer")
     func arrayBuffer() async throws {
       let value = try await #require(

@@ -264,14 +264,18 @@
   }
 
   extension JSFetchResponseBlobStorage: JSBlobStorage {
-    func utf8Bytes(startIndex: Int, endIndex: Int) async throws(JSValueError) -> String.UTF8View {
+    func utf8Bytes(
+      startIndex: Int,
+      endIndex: Int,
+      context: JSContext
+    ) async throws(JSValueError) -> String.UTF8View {
       do {
         let utf8 = try await self.stream.reduce(into: Data()) { $0.append($1) }
         return String(decoding: utf8, as: UTF8.self)
-          .utf8Bytes(startIndex: startIndex, endIndex: endIndex)
+          .utf8Bytes(startIndex: startIndex, endIndex: endIndex, context: context)
       } catch {
         throw JSValueError(
-          value: JSValue(newErrorFromMessage: error.localizedDescription, in: .current())
+          value: JSValue(newErrorFromMessage: error.localizedDescription, in: context)
         )
       }
     }

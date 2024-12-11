@@ -14,22 +14,27 @@
     /// - Parameters:
     ///   - startIndex: The starting index in the UTF8 data.
     ///   - endIndex: The ending index in the UTF8 data.
+    ///   - context: The `JSContext` of the blob fetching bytes.
     /// - Throws: A ``JSValueError``.
     /// - Returns: UTF8 data.
-    func utf8Bytes(startIndex: Int, endIndex: Int) async throws(JSValueError) -> String.UTF8View
+    func utf8Bytes(
+      startIndex: Int,
+      endIndex: Int,
+      context: JSContext
+    ) async throws(JSValueError) -> String.UTF8View
   }
 
   // MARK: - String Conformances
 
   extension String: JSBlobStorage {
-    public func utf8Bytes(startIndex: Int, endIndex: Int) -> String.UTF8View {
-      self.utf8.utf8Bytes(startIndex: startIndex, endIndex: endIndex)
+    public func utf8Bytes(startIndex: Int, endIndex: Int, context: JSContext) -> String.UTF8View {
+      self.utf8.utf8Bytes(startIndex: startIndex, endIndex: endIndex, context: context)
     }
   }
 
   extension Substring: JSBlobStorage {
-    public func utf8Bytes(startIndex: Int, endIndex: Int) -> String.UTF8View {
-      self.utf8.utf8Bytes(startIndex: startIndex, endIndex: endIndex)
+    public func utf8Bytes(startIndex: Int, endIndex: Int, context: JSContext) -> String.UTF8View {
+      self.utf8.utf8Bytes(startIndex: startIndex, endIndex: endIndex, context: context)
     }
   }
 
@@ -40,15 +45,15 @@
   extension String.UTF8View: JSBlobStorage {
     public var utf8SizeInBytes: Int { self.count }
 
-    public func utf8Bytes(startIndex: Int, endIndex: Int) -> Self {
-      self[self.indexRange].utf8Bytes(startIndex: startIndex, endIndex: endIndex)
+    public func utf8Bytes(startIndex: Int, endIndex: Int, context: JSContext) -> Self {
+      self[self.indexRange].utf8Bytes(startIndex: startIndex, endIndex: endIndex, context: context)
     }
   }
 
   extension Substring.UTF8View: JSBlobStorage {
     public var utf8SizeInBytes: Int { self.count }
 
-    public func utf8Bytes(startIndex: Int, endIndex: Int) -> String.UTF8View {
+    public func utf8Bytes(startIndex: Int, endIndex: Int, context: JSContext) -> String.UTF8View {
       let startIndex = self.index(self.startIndex, offsetBy: startIndex)
       let endIndex = self.index(self.startIndex, offsetBy: endIndex)
       return String(Substring(self[startIndex..<endIndex])).utf8
