@@ -253,11 +253,11 @@
   private final class JSFetchResponseBlobStorage {
     private let stream: AsyncThrowingStream<Data, any Error>
     private let continuation: AsyncThrowingStream<Data, any Error>.Continuation
-    let utf8SizeInBytes: Int
+    let utf8SizeInBytes: Int64
 
     init(contentLength: Int64) {
       let (stream, continuation) = AsyncThrowingStream<Data, any Error>.makeStream()
-      self.utf8SizeInBytes = Int(contentLength)
+      self.utf8SizeInBytes = contentLength
       self.stream = stream
       self.continuation = continuation
     }
@@ -265,8 +265,8 @@
 
   extension JSFetchResponseBlobStorage: JSBlobStorage {
     func utf8Bytes(
-      startIndex: Int,
-      endIndex: Int,
+      startIndex: Int64,
+      endIndex: Int64,
       context: JSContext
     ) async throws(JSValueError) -> String.UTF8View {
       do {

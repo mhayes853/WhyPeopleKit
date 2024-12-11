@@ -10,7 +10,7 @@
     var webkitRelativePath: String { get }
     var lastModified: Int64 { get }
     var lastModifiedDate: Date { get }
-    var size: Int { get }
+    var size: Int64 { get }
     var type: String { get }
 
     init?(_ fileBits: JSValue, _ fileName: JSValue, _ options: JSValue)
@@ -161,21 +161,21 @@
 
   private struct FileJSBlobStorage: JSBlobStorage {
     let lastModified: Date
-    let utf8SizeInBytes: Int
+    let utf8SizeInBytes: Int64
     private let url: URL
     private let handle: WPJavascriptCoreFileHandle
 
     init(url: URL) throws {
       let values = try url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
-      self.utf8SizeInBytes = values.fileSize ?? 0
+      self.utf8SizeInBytes = Int64(values.fileSize ?? 0)
       self.lastModified = values.contentModificationDate ?? Date()
       self.handle = try WPJavascriptCoreFileHandle(url: url)
       self.url = url
     }
 
     func utf8Bytes(
-      startIndex: Int,
-      endIndex: Int,
+      startIndex: Int64,
+      endIndex: Int64,
       context: JSContext
     ) throws(JSValueError) -> String.UTF8View {
       do {

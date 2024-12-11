@@ -5,7 +5,7 @@
   // MARK: - JSBlob
 
   @objc private protocol JSBlobExport: JSExport {
-    var size: Int { get }
+    var size: Int64 { get }
     var type: String { get }
 
     init?(blobParts iterable: JSValue, options: JSValue)
@@ -93,14 +93,14 @@
   // MARK: - Subscript
 
   extension JSBlob {
-    public subscript(range: Range<Int>, type mimeType: MIMEType? = nil) -> JSBlob {
+    public subscript(range: Range<Int64>, type mimeType: MIMEType? = nil) -> JSBlob {
       var state = self.indexedStorage
       state.startIndex = range.lowerBound
       state.endIndex = range.upperBound
       return JSBlob(state: state, type: mimeType ?? self.mimeType)
     }
 
-    public subscript(range: PartialRangeFrom<Int>, type mimeType: MIMEType? = nil) -> JSBlob {
+    public subscript(range: PartialRangeFrom<Int64>, type mimeType: MIMEType? = nil) -> JSBlob {
       var state = self.indexedStorage
       state.startIndex = range.lowerBound
       state.endIndex = self.size
@@ -126,7 +126,7 @@
     }
 
     /// The size (in bytes) of this blob.
-    public var size: Int {
+    public var size: Int64 {
       self.indexedStorage.storage.utf8SizeInBytes
     }
 
@@ -149,9 +149,9 @@
     public func slice(_ start: JSValue, _ end: JSValue, _ type: JSValue) -> JSBlob {
       let type = MIMEType(rawValue: type.isUndefined ? self.type : type.toString() ?? "")
       guard !start.isUndefined else { return self }
-      let start = max(0, Int(start.toInt32()))
+      let start = max(0, Int64(start.toInt32()))
       guard !end.isUndefined else { return self[start..., type: type] }
-      let end = min(self.size, end.isUndefined ? self.size : Int(end.toInt32()))
+      let end = min(self.size, end.isUndefined ? self.size : Int64(end.toInt32()))
       return self[start..<end, type: type]
     }
 
@@ -169,8 +169,8 @@
 
   extension JSBlob {
     private struct IndexedStorage: Sendable {
-      var startIndex: Int
-      var endIndex: Int
+      var startIndex: Int64
+      var endIndex: Int64
       let storage: any JSBlobStorage
 
       func utf8(context: JSContext) async throws(JSValueError) -> String.UTF8View {
