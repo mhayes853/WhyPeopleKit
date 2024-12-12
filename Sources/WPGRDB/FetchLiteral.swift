@@ -3,7 +3,7 @@
 
   // MARK: - DatabaseValueConvertible
 
-  extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+  extension DatabaseValueConvertible {
     /// Returns a single value fetched from an SQL query.
     ///
     /// The value is decoded from the leftmost column if the `adapter` argument
@@ -99,7 +99,9 @@
       let request = SQLRequest(literal: literal, adapter: adapter, cached: cached)
       return try Self.fetchSet(db, request)
     }
+  }
 
+  extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// Returns a cursor over values fetched from an SQL query.
     ///
     /// The value is decoded from the leftmost column if the `adapter` argument
