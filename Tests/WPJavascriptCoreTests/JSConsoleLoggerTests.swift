@@ -667,5 +667,32 @@
         ]
       )
     }
+
+    @Test("Logs to Both Loggers of Combined Logger")
+    func logsToCombinedLogger() throws {
+      let logger1 = TestLogger()
+      let logger2 = TestLogger()
+      try self.context.install([combineJSConsoleLoggers([logger1, logger2])])
+      self.context.evaluateScript(
+        """
+        console.log("Hello %s", "World")
+        console.info("Hello %s", "World")
+        console.error("Hello %s", "World")
+        console.debug("Hello %s", "World")
+        console.trace("Hello %s", "World")
+        console.warn("Hello %s", "World")
+        """
+      )
+      let expectedMessages = [
+        LogMessage(level: nil, message: "Hello World"),
+        LogMessage(level: .info, message: "Hello World"),
+        LogMessage(level: .error, message: "Hello World"),
+        LogMessage(level: .debug, message: "Hello World"),
+        LogMessage(level: .trace, message: "Hello World"),
+        LogMessage(level: .warn, message: "Hello World")
+      ]
+      expectNoDifference(logger1.messages, expectedMessages)
+      expectNoDifference(logger2.messages, expectedMessages)
+    }
   }
 #endif

@@ -113,6 +113,26 @@
     public static var consoleLogging: Self { PrintJSConsoleLogger() }
   }
 
+  // MARK: - CombineJSLoggers
+
+  /// Combines an array of ``JSConsoleLogger``s into a single logger.
+  public func combineJSConsoleLoggers(_ loggers: [any JSConsoleLogger]) -> CombinedJSConsoleLogger {
+    CombinedJSConsoleLogger(loggers: loggers)
+  }
+
+  /// A ``JSConsoleLogger`` that combines many loggers into a single logger.
+  ///
+  /// You can create an instance of this logger by calling ``combineJSConsoleLoggers``.
+  public struct CombinedJSConsoleLogger: JSConsoleLogger {
+    let loggers: [any JSConsoleLogger]
+
+    public func log(level: JSConsoleLoggerLevel?, message: String) {
+      for logger in self.loggers {
+        logger.log(level: level, message: message)
+      }
+    }
+  }
+
   // MARK: - Helpers
 
   extension JSValue {
