@@ -104,6 +104,27 @@
     }
   }
 
+  // MARK: - AnyJSInstaller
+
+  /// A type-erased ``JSContextInstallable``.
+  public struct AnyJSInstaller: JSContextInstallable {
+    private let install: (JSContext) throws -> Void
+
+    /// Creates an installer from the specified closure that installs Javascript into a `JSContext`.
+    public init(install: @escaping (JSContext) throws -> Void) {
+      self.install = install
+    }
+
+    /// Type-erases an installer.
+    public init(_ installer: some JSContextInstallable) {
+      self.install = installer.install(in:)
+    }
+
+    public func install(in context: JSContext) throws {
+      try self.install(context)
+    }
+  }
+
   // MARK: - Bundle JS Context Installable
 
   /// A ``JSContextInstallable`` that loads Javascript files from a bundle.
