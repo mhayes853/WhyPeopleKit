@@ -85,7 +85,7 @@
         )
         return nil
       }
-      guard options.isObject || options.isUndefined else {
+      guard options.isUndefined || options.isObject else {
         context.exception = .constructError(
           className: "File",
           message: "The provided value is not of type 'FilePropertyBag'.",
@@ -95,7 +95,8 @@
       }
       let file = fileBits.toObjectOf(JSFile.self) as? JSFile
       var lastModified = Date()
-      let jsLastModified = options.objectForKeyedSubscript("lastModified")
+      let jsLastModified =
+        options.isUndefined ? nil : options.objectForKeyedSubscript("lastModified")
       if let date = jsLastModified?.toDate(), jsLastModified?.isDate == true {
         lastModified = date
       } else if let dateMillis = jsLastModified?.toInt32(), jsLastModified?.isNumber == true {

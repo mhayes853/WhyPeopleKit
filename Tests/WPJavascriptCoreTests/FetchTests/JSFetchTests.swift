@@ -11,7 +11,6 @@
 
     init() throws {
       try self.context.install([.consoleLogging])
-      self.context.exceptionHandler = { _, value in print(value) }
     }
 
     @Test(

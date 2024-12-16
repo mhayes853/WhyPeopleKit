@@ -9,7 +9,6 @@
 
     init() throws {
       try self.context.install([.fetch, .consoleLogging])
-      self.context.exceptionHandler = { _, value in print(value) }
     }
 
     @Test("Empty Headers Init Has Nothing")

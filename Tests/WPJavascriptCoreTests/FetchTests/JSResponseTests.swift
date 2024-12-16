@@ -10,7 +10,6 @@
 
     init() throws {
       try self.context.install([.consoleLogging, .response])
-      self.context.exceptionHandler = { _, value in print(value) }
     }
 
     @Test("Construct With Non-Object RequestInit")

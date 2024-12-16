@@ -35,9 +35,8 @@
     /// See [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/Blob/Blob).
     public required convenience init?(blobParts iterable: JSValue, options: JSValue) {
       guard let context = JSContext.current() else { return nil }
-      let typeValue = options.objectForKeyedSubscript("type")
-      let type = typeValue?.isUndefined == true ? "" : typeValue?.toString() ?? ""
-      guard (iterable.isIterable && !iterable.isString) || iterable.isUndefined else {
+      let type = options.isUndefined ? "" : options.objectForKeyedSubscript("type").toString() ?? ""
+      guard iterable.isUndefined || (iterable.isIterable && !iterable.isString) else {
         context.exception = .constructError(
           className: "Blob",
           message: "The provided value cannot be converted to a sequence.",
@@ -55,7 +54,7 @@
         .invokeMethod("map", withArguments: [unsafeBitCast(map, to: JSValue.self)])
         .toArray()
         .compactMap { $0 as? String }
-      self.init(storage: strings.joined().utf8, type: MIMEType(rawValue: type))
+      self.init(storage: strings.joined(), type: MIMEType(rawValue: type))
     }
 
     /// Creates a blob from another blob.
@@ -193,6 +192,28 @@
           continuation.resume(rejecting: error.value)
         }
       }
+    }
+  }
+
+  extension JSValue {
+    fileprivate func consumeIterable() -> [String] {
+      guard self.isObject else { return [] }
+      guard let symbolIterator = self.context.evaluateScript("Symbol.iterator") else { return [] }
+      guard
+        let iteratorFunction = self.objectForKeyedSubscript(symbolIterator).call(withArguments: []),
+        let iterator = iteratorFunction.call(withArguments: [])
+      else { return [] }
+      print(iterator)
+      var results: [String] = []
+      while true {
+        guard let result = iterator.invokeMethod("next", withArguments: []) else { break }
+        guard let done = result.forProperty("done")?.toBool() else { break }
+        if done { break }
+        if let value = result.forProperty("value") {
+          results.append(value.toString())
+        }
+      }
+      return results
     }
   }
 

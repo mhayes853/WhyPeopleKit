@@ -9,7 +9,6 @@
 
     init() throws {
       try self.context.install([.formData, .consoleLogging])
-      self.context.exceptionHandler = { _, value in print(value) }
     }
 
     @Test("Get Returns Null When No Value For Key")

@@ -15,7 +15,6 @@
         .abortController { try await clock.sleep(for: .seconds($0)) },
         .consoleLogging
       ])
-      self.context.exceptionHandler = { _, value in print(value) }
     }
 
     @Test("Initialization")
