@@ -31,10 +31,7 @@ final class NotificationCenterKeyTests: XCTestCase, @unchecked Sendable {
     let e = self.expectation(description: "does not publish again")
     e.isInverted = true
     lockedExpectation.setValue(e)
-    NotificationCenter.default.post(
-      name: self.notification,
-      object: nil
-    )
+    NotificationCenter.default.post(name: self.notification, object: nil)
     await self.fulfillment(of: [lockedExpectation.value], timeout: 0.1)
   }
 

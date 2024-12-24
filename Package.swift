@@ -187,7 +187,11 @@ let package = Package(
     .target(name: "_CWPJavascriptCore"),
     .target(
       name: "WPSharing",
-      dependencies: ["WPDeviceVolume", .product(name: "Sharing", package: "swift-sharing")]
+      dependencies: [
+        "WPDeviceVolume",
+        "WPDependencies",
+        .product(name: "Sharing", package: "swift-sharing")
+      ]
     ),
     .testTarget(name: "WPSharingTests", dependencies: ["WPSharing"])
   ],
