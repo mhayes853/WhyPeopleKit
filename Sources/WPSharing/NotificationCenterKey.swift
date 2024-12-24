@@ -163,7 +163,7 @@ extension NotificationCenterKey: SharedReaderKey {
 
 // MARK: - LowPowerMode Key
 
-#if !os(linux)
+#if !os(Linux)
   /// A dependency that detects whether or not the device is in low power mode.
   public struct IsInLowPowerMode: Sendable {
     private let isInLowPowerMode: @Sendable () -> Bool

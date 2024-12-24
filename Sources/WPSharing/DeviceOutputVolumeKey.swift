@@ -1,4 +1,4 @@
-#if !os(linux)
+#if !os(Linux)
   import Sharing
   import WPDependencies
   import WPDeviceVolume
