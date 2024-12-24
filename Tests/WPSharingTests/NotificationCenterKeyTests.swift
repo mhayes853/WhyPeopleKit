@@ -26,7 +26,7 @@ final class NotificationCenterKeyTests: XCTestCase, @unchecked Sendable {
     let subscription = key.subscribe(initialValue: nil) { _ in
       lockedExpectation.value.fulfill()
     }
-    await self.fulfillment(of: [lockedExpectation.value])
+    await self.fulfillment(of: [lockedExpectation.value], timeout: 0.1)
     subscription.cancel()
     let e = self.expectation(description: "does not publish again")
     e.isInverted = true
