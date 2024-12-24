@@ -163,64 +163,66 @@ extension NotificationCenterKey: SharedReaderKey {
 
 // MARK: - LowPowerMode Key
 
-/// A dependency that detects whether or not the device is in low power mode.
-public struct IsInLowPowerMode: Sendable {
-  private let isInLowPowerMode: @Sendable () -> Bool
-
-  public init(_ isInLowPowerMode: @Sendable @escaping () -> Bool) {
-    self.isInLowPowerMode = isInLowPowerMode
-  }
-}
-
-extension IsInLowPowerMode {
-  public func callAsFunction() -> Bool {
-    self.isInLowPowerMode()
-  }
-}
-
-@available(iOS 9, macOS 12, tvOS 9, watchOS 2, *)
-extension IsInLowPowerMode: DependencyKey {
-  public static var liveValue: Self {
-    Self { ProcessInfo.processInfo.isLowPowerModeEnabled }
-  }
-}
-
-extension DependencyValues {
+#if !os(linux)
   /// A dependency that detects whether or not the device is in low power mode.
-  @available(iOS 9, macOS 12, tvOS 9, watchOS 2, *)
-  public var isInLowPowerMode: IsInLowPowerMode {
-    get { self[IsInLowPowerMode.self] }
-    set { self[IsInLowPowerMode.self] = newValue }
-  }
-}
+  public struct IsInLowPowerMode: Sendable {
+    private let isInLowPowerMode: @Sendable () -> Bool
 
-extension SharedReaderKey
-where Self == NotificationCenterKey<Bool>.Default {
-  /// A shared key that indicates whether or not the device is in low power mode.
-  ///
-  /// You can override how the value is detected by overriding the `isInLowPowerMode` dependency.
-  ///
-  /// ```swift
-  /// @Test("Low Power")
-  /// func lowPower()  {
-  ///   withDependencies {
-  ///     // Mock the mode to always be in low power mode
-  ///     $0.isInLowPowerMode = IsInLowPowerMode { true }
-  ///   } operation: {
-  ///     @SharedReader(.isInLowPowerMode) var isInLowPowerMode
-  ///     // Assertions...
-  ///   }
-  /// }
-  /// ```
-  @available(iOS 9, macOS 12, tvOS 9, watchOS 2, *)
-  public static var isInLowPowerMode: Self {
-    @Dependency(\.isInLowPowerMode) var isLowPower
-    return Self[
-      .notification(name: .NSProcessInfoPowerStateDidChange) { isLowPower() },
-      default: false
-    ]
+    public init(_ isInLowPowerMode: @Sendable @escaping () -> Bool) {
+      self.isInLowPowerMode = isInLowPowerMode
+    }
   }
-}
+
+  extension IsInLowPowerMode {
+    public func callAsFunction() -> Bool {
+      self.isInLowPowerMode()
+    }
+  }
+
+  @available(iOS 9, macOS 12, tvOS 9, watchOS 2, *)
+  extension IsInLowPowerMode: DependencyKey {
+    public static var liveValue: Self {
+      Self { ProcessInfo.processInfo.isLowPowerModeEnabled }
+    }
+  }
+
+  extension DependencyValues {
+    /// A dependency that detects whether or not the device is in low power mode.
+    @available(iOS 9, macOS 12, tvOS 9, watchOS 2, *)
+    public var isInLowPowerMode: IsInLowPowerMode {
+      get { self[IsInLowPowerMode.self] }
+      set { self[IsInLowPowerMode.self] = newValue }
+    }
+  }
+
+  extension SharedReaderKey
+  where Self == NotificationCenterKey<Bool>.Default {
+    /// A shared key that indicates whether or not the device is in low power mode.
+    ///
+    /// You can override how the value is detected by overriding the `isInLowPowerMode` dependency.
+    ///
+    /// ```swift
+    /// @Test("Low Power")
+    /// func lowPower()  {
+    ///   withDependencies {
+    ///     // Mock the mode to always be in low power mode
+    ///     $0.isInLowPowerMode = IsInLowPowerMode { true }
+    ///   } operation: {
+    ///     @SharedReader(.isInLowPowerMode) var isInLowPowerMode
+    ///     // Assertions...
+    ///   }
+    /// }
+    /// ```
+    @available(iOS 9, macOS 12, tvOS 9, watchOS 2, *)
+    public static var isInLowPowerMode: Self {
+      @Dependency(\.isInLowPowerMode) var isLowPower
+      return Self[
+        .notification(name: .NSProcessInfoPowerStateDidChange) { isLowPower() },
+        default: false
+      ]
+    }
+  }
+#endif
 
 // MARK: - Helpers
 
