@@ -27,7 +27,7 @@
 
   func withTestURLSessionHandler<T: Sendable>(
     handler: @Sendable @escaping (URLRequest) async throws -> (StatusCode, ResponseBody),
-    perform task: @Sendable @escaping (sending URLSession) async throws -> T
+    perform task: @Sendable @escaping (URLSession) async throws -> T
   ) async throws -> T {
     try await withTestURLSessionHandlerAndHeaders { request in
       let (status, body) = try await handler(request)
@@ -38,8 +38,10 @@
   }
 
   func withTestURLSessionHandlerAndHeaders<T: Sendable>(
-    handler: @Sendable @escaping (URLRequest) async throws -> (StatusCode, ResponseBody, [String: String]),
-    perform task: @Sendable @escaping (sending URLSession) async throws -> T
+    handler: @Sendable @escaping (URLRequest) async throws -> (
+      StatusCode, ResponseBody, [String: String]
+    ),
+    perform task: @Sendable @escaping (URLSession) async throws -> T
   ) async throws -> T {
     let configuration = URLSessionConfiguration.ephemeral
     configuration.protocolClasses = [TestURLProtocol.self]

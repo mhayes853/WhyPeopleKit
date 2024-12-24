@@ -26,7 +26,8 @@ let package = Package(
     .library(name: "WPGRDB", targets: ["WPGRDB"]),
     .library(name: "WPPerception", targets: ["WPPerception"]),
     .library(name: "WPSnapshotTesting", targets: ["WPSnapshotTesting"]),
-    .library(name: "WPJavascriptCore", targets: ["WPJavascriptCore"])
+    .library(name: "WPJavascriptCore", targets: ["WPJavascriptCore"]),
+    .library(name: "WPSharing", targets: ["WPSharing"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
@@ -46,7 +47,8 @@ let package = Package(
     .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "6.0.0")),
     .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
     .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.6"),
-    .package(url: "https://github.com/apple/swift-log", from: "1.6.1")
+    .package(url: "https://github.com/apple/swift-log", from: "1.6.1"),
+    .package(url: "https://github.com/pointfreeco/swift-sharing", from: "1.1.1")
   ],
   targets: [
     .target(
@@ -182,7 +184,12 @@ let package = Package(
         "WPJavascriptCore", "WPSnapshotTesting", .product(name: "Clocks", package: "swift-clocks")
       ]
     ),
-    .target(name: "_CWPJavascriptCore")
+    .target(name: "_CWPJavascriptCore"),
+    .target(
+      name: "WPSharing",
+      dependencies: ["WPDeviceVolume", .product(name: "Sharing", package: "swift-sharing")]
+    ),
+    .testTarget(name: "WPSharingTests", dependencies: ["WPSharing"])
   ],
   swiftLanguageModes: [.version("6")]
 )

@@ -1,5 +1,5 @@
 {
-  "originHash" : "658759e6f55dce9c1afd8c8e306b83b303aff1268383c3f00d74bf14917f489d",
+  "originHash" : "79f2c14ab55783fdc2fd027ddfdf3d02df99da5b91c4d47bfcca3fe26afd8f27",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -92,6 +92,15 @@
       }
     },
     {
+      "identity" : "swift-identified-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-identified-collections",
+      "state" : {
+        "revision" : "2f5ab6e091dd032b63dacbda052405756010dc3b",
+        "version" : "1.1.0"
+      }
+    },
+    {
       "identity" : "swift-log",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log",
@@ -125,6 +134,15 @@
       "state" : {
         "revision" : "8d52279b9809ef27eabe7d5420f03734528f19da",
         "version" : "1.4.1"
+      }
+    },
+    {
+      "identity" : "swift-sharing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-sharing",
+      "state" : {
+        "revision" : "974e51b3612317ba5883a73dc9fd9e2409a11f2d",
+        "version" : "1.1.1"
       }
     },
     {
