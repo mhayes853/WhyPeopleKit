@@ -107,6 +107,9 @@ extension DerivedKey: SharedKey {
       }
       guard !shouldLeave else { return }
 
+      // NB: We need to use the shared reader value directly instead of relying on the subscription
+      // because the reader ensures that the shared values we pass to the derived state are
+      // connected to the parent.
       let reader = SharedReader(wrappedValue: value, self.baseKey)
       @Sendable
       func observe() {
