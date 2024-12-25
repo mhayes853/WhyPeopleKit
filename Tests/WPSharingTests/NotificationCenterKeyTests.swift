@@ -43,16 +43,3 @@ final class NotificationCenterKeyTests: XCTestCase, @unchecked Sendable {
     }
   }
 }
-
-private func waitForNoDifference<T: Equatable>(
-  _ value: @autoclosure () async -> T,
-  _ expectedValue: @autoclosure () async -> T
-) async {
-  repeat {
-    let values = await (value(), expectedValue())
-    if values.0 == values.1 {
-      break
-    }
-    await Task.yield()
-  } while true
-}

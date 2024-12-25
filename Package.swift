@@ -193,7 +193,10 @@ let package = Package(
         .product(name: "Sharing", package: "swift-sharing")
       ]
     ),
-    .testTarget(name: "WPSharingTests", dependencies: ["WPSharing"])
+    .testTarget(
+      name: "WPSharingTests",
+      dependencies: ["WPSharing", .product(name: "CustomDump", package: "swift-custom-dump")]
+    )
   ],
   swiftLanguageModes: [.version("6")]
 )
