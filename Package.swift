@@ -115,6 +115,7 @@ let package = Package(
       dependencies: [
         "WPDeviceVolume",
         "WPAnalyticsCore",
+        "WPHaptics",
         .product(name: "Dependencies", package: "swift-dependencies")
       ]
     ),
@@ -207,6 +208,7 @@ let package = Package(
       dependencies: [
         "WPSwiftNavigation",
         "WPDependencies",
+        "WPHaptics",
         .product(
           name: "ComposableArchitecture",
           package: "swift-composable-architecture",
