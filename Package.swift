@@ -27,7 +27,8 @@ let package = Package(
     .library(name: "WPPerception", targets: ["WPPerception"]),
     .library(name: "WPSnapshotTesting", targets: ["WPSnapshotTesting"]),
     .library(name: "WPJavascriptCore", targets: ["WPJavascriptCore"]),
-    .library(name: "WPSharing", targets: ["WPSharing"])
+    .library(name: "WPSharing", targets: ["WPSharing"]),
+    .library(name: "WPTCA", targets: ["WPTCA"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
@@ -48,7 +49,11 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
     .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.6"),
     .package(url: "https://github.com/apple/swift-log", from: "1.6.1"),
-    .package(url: "https://github.com/pointfreeco/swift-sharing", from: "1.1.1")
+    .package(url: "https://github.com/pointfreeco/swift-sharing", from: "1.1.1"),
+    .package(
+      url: "https://github.com/pointfreeco/swift-composable-architecture",
+      .upToNextMajor(from: "1.17.0")
+    )
   ],
   targets: [
     .target(
@@ -196,6 +201,13 @@ let package = Package(
     .testTarget(
       name: "WPSharingTests",
       dependencies: ["WPSharing", .product(name: "CustomDump", package: "swift-custom-dump")]
+    ),
+    .target(
+      name: "WPTCA",
+      dependencies: [
+        "WPSwiftNavigation",
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+      ]
     )
   ],
   swiftLanguageModes: [.version("6")]
