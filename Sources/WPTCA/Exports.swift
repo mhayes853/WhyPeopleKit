@@ -1,1 +1,3 @@
-@_exported import ComposableArchitecture
+#if canImport(ComposableArchitecture)
+  @_exported import ComposableArchitecture
+#endif

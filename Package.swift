@@ -206,7 +206,12 @@ let package = Package(
       name: "WPTCA",
       dependencies: [
         "WPSwiftNavigation",
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        "WPDependencies",
+        .product(
+          name: "ComposableArchitecture",
+          package: "swift-composable-architecture",
+          condition: .whenApplePlatforms
+        )
       ]
     )
   ],
