@@ -196,6 +196,7 @@ let package = Package(
       dependencies: [
         "WPDeviceVolume",
         "WPDependencies",
+        "WPSwiftNavigation",
         .product(name: "Sharing", package: "swift-sharing")
       ]
     ),

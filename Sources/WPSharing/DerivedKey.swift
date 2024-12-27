@@ -2,6 +2,7 @@ import IdentifiedCollections
 import Perception
 import WPDependencies
 import WPFoundation
+import WPSwiftNavigation
 
 // MARK: - DerivedArray
 
@@ -52,6 +53,8 @@ extension DerivedArray {
 extension DerivedArray: Equatable where Element: Equatable {}
 extension DerivedArray: Hashable where Element: Hashable {}
 
+// MARK: - DerivedKey
+
 public struct DerivedKey<
   DerivedValue: Sendable,
   BaseKey: SharedReaderKey,
@@ -95,40 +98,34 @@ extension DerivedKey: SharedKey {
     initialValue: Value?,
     didSet receiveValue: @escaping @Sendable (Value?) -> Void
   ) -> SharedSubscription {
-    let isCancelled = Lock(false)
+    let token = Lock<ObserveToken?>(nil)
     let isPublished = Lock(false)
-    var subscription: SharedSubscription?
-    var _subscription: SharedSubscription? { subscription }
-    subscription = self.baseKey.subscribe(initialValue: nil) { value in
+    let subscription = self.baseKey.subscribe(initialValue: nil) { value in
       guard let value else { return }
-      let shouldLeave = isPublished.withLock { i in
-        defer { i = true }
-        return i
+      // NB: We only need to subscribe to obtain the initial value from the shared key such that
+      // we don't override any user provided default values when constructing the SharedReader.
+      let hasPublished = isPublished.withLock { isPublished in
+        defer { isPublished = true }
+        return isPublished
       }
-      guard !shouldLeave else { return }
+      guard !hasPublished else { return }
 
       // NB: We need to use the shared reader value directly instead of relying on the subscription
       // because the reader ensures that the shared values we pass to the derived state are
       // connected to the parent.
-      let reader = SharedReader(wrappedValue: value, self.baseKey)
-      @Sendable
-      func observe() {
-        withPerceptionTracking {
-          guard isCancelled.withLock({ !$0 }) else { return }
+      token.withLock {
+        let reader = SharedReader(wrappedValue: value, self.baseKey)
+        $0 = reader.observe { _ in
           guard var array = self.load(initialValue: initialValue) else { return }
           array.sync(elements: reader, mapper: self.derive)
           self.save(array, immediately: false)
           receiveValue(array)
-        } onChange: {
-          guard isCancelled.withLock({ !$0 }) else { return }
-          observe()
         }
       }
-      observe()
     }
     return SharedSubscription {
-      _subscription?.cancel()
-      isCancelled.withLock { $0 = true }
+      subscription.cancel()
+      token.withLock { $0?.cancel() }
     }
   }
 
