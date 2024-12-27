@@ -215,7 +215,8 @@ let package = Package(
           condition: .whenApplePlatforms
         )
       ]
-    )
+    ),
+    .testTarget(name: "WPTCATests", dependencies: ["WPTCA"])
   ],
   swiftLanguageModes: [.version("6")]
 )
