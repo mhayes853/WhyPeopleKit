@@ -225,10 +225,12 @@ private enum DefaultDerivedStorageKey: DependencyKey {
 // MARK: - DerivedStorageKey
 
 private struct DerivedStorageKey: Hashable, Sendable {
+  private let baseKeyType: ObjectIdentifier
   private let baseKeyHash: Int
   private let key: String
 
-  init(baseKey: some SharedReaderKey, key: String) {
+  init<K: SharedReaderKey>(baseKey: K, key: String) {
+    self.baseKeyType = ObjectIdentifier(K.self)
     self.baseKeyHash = baseKey.id.hashValue
     self.key = key
   }
