@@ -44,7 +44,8 @@ extension DerivedArray {
     var copy = self._identifiedArray
     copy.removeAll()
     for id in elements.wrappedValue.ids {
-      copy[id: id] = self._identifiedArray[id: id] ?? mapper(SharedReader(elements[id: id])!)
+      guard let reader = SharedReader(elements[id: id]) else { continue }
+      copy[id: id] = self._identifiedArray[id: id] ?? mapper(reader)
     }
     self._identifiedArray = copy
   }
