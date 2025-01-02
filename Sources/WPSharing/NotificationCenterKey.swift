@@ -1,5 +1,5 @@
-import Dependencies
 import Sharing
+import WPDependencies
 import WPFoundation
 
 // MARK: - Key
@@ -8,6 +8,7 @@ import WPFoundation
 /// `NotficationCenter` notification.
 public struct NotificationCenterKey<Value: Sendable>: Sendable {
   private let notificationName: Notification.Name
+  private let center: NotificationCenter
   private let initialValue: @Sendable (Value?) async throws -> Value
   private let updatedValue: @Sendable (Notification) async throws -> Value
 
@@ -16,7 +17,9 @@ public struct NotificationCenterKey<Value: Sendable>: Sendable {
     initialValue: @Sendable @escaping (Value?) async throws -> Value,
     onNotification updatedValue: @Sendable @escaping (Notification) async throws -> Value
   ) {
+    @Dependency(\.notificationCenter) var center
     self.notificationName = notificationName
+    self.center = center
     self.initialValue = initialValue
     self.updatedValue = updatedValue
   }
@@ -58,15 +61,17 @@ extension SharedReaderKey {
 
 public struct NotificationCenterKeyID: Hashable {
   private let name: Notification.Name
+  private let center: ObjectIdentifier
 
-  fileprivate init(name: Notification.Name) {
+  fileprivate init(name: Notification.Name, center: NotificationCenter) {
     self.name = name
+    self.center = ObjectIdentifier(center)
   }
 }
 
 extension NotificationCenterKey {
   public var id: NotificationCenterKeyID {
-    NotificationCenterKeyID(name: self.notificationName)
+    NotificationCenterKeyID(name: self.notificationName, center: self.center)
   }
 }
 
@@ -79,7 +84,7 @@ extension NotificationCenterKey: SharedReaderKey {
     initialValue: Value?,
     didSet: @Sendable @escaping (Value?) -> Void
   ) -> SharedSubscription {
-    let observer = NotificationCenter.default.addObserver(
+    nonisolated(unsafe) let observer = self.center.addObserver(
       forName: self.notificationName,
       object: nil,
       queue: nil
@@ -88,8 +93,7 @@ extension NotificationCenterKey: SharedReaderKey {
       Task { try await didSet(self.updatedValue(transfer.value)) }
     }
     Task { try await didSet(self.initialValue(initialValue)) }
-    let transfer = UnsafeTransfer(value: observer)
-    return SharedSubscription { NotificationCenter.default.removeObserver(transfer.value) }
+    return SharedSubscription { self.center.removeObserver(observer) }
   }
 }
 
