@@ -20,16 +20,16 @@
   extension SystemDeviceOutputVolumeKey: SharedReaderKey {
     public typealias Value = DeviceOutputVolumeStatus
 
-    public func load(initialValue: Value?) -> Value? {
-      nil
+    public func load(context: LoadContext<Value>, continuation: LoadContinuation<Value>) {
+      continuation.resumeReturningInitialValue()
     }
 
     public func subscribe(
-      initialValue: Value?,
-      didSet receiveValue: @escaping @Sendable (Value?) -> Void
+      context: LoadContext<Value>,
+      subscriber: SharedSubscriber<Value>
     ) -> SharedSubscription {
       let subscription = self.volume.subscribe { result in
-        _ = result.map { receiveValue($0) }
+        subscriber.yield(with: result.map { $0 as Value? })
       }
       return SharedSubscription { subscription.cancel() }
     }
@@ -61,11 +61,17 @@
 
   // MARK: - ID
 
-  public struct SystemDeviceOutputVolumeKeyID: Hashable {}
+  public struct SystemDeviceOutputVolumeKeyID: Hashable {
+    private let id: ObjectIdentifier
+
+    fileprivate init(volume: any DeviceOutputVolume) {
+      self.id = ObjectIdentifier(volume as AnyObject)
+    }
+  }
 
   extension SystemDeviceOutputVolumeKey {
     public var id: SystemDeviceOutputVolumeKeyID {
-      SystemDeviceOutputVolumeKeyID()
+      SystemDeviceOutputVolumeKeyID(volume: self.volume)
     }
   }
 #endif

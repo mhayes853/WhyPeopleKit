@@ -23,5 +23,23 @@
         #expect(volume == status)
       }
     }
+
+    @Test("Consumes Errror")
+    func consumeError() async {
+      let outputVolume = TestDeviceOutputVolume()
+      await withDependencies {
+        $0.systemDeviceOutputVolume = outputVolume
+      } operation: {
+        @SharedReader(.systemDeviceOutputVolume) var volume
+
+        struct SomeError: Error, Equatable {}
+
+        await withExpectedIssue {
+          await outputVolume.send(result: .failure(SomeError()))
+        }
+        let error = $volume.loadError as? SomeError
+        #expect(error == SomeError())
+      }
+    }
   }
 #endif
