@@ -40,6 +40,7 @@ struct StringLevenshteinDistanceTests {
   }
 
   @Test("Performance")
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func performance() {
     let a = "Previously, I wrote about the Dark Lord Blob."
     let b = "Blob is an interesting character, though don't ask why he's named blob..."

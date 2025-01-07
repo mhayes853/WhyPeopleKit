@@ -130,6 +130,7 @@
 
     #if canImport(UniformTypeIdentifiers)
       @Test("From URL")
+      @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
       func fromURL() async throws {
         let name = "\(UUID()).json"
         let temp = URL.temporaryDirectory.appending(path: name)
@@ -147,6 +148,7 @@
       }
 
       @Test("Sliced From URL")
+      @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
       func slicedFromURL() async throws {
         let temp = URL.temporaryDirectory.appending(path: "\(UUID()).json")
         try "Hello world".write(to: temp, atomically: true, encoding: .utf8)
@@ -160,6 +162,7 @@
       }
 
       @Test("From Non-Existent URL During Read")
+      @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
       func nonExistentURL() async throws {
         let temp = URL.temporaryDirectory.appending(path: "\(UUID()).json")
         try "Hello world".write(to: temp, atomically: true, encoding: .utf8)

@@ -158,7 +158,8 @@ let package = Package(
         "WPFoundation",
         .product(name: "GRDB", package: "GRDB.swift", condition: .whenApplePlatforms),
         .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
-        .product(name: "Logging", package: "swift-log")
+        .product(name: "Logging", package: "swift-log"),
+        .product(name: "CustomDump", package: "swift-custom-dump")
       ]
     ),
     .testTarget(name: "WPGRDBTests", dependencies: ["WPGRDB"]),

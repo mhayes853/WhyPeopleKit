@@ -236,6 +236,7 @@ struct UUIDV7Tests {
   }
 
   @Test("Generation Speed")
+  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
   func generationSpeed() {
     let clock = ContinuousClock()
     let time = clock.measure {

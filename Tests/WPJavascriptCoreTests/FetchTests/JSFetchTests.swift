@@ -197,7 +197,7 @@
     }
 
     @Test("Pushes Native File Body as Data")
-    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func pushesNativeFileBody() async throws {
       let url = URL.temporaryDirectory.appending(path: "\(UUID()).json")
       let expectedBodyData = try JSONEncoder().encode(TestBody(a: "Test", b: 42))

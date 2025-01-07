@@ -9,6 +9,7 @@
   @Suite("DatabaseLogHandler tests")
   struct DatabaseLogHandlerTests {
     @Test("Persists Logs To Database")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func persists() async throws {
       let (stream, continuation) = AsyncStream<Void>.makeStream()
       var iterator = stream.makeAsyncIterator()
@@ -52,6 +53,7 @@
     }
 
     @Test("Purges Logs Older than the Specified Lifetime")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func purges() async throws {
       let (stream, continuation) = AsyncStream<Void>.makeStream()
       var iterator = stream.makeAsyncIterator()

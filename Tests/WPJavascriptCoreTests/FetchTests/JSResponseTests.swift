@@ -485,7 +485,7 @@
           "response.bytes().then((b) => _wpJSCoreUint8ArrayToString(b))"
         ]
       )
-      @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
+      @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
       func formDataBodyText(text: String) async throws {
         let url = URL.temporaryDirectory.appending(path: "\(UUID()).txt")
         try "Hello world".write(to: url, atomically: true, encoding: .utf8)

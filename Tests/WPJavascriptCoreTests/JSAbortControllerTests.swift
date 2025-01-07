@@ -7,9 +7,16 @@
   @Suite("JSAbortController tests")
   struct JSAbortControllerTests {
     private let context = JSContext()!
-    private let testClock = TestClock()
+    private let _testClock: Any
+    
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
+    private var testClock: TestClock<Duration> {
+      self._testClock as! TestClock
+    }
 
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     init() throws {
+      self._testClock = TestClock()
       let clock = self.testClock
       try self.context.install([
         .abortController { try await clock.sleep(for: .seconds($0)) },
@@ -18,6 +25,7 @@
     }
 
     @Test("Initialization")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func initialize() {
       let value = self.context.evaluateScript(
         """
@@ -29,6 +37,7 @@
     }
 
     @Test("Signal is Not Aborted Initially")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func notInitiallyAborted() {
       let value = self.context.evaluateScript(
         """
@@ -41,6 +50,7 @@
     }
 
     @Test("Signal is Aborted After Aborting")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func abort() {
       let value = self.context.evaluateScript(
         """
@@ -54,6 +64,7 @@
     }
 
     @Test("Signal Aborts With Reason")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func abortWithReason() {
       let value = self.context.evaluateScript(
         """
@@ -66,6 +77,7 @@
     }
 
     @Test("Throws If Aborted")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func throwsIfAborted() {
       let value = self.context.evaluateScript(
         """
@@ -92,6 +104,7 @@
     }
 
     @Test("Throws If Aborted Without Reason")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func throwsIfAbortedWithoutReason() throws {
       let value = self.context.evaluateScript(
         """
@@ -128,6 +141,7 @@
     }
 
     @Test("Does Not Signal When Not Aborted")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func notSignalWhenNotAborted() {
       let value = self.context.evaluateScript(
         """
@@ -141,6 +155,7 @@
     }
 
     @Test("Signals Abort Signal When Aborted")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func signalsWhenAborted() {
       let value = self.context.evaluateScript(
         """
@@ -155,6 +170,7 @@
     }
 
     @Test("Only Aborts Once")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func abortsOnce() {
       let value = self.context.evaluateScript(
         """
@@ -170,6 +186,7 @@
     }
 
     @Test("Signals Event Listener When Aborted")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func signalsEventListenerWhenAborted() {
       let value = self.context.evaluateScript(
         """
@@ -187,6 +204,7 @@
     }
 
     @Test("Does Not Observe Other Non-Abort Events")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func nonAbortEvents() {
       let value = self.context.evaluateScript(
         """
@@ -202,6 +220,7 @@
     }
 
     @Test("Unsubscribes from Event Listener")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func unsubscribes() {
       let value = self.context.evaluateScript(
         """
@@ -219,6 +238,7 @@
     }
 
     @Test("Constructor Names")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func constructorNames() {
       let value = self.context.evaluateScript(
         """
@@ -232,6 +252,7 @@
     }
 
     @Test("Does not Log Internal Class Variables")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func doesNotLogVars() throws {
       let logger = TestLogger()
       let context = JSContext()!
@@ -253,6 +274,7 @@
     }
 
     @Test("Creates a Signal in an Aborted State")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func abortedState() {
       let value = self.context.evaluateScript(
         """
@@ -265,6 +287,7 @@
     }
 
     @Test("Signal is Non-Constructable")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func nonConstructableSignal() {
       let value = self.context.evaluateScript(
         """
@@ -275,6 +298,7 @@
     }
 
     @Test("Abort Signal Any Creates Dependency Between Signals")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func signalDependencies() {
       let value = self.context.evaluateScript(
         """
@@ -296,6 +320,7 @@
     }
 
     @Test("Dependent Signal is Aborted When Dependency is Aborted")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func abortedDependency() {
       let value = self.context.evaluateScript(
         """
@@ -309,6 +334,7 @@
     }
 
     @Test("Dependent Signal Uses First Aborted Signal Reason")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func firstAbortedReason() {
       let value = self.context.evaluateScript(
         """
@@ -322,6 +348,7 @@
     }
 
     @Test("Any Must Take AbortSignal Instances")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func anyMustTakeSignalInstances() {
       expectErrorMessage(
         js: """
@@ -334,6 +361,7 @@
     }
 
     @Test("Signal Aborts After Timeout")
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     func abortsAfterTimeout() async throws {
       let promise = try #require(
         self.context

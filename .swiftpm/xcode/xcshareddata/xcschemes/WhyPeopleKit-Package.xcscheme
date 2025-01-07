@@ -189,6 +189,34 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WPSharing"
+               BuildableName = "WPSharing"
+               BlueprintName = "WPSharing"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WPTCA"
+               BuildableName = "WPTCA"
+               BlueprintName = "WPTCA"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -295,6 +323,26 @@
                BlueprintIdentifier = "WPJavascriptCoreTests"
                BuildableName = "WPJavascriptCoreTests"
                BlueprintName = "WPJavascriptCoreTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WPSharingTests"
+               BuildableName = "WPSharingTests"
+               BlueprintName = "WPSharingTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WPTCATests"
+               BuildableName = "WPTCATests"
+               BlueprintName = "WPTCATests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
