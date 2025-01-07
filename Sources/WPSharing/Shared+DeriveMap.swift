@@ -6,18 +6,22 @@ import WPSwiftNavigation
 
 // MARK: - Map
 
-extension SharedReader {
-  public func deriveMap<ID: Hashable, Element: Sendable, DerivedValue>(
-    id: KeyPath<DerivedValue, ID>,
+extension _Shareable where Value: _IdentifiedCollection, Value.ID: Sendable {
+  public func deriveMap<DerivedValue>(
+    id: KeyPath<DerivedValue, Value.ID>,
     _ fn: @Sendable @escaping (SharedReader<Value.Element>) -> DerivedValue
-  ) -> Shared<DerivedArray<Value.ID, DerivedValue>> where Value == IdentifiedArray<ID, Element> {
+  ) -> Shared<DerivedArray<Value.ID, DerivedValue>> {
+    let idPath = unsafeBitCast(id, to: (KeyPath<DerivedValue, Value.ID> & Sendable).self)
+    return self.deriveMap(initialValues: DerivedArray(id: idPath), fn)
+  }
+
+  public func deriveMap<DerivedValue>(
+    initialValues: DerivedArray<Value.ID, DerivedValue>,
+    _ fn: @Sendable @escaping (SharedReader<Value.Element>) -> DerivedValue
+  ) -> Shared<DerivedArray<Value.ID, DerivedValue>> {
     Shared(
-      wrappedValue: DerivedArray(id: id),
-      DerivedKey(
-        idPath: unsafeBitCast(id, to: (KeyPath<DerivedValue, ID> & Sendable).self),
-        reader: self,
-        derive: fn
-      )
+      wrappedValue: initialValues,
+      DerivedKey(initialValues: initialValues, reader: self, derive: fn)
     )
   }
 }
@@ -55,14 +59,14 @@ extension DerivedArray {
 }
 
 extension DerivedArray {
-  fileprivate mutating func sync<BaseElement>(
-    elements: SharedReader<IdentifiedArray<ID, BaseElement>>,
-    mapper: (SharedReader<BaseElement>) -> Element
-  ) {
+  fileprivate mutating func sync<S: _Shareable>(
+    elements: S,
+    mapper: (SharedReader<S.Value.Element>) -> Element
+  ) where S.Value: _IdentifiedCollection, S.Value.ID == ID {
     var copy = self._identifiedArray
     copy.removeAll()
     for id in elements.wrappedValue.ids {
-      guard let reader = SharedReader(elements[id: id]) else { continue }
+      guard let reader = SharedReader(elements[dynamicMember: \.[id: id]]) else { continue }
       copy[id: id] = self._identifiedArray[id: id] ?? mapper(reader)
     }
     self._identifiedArray = copy
@@ -76,27 +80,26 @@ extension DerivedArray: Hashable where Element: Hashable {}
 
 private struct DerivedKey<
   DerivedValue: Sendable,
-  ID: Hashable & Sendable,
-  Element
->: Sendable {
-  private let reader: SharedReader<IdentifiedArray<ID, Element>>
-  private let derive: @Sendable (SharedReader<Element>) -> DerivedValue
-  private let box: Box<ID, DerivedValue>
+  S: _Shareable
+>: Sendable where S.Value: _IdentifiedCollection, S.Value.ID: Sendable {
+  private let reader: S
+  private let derive: @Sendable (SharedReader<S.Value.Element>) -> DerivedValue
+  private let box: Box<S.Value.ID, DerivedValue>
   let id = DerivedKeyID()
 
   fileprivate init(
-    idPath: KeyPath<DerivedValue, ID> & Sendable,
-    reader: SharedReader<IdentifiedArray<ID, Element>>,
-    derive: @escaping @Sendable (SharedReader<Element>) -> DerivedValue
+    initialValues: DerivedArray<S.Value.ID, DerivedValue>,
+    reader: S,
+    derive: @escaping @Sendable (SharedReader<S.Value.Element>) -> DerivedValue
   ) {
-    self.box = Box(idPath: idPath)
+    self.box = Box(initialValues: initialValues)
     self.reader = reader
     self.derive = derive
   }
 }
 
 extension DerivedKey: SharedKey {
-  typealias Value = DerivedArray<ID, DerivedValue>
+  typealias Value = DerivedArray<S.Value.ID, DerivedValue>
 
   func save(_ value: Value, context: SaveContext, continuation: SaveContinuation) {
     self.box.withLock { $0 = value }
@@ -132,8 +135,8 @@ private struct DerivedKeyID: Hashable {
 private final class Box<ID: Hashable & Sendable, Element: Sendable>: Sendable {
   private let array: Lock<DerivedArray<ID, Element>>
 
-  init(idPath: KeyPath<Element, ID>) {
-    self.array = Lock(DerivedArray(id: idPath))
+  init(initialValues array: DerivedArray<ID, Element>) {
+    self.array = Lock(array)
   }
 
   func withLock(_ fn: @Sendable (inout DerivedArray<ID, Element>) -> Void) {

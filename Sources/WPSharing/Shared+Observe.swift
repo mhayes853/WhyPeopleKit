@@ -2,13 +2,6 @@ import Perception
 import Sharing
 import WPSwiftNavigation
 
-// MARK: - _Shareable
-
-public protocol _Shareable<Value>: Perceptible, Sendable {
-  associatedtype Value
-  var wrappedValue: Value { get }
-}
-
 // MARK: - Observe
 
 extension _Shareable {
@@ -36,8 +29,3 @@ extension _Shareable where Value: Sendable {
     SharedValues(shareable: self)
   }
 }
-
-// MARK: - Conformances
-
-extension Shared: _Shareable {}
-extension SharedReader: _Shareable {}

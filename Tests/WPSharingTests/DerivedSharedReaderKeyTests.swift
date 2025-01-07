@@ -34,7 +34,7 @@ struct DerivedSharedReaderKeyTests {
   @Test("Doesn't Share Derived Value For 2 Key Instances When Names Are Different")
   func doesNotShareDerivedFrom2SeparateKeyNames() async {
     let key = PersonKey()
-    @SharedReader(key) var value = IdentifiedArray()
+    @Shared(key) var value = IdentifiedArray()
     let derived = $value.deriveMap(id: \.person.value.id) {
       ReferencedDerivedPerson(person: DerivedPerson(value: $0, counter: 10))
     }
@@ -133,7 +133,7 @@ struct DerivedSharedReaderKeyTests {
   }
 }
 
-private final class PersonKey: SharedReaderKey {
+private final class PersonKey: SharedKey {
   typealias Value = IdentifiedArrayOf<Person>
   struct ID: Hashable {}
 
@@ -156,6 +156,14 @@ private final class PersonKey: SharedReaderKey {
     continuation: LoadContinuation<IdentifiedArrayOf<Person>>
   ) {
     continuation.resumeReturningInitialValue()
+  }
+
+  func save(
+    _ value: IdentifiedArrayOf<Person>,
+    context: SaveContext,
+    continuation: SaveContinuation
+  ) {
+    continuation.resume()
   }
 
   func subscribe(
