@@ -77,9 +77,9 @@ struct DerivedSharedReaderKeyTests {
         reportIssue("Count should be greater than 2")
         return
       }
-      $0.identifiedArray[0].counter += 1
-      $0.identifiedArray[1].counter += 2
-      $0.identifiedArray[2].counter -= 1
+      $0[0].counter += 1
+      $0[1].counter += 2
+      $0[2].counter -= 1
     }
 
     let newValues2 = IdentifiedArrayOf(
@@ -124,12 +124,40 @@ struct DerivedSharedReaderKeyTests {
     let key = PersonKey()
     @SharedReader(key) var value = IdentifiedArray()
 
-    var derived = $value.deriveMap(id: \.value.id) { DerivedPerson(value: $0, counter: 10) }
+    let derived = $value.deriveMap(id: \.value.id) { DerivedPerson(value: $0, counter: 10) }
     await key.send(value: [Person(id: UUID(), name: "Baz")])
     expectNoDifference(derived.wrappedValue.identifiedArray.count, 1)
 
     await key.send(value: [])
     expectNoDifference(Array(derived.wrappedValue.identifiedArray), [])
+  }
+
+  @Test("Reports Issue When Assigning New Derived Array With Structurally Different Ids")
+  func reportsAssignmentIssue() async {
+    let key = PersonKey()
+    @SharedReader(key) var value = IdentifiedArray()
+
+    let derived = $value.deriveMap(id: \.value.id) { DerivedPerson(value: $0, counter: 10) }
+    await key.send(value: [Person(id: UUID(), name: "Baz")])
+    withExpectedIssue {
+      derived.withLock { $0 = DerivedArray(id: \.value.id) }
+    }
+  }
+
+  @Test("Reports Issue When Structurally Changing DerivedArray")
+  func reportsDerivedArrayStructuralIssue() async {
+    var array = DerivedArray<Person.ID, DerivedPerson>(id: \.value.id)
+    withExpectedIssue {
+      array.identifiedArray.append(DerivedPerson(value: .constant(Person()), counter: 10))
+      array.identifiedArray.append(DerivedPerson(value: .constant(Person()), counter: 11))
+      array.identifiedArray.append(DerivedPerson(value: .constant(Person()), counter: 12))
+    }
+    withExpectedIssue {
+      array.identifiedArray.removeFirst()
+    }
+    withExpectedIssue {
+      array.identifiedArray.swapAt(0, 1)
+    }
   }
 }
 
