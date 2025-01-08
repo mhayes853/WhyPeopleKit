@@ -211,6 +211,7 @@ let package = Package(
         "WPSwiftNavigation",
         "WPDependencies",
         "WPHaptics",
+        "WPSharing",
         .product(
           name: "ComposableArchitecture",
           package: "swift-composable-architecture",

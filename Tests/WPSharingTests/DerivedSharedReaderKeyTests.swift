@@ -136,27 +136,13 @@ struct DerivedSharedReaderKeyTests {
   func reportsAssignmentIssue() async {
     let key = PersonKey()
     @SharedReader(key) var value = IdentifiedArray()
+    let second = Shared(value: IdentifiedArrayOf<Person>())
 
     let derived = $value.deriveMap(id: \.value.id) { DerivedPerson(value: $0, counter: 10) }
+    let derived2 = second.deriveMap(id: \.value.id) { DerivedPerson(value: $0, counter: 10) }
     await key.send(value: [Person(id: UUID(), name: "Baz")])
     withExpectedIssue {
-      derived.withLock { $0 = DerivedArray(id: \.value.id) }
-    }
-  }
-
-  @Test("Reports Issue When Structurally Changing DerivedArray")
-  func reportsDerivedArrayStructuralIssue() async {
-    var array = DerivedArray<Person.ID, DerivedPerson>(id: \.value.id)
-    withExpectedIssue {
-      array.identifiedArray.append(DerivedPerson(value: .constant(Person()), counter: 10))
-      array.identifiedArray.append(DerivedPerson(value: .constant(Person()), counter: 11))
-      array.identifiedArray.append(DerivedPerson(value: .constant(Person()), counter: 12))
-    }
-    withExpectedIssue {
-      array.identifiedArray.removeFirst()
-    }
-    withExpectedIssue {
-      array.identifiedArray.swapAt(0, 1)
+      derived.withLock { $0 = derived2.wrappedValue }
     }
   }
 }

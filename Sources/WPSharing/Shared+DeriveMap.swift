@@ -17,8 +17,7 @@ extension _Shareable where Value: _IdentifiedCollection, Value.ID: Sendable {
     id: KeyPath<DerivedValue, Value.ID>,
     _ fn: @Sendable @escaping (SharedReader<Value.Element>) -> DerivedValue
   ) -> Shared<DerivedArray<Value.ID, DerivedValue>> {
-    let idPath = unsafeBitCast(id, to: (KeyPath<DerivedValue, Value.ID> & Sendable).self)
-    return self.deriveMap(initialValues: DerivedArray(id: idPath), fn)
+    self.deriveMap(initialValues: DerivedArray(id: id), fn)
   }
 
   public func deriveMap<DerivedValue>(
@@ -35,32 +34,10 @@ extension _Shareable where Value: _IdentifiedCollection, Value.ID: Sendable {
 // MARK: - DerivedArray
 
 public struct DerivedArray<ID: Hashable & Sendable, Element: Sendable>: Sendable {
-  private var _identifiedArray: IdentifiedArray<ID, Element>
-}
+  package var identifiedArray: IdentifiedArray<ID, Element>
 
-extension DerivedArray {
-  public var identifiedArray: IdentifiedArray<ID, Element> {
-    _read { yield self._identifiedArray }
-    _modify {
-      let current = self._identifiedArray
-      yield &self._identifiedArray
-      if current.ids != self._identifiedArray.ids {
-        reportIssue(
-          """
-          A new value assigned to the identified array of this derived array is not in sync with \
-          its shared base array.
-
-          Avoid appending, removing, or swapping elements of a derived array, as it could \
-          structurally change the array making it incompatible with the shared base array.
-
-          The derived array needs to have the same number of elements, and the same id order as its \
-          base shared array to ensure that it reflects a purely derived state of its current \
-          values. When the base shared array updates again, the order of this derived array will \
-          reflect the order of the base shared array.
-          """
-        )
-      }
-    }
+  fileprivate init(id: KeyPath<Element, ID>) {
+    self.identifiedArray = IdentifiedArray(id: id)
   }
 }
 
@@ -89,27 +66,17 @@ extension DerivedArray {
 }
 
 extension DerivedArray {
-  public init(id: KeyPath<Element, ID>) {
-    self._identifiedArray = IdentifiedArray(id: id)
-  }
-
-  public init() where Element: Identifiable, ID == Element.ID {
-    self._identifiedArray = IdentifiedArrayOf()
-  }
-}
-
-extension DerivedArray {
   fileprivate mutating func sync<S: _Shareable>(
     elements: S,
     mapper: (SharedReader<S.Value.Element>) -> Element
   ) where S.Value: _IdentifiedCollection, S.Value.ID == ID {
-    var copy = self._identifiedArray
+    var copy = self.identifiedArray
     copy.removeAll()
     for id in elements.wrappedValue.ids {
       guard let reader = SharedReader(elements[dynamicMember: \.[id: id]]) else { continue }
-      copy[id: id] = self._identifiedArray[id: id] ?? mapper(reader)
+      copy[id: id] = self.identifiedArray[id: id] ?? mapper(reader)
     }
-    self._identifiedArray = copy
+    self.identifiedArray = copy
   }
 }
 
@@ -189,9 +156,10 @@ private final class Box<ID: Hashable & Sendable, Element: Sendable>: Sendable {
           A new derived array has been assigned directly to an @Shared value that is structurally \
           different from the current value.
 
-          Avoid assigning a newly constructed instance of DerivedArray to an @Shared instance that \
-          was constructed through calling deriveMap on another @Shared or @SharedReader instance. \
-          Instead, mutate the individual elements of the DerivedArray if you want to make changes. \
+          Avoid assigning a completely different instance of DerivedArray to an @Shared instance \
+          that was constructed through calling deriveMap on another @Shared or @SharedReader \
+          instance. Instead, mutate the individual elements of the DerivedArray if you want to \
+          make changes to the array.
 
           The derived array needs to have the same number of elements, and the same id order as its \
           base shared array to ensure that it reflects a purely derived state of its current \
