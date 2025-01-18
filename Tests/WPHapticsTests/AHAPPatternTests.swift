@@ -122,6 +122,113 @@ struct AHAPPatternTests {
     expectNoDifference(pattern, .test)
   }
 
+  @Test("From Raw AHAP Data Without Version")
+  func fromAHAPDataNoVersion() throws {
+    let data = """
+          {
+            "Pattern": [
+              {
+                "Event": {
+                  "EventType": "HapticTransient",
+                  "Time": 0,
+                  "EventParameters": [
+                    {
+                      "ParameterID": "HapticIntensity",
+                      "ParameterValue": 0.5
+                    },
+                    {
+                      "ParameterID": "HapticSharpness",
+                      "ParameterValue": 0.5
+                    }
+                  ]
+                }
+              },
+              {
+                "Event": {
+                  "EventType": "HapticContinuous",
+                  "Time": 0,
+                  "EventDuration": 2,
+                  "EventParameters": [
+                    {
+                      "ParameterID": "HapticIntensity",
+                      "ParameterValue": 0.5
+                    },
+                    {
+                      "ParameterID": "HapticSharpness",
+                      "ParameterValue": 0.5
+                    }
+                  ]
+                }
+              },
+              {
+                "Event": {
+                  "EventType": "AudioCustom",
+                  "EventWaveformPath": "coins",
+                  "Time": 0.5,
+                  "EventParameters": [
+                    {
+                      "ParameterID": "AudioVolume",
+                      "ParameterValue": 0.3
+                    }
+                  ]
+                }
+              },
+              {
+                "ParameterCurve": {
+                  "ParameterID": "HapticIntensityControl",
+                  "Time": 0,
+                  "ParameterCurveControlPoints": [
+                    {
+                      "ParameterValue": 0,
+                      "Time": 0
+                    },
+                    {
+                      "ParameterValue": 1,
+                      "Time": 0.1
+                    },
+                    {
+                      "ParameterValue": 0.5,
+                      "Time": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "ParameterCurve": {
+                  "ParameterID": "HapticSharpnessControl",
+                  "Time": 2,
+                  "ParameterCurveControlPoints": [
+                    {
+                      "ParameterValue": 0,
+                      "Time": 0
+                    },
+                    {
+                      "ParameterValue": 1,
+                      "Time": 0.1
+                    },
+                    {
+                      "ParameterValue": 0.5,
+                      "Time": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "Parameter": {
+                  "ParameterID": "AudioVolumeControl",
+                  "Time": 0.5,
+                  "ParameterValue": 0.8
+                }
+              }
+            ]
+          }
+      """
+      .data(using: .utf8)!
+
+    let pattern = try AHAPPattern(from: data)
+    expectNoDifference(pattern, .test)
+  }
+
   @Test("Data Snapshot")
   func snapshot() throws {
     assertSnapshot(of: AHAPPattern.test, as: .ahap)

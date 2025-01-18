@@ -45,6 +45,12 @@ extension AHAPPattern: Codable {
     case version = "Version"
     case elements = "Pattern"
   }
+
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    self.version = try container.decodeIfPresent(Int.self, forKey: .version) ?? 1
+    self.elements = try container.decode([AHAPPattern.Element].self, forKey: .elements)
+  }
 }
 
 // MARK: - Data Functions
