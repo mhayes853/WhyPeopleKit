@@ -1,5 +1,5 @@
 {
-  "originHash" : "cf1ae97ba037483f67ce93ff9900a066a1b19727ee8f293f200732e8646192d1",
+  "originHash" : "3527b298f1d158d3e101c0fb4f28ff1a9ad712a2dd61b037936d4aa54a9c464d",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios",
       "state" : {
-        "revision" : "3f587079053ba071a76cd84143f1ed23c6abd775",
-        "version" : "3.18.0"
+        "revision" : "80208b1086ebd021efdba5826fd9e819f5e736cf",
+        "version" : "3.19.1"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-case-paths",
       "state" : {
-        "revision" : "bc92c4b27f9a84bfb498cdbfdf35d5a357e9161f",
-        "version" : "1.5.6"
+        "revision" : "e7039aaa4d9cf386fa8324a89f258c3f2c54d751",
+        "version" : "1.6.0"
       }
     },
     {
@@ -141,8 +141,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-perception",
       "state" : {
-        "revision" : "8d52279b9809ef27eabe7d5420f03734528f19da",
-        "version" : "1.4.1"
+        "revision" : "9e9ec5177724e78de1ecfd5b7bf881ae027be4ac",
+        "version" : "1.4.2"
       }
     },
     {
@@ -150,8 +150,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-sharing",
       "state" : {
-        "revision" : "c5ea46f0712cd3b639e2c7d6bf3f193116e0ff8d",
-        "version" : "2.0.2"
+        "revision" : "641edfa456fa6a927d12137c38fc71cbd9861be0",
+        "version" : "2.1.0"
       }
     },
     {
@@ -159,8 +159,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-snapshot-testing",
       "state" : {
-        "revision" : "42a086182681cf661f5c47c9b7dc3931de18c6d7",
-        "version" : "1.17.6"
+        "revision" : "2e6a85b73fc14e27d7542165ae73b1a10516ca9a",
+        "version" : "1.17.7"
       }
     },
     {
