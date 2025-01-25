@@ -62,7 +62,8 @@ public final class DeviceOutputVolumeModel {
     do {
       self.transaction = transaction
       self.subscription = try volume()
-        .subscribe { result in
+        .subscribe { [weak self] result in
+          guard let self else { return }
           Task { @MainActor in
             switch result {
             case let .failure(error):
