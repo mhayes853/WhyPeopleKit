@@ -225,7 +225,9 @@
   // MARK: - DatabaseLog
 
   /// A log persisted by ``DatabaseLogHandler``.
-  public struct DatabaseLog: Codable, TableRecord, FetchableRecord, PersistableRecord {
+  public struct DatabaseLog: Equatable, Sendable, Codable, TableRecord, FetchableRecord,
+    PersistableRecord
+  {
     public static let databaseTableName = "WPGRDBDatabaseLogs"
 
     public let label: String
@@ -267,7 +269,7 @@
 
   // MARK: - MetadataDatabaseValue
 
-  private struct MetadataDatabaseValue {
+  private struct MetadataDatabaseValue: Equatable, Sendable {
     var metadata: Logger.Metadata
   }
 
