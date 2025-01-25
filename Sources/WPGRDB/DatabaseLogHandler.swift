@@ -5,11 +5,10 @@
 
   /// A `LogHandler` that uses GRDB to persist logs to a SQLite database.
   public struct DatabaseLogHandler {
-    private let writer: DatabaseQueue?
+    private let writer: (any DatabaseWriter)?
     private let label: String
     private let date: @Sendable () -> Date
     private let rotationDuration: TimeInterval
-    private let path: DatabasePath
 
     public var metadata = Logger.Metadata()
     public var logLevel: Logger.Level
@@ -42,6 +41,31 @@
       )
     }
 
+    // Creates a database log handler.
+    ///
+    /// - Parameters:
+    ///   - label: The label of the handler.
+    ///   - writer: A ``DatabaseWriter`` to use as the logs database.
+    ///   - level: The level of this logger.
+    ///   - rotationDuration: The `Duration` of how long log messages last in the database.
+    ///   - date: A function to return the current date.
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
+    public init(
+      label: String,
+      writer: any DatabaseWriter,
+      level: Logger.Level = .info,
+      rotatingEvery rotationDuration: Duration = .weeks(2),
+      date: @Sendable @escaping () -> Date = { Date() }
+    ) {
+      self.init(
+        label: label,
+        writer: writer,
+        level: level,
+        rotatingEvery: TimeInterval(duration: rotationDuration),
+        date: date
+      )
+    }
+
     /// Creates a database log handler.
     ///
     /// - Parameters:
@@ -68,7 +92,31 @@
       self.label = label
       self.logLevel = level
       self.date = date
-      self.path = path
+      self.rotationDuration = rotationDuration
+    }
+
+    // Creates a database log handler.
+    ///
+    /// - Parameters:
+    ///   - label: The label of the handler.
+    ///   - writer: A ``DatabaseWriter`` to use as the logs database.
+    ///   - level: The level of this logger.
+    ///   - rotationDuration: The `TimeInterval` of how long log messages last in the database.
+    ///   - date: A function to return the current date.
+    public init(
+      label: String,
+      writer: any DatabaseWriter,
+      level: Logger.Level = .info,
+      rotatingEvery rotationDuration: TimeInterval,
+      date: @Sendable @escaping () -> Date = { Date() }
+    ) {
+      var migrator = DatabaseMigrator()
+      migrator.registerV1()
+      self.writer = writer
+      try? migrator.migrate(writer)
+      self.label = label
+      self.logLevel = level
+      self.date = date
       self.rotationDuration = rotationDuration
     }
   }
@@ -157,7 +205,7 @@
 
   extension DatabaseMigrator {
     fileprivate mutating func registerV1() {
-      self.registerMigration("logs_v1") { db in
+      self.registerMigration("wpgrdb_logs_v1") { db in
         try db.create(table: "WPGRDBDatabaseLogs", ifNotExists: true) {
           $0.column("id", .integer).primaryKey(autoincrement: true)
           $0.column("label", .text).notNull()
