@@ -93,7 +93,7 @@
     }
 
     private func hasCreatedMaximumMachines(state: State) -> Bool {
-      state.machines.count < state.count
+      state.machines.count >= state.count
     }
 
     private func nextVM(in state: inout State) -> JSVirtualMachine {
