@@ -7,6 +7,7 @@
 
   // MARK: - SingleRowTableKey
 
+  /// A `SharedKey` that loads and saves shared state to a single row table in a SQLite database.
   public struct SingleRowTableKey<Record: SingleRowTableRecord & Sendable>: SharedKey, Sendable {
     public typealias Value = Record
     private let writer: any DatabaseWriter
@@ -58,6 +59,12 @@
   }
 
   extension SharedKey where Value: SingleRowTableRecord & Sendable {
+    /// A `SharedKey` that loads and saves shared state to a single row table in a SQLite database.
+    ///
+    /// - Parameters:
+    ///   - animation: An animation to play when updating the shared value.
+    ///   - database: A `DatabaseWriter` to use for persistence.
+    /// - Returns: A shared key.
     public static func singleRowTableRecord(
       animation: Animation?,
       database: any DatabaseWriter
@@ -65,6 +72,12 @@
       .singleRowTableRecord(scheduler: .animation(animation), database: database)
     }
 
+    /// A `SharedKey` that loads and saves shared state to a single row table in a SQLite database.
+    ///
+    /// - Parameters:
+    ///   - scheduler: A `ValueObservation` scheduler to use.
+    ///   - database: A `DatabaseWriter` to use for persistence.
+    /// - Returns: A shared key.
     public static func singleRowTableRecord(
       scheduler: any ValueObservationScheduler = .animation(nil),
       database: any DatabaseWriter
