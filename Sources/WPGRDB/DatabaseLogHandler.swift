@@ -177,7 +177,7 @@
             let metadata = self.metadata.merging(metadata ?? [:]) { (_, new) in new }
             let purgeDate = now - self.rotationDuration
             try db.execute(literal: "DELETE FROM WPGRDBDatabaseLogs WHERE date < \(purgeDate)")
-            let log = DatabaseLog(
+            var log = DatabaseLog(
               label: self.label,
               level: level,
               message: message.description,
@@ -225,11 +225,10 @@
   // MARK: - DatabaseLog
 
   /// A log persisted by ``DatabaseLogHandler``.
-  public struct DatabaseLog: Equatable, Sendable, Codable, TableRecord, FetchableRecord,
-    PersistableRecord
-  {
+  public struct DatabaseLog: Equatable, Sendable, Codable, TableRecord, FetchableRecord {
     public static let databaseTableName = "WPGRDBDatabaseLogs"
 
+    public var id: Int64?
     public let label: String
     public let level: Logger.Level
     public let message: String
@@ -245,6 +244,7 @@
     }
 
     public init(
+      id: Int64? = nil,
       label: String,
       level: Logger.Level,
       message: String,
@@ -255,6 +255,7 @@
       metadata: Logger.Metadata?,
       date: Date
     ) {
+      self.id = id
       self.label = label
       self.level = level
       self.message = message
@@ -264,6 +265,12 @@
       self.line = line
       self.metadata = metadata.map(MetadataDatabaseValue.init(metadata:))
       self.date = date
+    }
+  }
+
+  extension DatabaseLog: MutablePersistableRecord {
+    public mutating func didInsert(_ inserted: InsertionSuccess) {
+      self.id = inserted.rowID
     }
   }
 
