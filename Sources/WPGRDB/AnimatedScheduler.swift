@@ -2,6 +2,7 @@
   import GRDB
   import SwiftUI
 
+  /// A `ValueObservationScheduler` that plays an animation on the main queue.
   public struct AnimatedScheduler: ValueObservationScheduler {
     let animation: Animation?
 
@@ -21,6 +22,10 @@
   }
 
   extension ValueObservationScheduler where Self == AnimatedScheduler {
+    /// A `ValueObservationScheduler` that plays an animation on the main queue.
+    ///
+    /// - Parameter animation: The animation to play.
+    /// - Returns: A value observation scheduler/
     public static func animation(_ animation: Animation?) -> Self {
       AnimatedScheduler(animation: animation)
     }
