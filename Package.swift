@@ -45,7 +45,7 @@ let package = Package(
       .upToNextMajor(from: "1.2.2")
     ),
     .package(url: "https://github.com/pointfreeco/swift-navigation", .upToNextMajor(from: "2.0.0")),
-    .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "6.0.0")),
+    .package(url: "https://github.com/groue/GRDB.swift", .upToNextMajor(from: "7.0.0")),
     .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
     .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.6"),
     .package(url: "https://github.com/apple/swift-log", from: "1.6.1"),
@@ -219,7 +219,15 @@ let package = Package(
         )
       ]
     ),
-    .testTarget(name: "WPTCATests", dependencies: ["WPTCA"])
+    .testTarget(name: "WPTCATests", dependencies: ["WPTCA"]),
+    .target(
+      name: "WPGRDBSharing",
+      dependencies: [
+        .targetItem(name: "WPGRDB", condition: .whenApplePlatforms),
+        "WPSharing"
+      ]
+    ),
+    .testTarget(name: "WPGRDBSharingTests", dependencies: ["WPGRDBSharing"])
   ],
   swiftLanguageModes: [.version("6")]
 )

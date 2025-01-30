@@ -128,7 +128,9 @@
     ///
     /// - Parameter fn: A function that has read access to the logs database.
     /// - Returns: Whatever `fn` returns.
-    public func read<T>(_ fn: @Sendable @escaping (Database) throws -> T) async throws -> T {
+    public func read<T: Sendable>(
+      _ fn: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
       guard let writer else { throw DatabaseLogHandlerError.noReader }
       return try await writer.read { try fn($0) }
     }
@@ -137,7 +139,7 @@
     ///
     /// - Parameter fn: A function that has read access to the logs database.
     /// - Returns: Whatever `fn` returns.
-    public func read<T>(_ fn: @Sendable @escaping (Database) throws -> T) throws -> T {
+    public func read<T: Sendable>(_ fn: @Sendable @escaping (Database) throws -> T) throws -> T {
       guard let writer else { throw DatabaseLogHandlerError.noReader }
       return try writer.read { try fn($0) }
     }
