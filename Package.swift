@@ -28,6 +28,7 @@ let package = Package(
     .library(name: "WPSnapshotTesting", targets: ["WPSnapshotTesting"]),
     .library(name: "WPJavascriptCore", targets: ["WPJavascriptCore"]),
     .library(name: "WPSharing", targets: ["WPSharing"]),
+    .library(name: "WPGRDBSharing", targets: ["WPGRDBSharing"]),
     .library(name: "WPTCA", targets: ["WPTCA"])
   ],
   dependencies: [
