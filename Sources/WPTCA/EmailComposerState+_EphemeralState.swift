@@ -31,16 +31,10 @@
     @Binding var store: Store<EmailComposerState, EmailComposerAction>?
 
     func body(content: Content) -> some View {
-      Group {
-        if let store {
-          content.emailComposer(.constant(store.withState { $0 })) { result in
-            store.send(result)
-          } onDismiss: {
-            self.store = nil
-          }
-        } else {
-          content
-        }
+      content.emailComposer(.constant(self.store?.withState { $0 })) { result in
+        self.store?.send(result)
+      } onDismiss: {
+        self.store = nil
       }
     }
   }
