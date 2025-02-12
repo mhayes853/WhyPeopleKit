@@ -28,7 +28,7 @@
 
     @Test("Supports Custom Virtual Machines")
     func customMachines() async {
-      let pool = JSVirtualMachinePool(machines: 2) { CustomVM()! }
+      let pool = JSVirtualMachinePool(machines: 2) { CustomVM() }
       let (c1, c2) = await (JSContext(in: pool), JSContext(in: pool))
       expectDifferentVMs(c1, c2)
       expectNoDifference(c1.virtualMachine is CustomVM, true)
@@ -98,12 +98,49 @@
         )
       }
     }
+
+    @Test("Garbage Collects Any Virtual Machine That Has No References")
+    func garbageCollection() async {
+      let pool = JSVirtualMachinePool(machines: 3) { CounterVM() }
+      let vm1 = await pool.virtualMachine()
+      var id2: Int
+      var id3: Int
+      do {
+        id2 = await (pool.virtualMachine() as! CounterVM).id
+        id3 = await (pool.virtualMachine() as! CounterVM).id
+      }
+      pool.garbageCollect()
+      let vm2 = await pool.virtualMachine()
+      let vm3 = await pool.virtualMachine()
+      let vm4 = await pool.virtualMachine()
+      expectNoDifference((vm1 as! CounterVM).id, (vm2 as! CounterVM).id)
+      expectNoDifference((vm3 as! CounterVM).id != id2, true)
+      expectNoDifference((vm4 as! CounterVM).id != id3, true)
+    }
+  }
+
+  private final class CounterVM: JSVirtualMachine, @unchecked Sendable {
+    private static let idCounter = Lock(0)
+
+    let id: Int
+
+    override init() {
+      self.id = Self.idCounter.withLock { id in
+        defer { id += 1 }
+        return id
+      }
+      super.init()
+    }
   }
 
   private final class CustomVM: JSVirtualMachine, @unchecked Sendable {}
 
   private func expectIdenticalVMs(_ c1: JSContext, _ c2: JSContext) {
     expectNoDifference(c1.virtualMachine === c2.virtualMachine, true)
+  }
+
+  private func expectIdenticalVMs(_ c1: JSVirtualMachine, _ c2: JSVirtualMachine) {
+    expectNoDifference(c1 === c2, true)
   }
 
   private func expectDifferentVMs(_ c1: JSContext, _ c2: JSContext) {

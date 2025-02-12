@@ -22,7 +22,7 @@
   /// style.
   public final class JSVirtualMachinePool: @unchecked Sendable {
     fileprivate typealias State = (
-      index: Int, count: Int, machines: [JSVirtualMachine]
+      index: Int, count: Int, machines: UnsafeMutablePointer<JSVirtualMachine?>
     )
 
     private let vm: (@Sendable () -> JSVirtualMachine)?
@@ -40,10 +40,12 @@
       vm: (@Sendable () -> JSVirtualMachine)? = nil
     ) {
       precondition(count > 0, "There must be a minimum of at least 1 virtual machine in the pool.")
-      var vms = [JSVirtualMachine]()
-      vms.reserveCapacity(count)
       self.vm = vm
-      self.state = Lock((index: 0, count: count, machines: vms))
+      self.state = Lock((index: 0, count: count, machines: .allocate(capacity: count)))
+    }
+
+    deinit {
+      self.state.withLock { $0.machines.deallocate() }
     }
   }
 
@@ -57,8 +59,9 @@
     /// - Returns: A `JSVirutalMachine`.
     public func virtualMachine() async -> JSVirtualMachine {
       let transfer = self.state.withLock { state -> UnsafeJSVirtualMachineTransfer? in
-        guard self.hasCreatedMaximumMachines(state: state) else { return nil }
-        return UnsafeJSVirtualMachineTransfer(vm: self.nextVM(in: &state))
+        guard let vm = state.machines[state.index] else { return nil }
+        state.index = self.nextVMIndex(in: state)
+        return UnsafeJSVirtualMachineTransfer(vm: vm)
       }
       if let transfer {
         return transfer.vm
@@ -69,13 +72,18 @@
           self.condition.wait()
         }
         self.state.withLock { state in
-          if !self.hasCreatedMaximumMachines(state: state) {
+          if let vm = state.machines[state.index] {
+            continuation.resume(returning: vm)
+            state.index = self.nextVMIndex(in: state)
+            self.condition.signal()
+          } else {
             self.isCreatingMachineCondition = true
             Thread.detachNewThread {
               self.condition.lock()
               let vm = self.state.withLock { state in
                 let vm = self.vm?() ?? JSVirtualMachine()!
-                state.machines.append(vm)
+                state.machines[state.index] = vm
+                state.index = self.nextVMIndex(in: state)
                 return vm
               }
               continuation.resume(returning: vm)
@@ -83,22 +91,36 @@
               self.condition.signal()
               self.condition.unlock()
             }
-          } else {
-            continuation.resume(returning: self.nextVM(in: &state))
-            self.condition.signal()
           }
-          self.condition.unlock()
         }
+        self.condition.unlock()
       }
     }
 
-    private func hasCreatedMaximumMachines(state: State) -> Bool {
-      state.machines.count >= state.count
+    private func nextVMIndex(in state: State) -> Int {
+      var index = state.index
+      while state.machines[index] != nil {
+        index = (index + 1) % state.count
+        if state.index == index {
+          return (state.index + 1) % state.count
+        }
+      }
+      return index
     }
+  }
 
-    private func nextVM(in state: inout State) -> JSVirtualMachine {
-      defer { state.index = (state.index + 1) % state.count }
-      return state.machines[state.index]
+  // MARK: - Garbage Collection
+
+  extension JSVirtualMachinePool {
+    /// Frees any virtual machines from the pool that are not referenced by another object.
+    public func garbageCollect() {
+      self.state.withLock { state in
+        for i in 0..<state.count {
+          if isKnownUniquelyReferenced(&state.machines[i]) {
+            state.machines[i] = nil
+          }
+        }
+      }
     }
   }
 
