@@ -1,5 +1,5 @@
 {
-  "originHash" : "5d143be492994a1302cc309ac79a5a9267e0f2f11ff1f87c41c79e7d6a785eb1",
+  "originHash" : "4f6325696e6ab0aaeb360fc4a0db93af2e5d7fba97f8bdbc7994f2d923373e25",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/GRDB.swift",
       "state" : {
-        "revision" : "4de97e6903d29697caae1179cdef8479c64c2639",
-        "version" : "7.0.0"
+        "revision" : "c7205b172f38439e7ee62c208d1d76fa353c0a81",
+        "version" : "7.2.0"
       }
     },
     {
@@ -35,6 +35,15 @@
       "state" : {
         "revision" : "22f1a379b32838d9db484d873d6a8b5d39e50e27",
         "version" : "3.19.2"
+      }
+    },
+    {
+      "identity" : "sharing-grdb",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/sharing-grdb",
+      "state" : {
+        "revision" : "8c848635c0495795ecffcac740cfae6f761cb712",
+        "version" : "0.1.0"
       }
     },
     {
@@ -150,8 +159,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-sharing",
       "state" : {
-        "revision" : "d590ed64c83453180482fa8fdd441d82efa442ea",
-        "version" : "2.1.2"
+        "revision" : "c9fd8da9f2683b8c3201abd849b35c307d50ab9f",
+        "version" : "2.3.1"
       }
     },
     {

@@ -54,7 +54,8 @@ let package = Package(
     .package(
       url: "https://github.com/pointfreeco/swift-composable-architecture",
       .upToNextMajor(from: "1.17.1")
-    )
+    ),
+    .package(url: "https://github.com/pointfreeco/sharing-grdb", .upToNextMajor(from: "0.1.0"))
   ],
   targets: [
     .target(
@@ -204,7 +205,10 @@ let package = Package(
     ),
     .testTarget(
       name: "WPSharingTests",
-      dependencies: ["WPSharing", .product(name: "CustomDump", package: "swift-custom-dump")]
+      dependencies: [
+        "WPSharing",
+        .product(name: "CustomDump", package: "swift-custom-dump")
+      ]
     ),
     .target(
       name: "WPTCA",
@@ -224,6 +228,7 @@ let package = Package(
     .target(
       name: "WPGRDBSharing",
       dependencies: [
+        .product(name: "SharingGRDB", package: "sharing-grdb"),
         .targetItem(name: "WPGRDB", condition: .whenApplePlatforms),
         "WPSharing"
       ]

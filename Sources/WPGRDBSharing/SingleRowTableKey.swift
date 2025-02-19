@@ -4,6 +4,7 @@
   import WPFoundation
   import WPGRDB
   import WPSharing
+  import SharingGRDB
 
   // MARK: - SingleRowTableKey
 
@@ -15,9 +16,10 @@
 
     fileprivate init(
       scheduler: any ValueObservationScheduler & Sendable,
-      database: any DatabaseWriter
+      database: (any DatabaseWriter)?
     ) {
-      self.writer = database
+      @Dependency(\.defaultDatabase) var defaultDatabase
+      self.writer = database ?? defaultDatabase
       self.scheduler = scheduler
     }
 
@@ -58,17 +60,17 @@
     }
   }
 
-  extension SharedKey where Value: SingleRowTableRecord & Sendable {
+  extension SharedKey {
     /// A `SharedKey` that loads and saves shared state to a single row table in a SQLite database.
     ///
     /// - Parameters:
     ///   - animation: An animation to play when updating the shared value.
     ///   - database: A `DatabaseWriter` to use for persistence.
     /// - Returns: A shared key.
-    public static func singleRowTableRecord(
+    public static func singleRowTableRecord<Value>(
       animation: Animation?,
-      database: any DatabaseWriter
-    ) -> SingleRowTableKey<Value> {
+      database: (any DatabaseWriter)? = nil
+    ) -> Self where Self == SingleRowTableKey<Value> {
       .singleRowTableRecord(scheduler: .animation(animation), database: database)
     }
 
@@ -78,11 +80,11 @@
     ///   - scheduler: A `ValueObservation` scheduler to use.
     ///   - database: A `DatabaseWriter` to use for persistence.
     /// - Returns: A shared key.
-    public static func singleRowTableRecord(
-      scheduler: any ValueObservationScheduler = .animation(nil),
-      database: any DatabaseWriter
-    ) -> SingleRowTableKey<Value> {
-      SingleRowTableKey<Value>(scheduler: .async(onQueue: .main), database: database)
+    public static func singleRowTableRecord<Value>(
+      scheduler: any ValueObservationScheduler = .async(onQueue: .main),
+      database: (any DatabaseWriter)? = nil
+    ) -> Self where Self == SingleRowTableKey<Value> {
+      SingleRowTableKey<Value>(scheduler: scheduler, database: database)
     }
   }
 
