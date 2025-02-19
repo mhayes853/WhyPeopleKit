@@ -15,6 +15,9 @@ public struct AHAPPattern: Hashable, Sendable {
   /// The numerical version of this pattern.
   public var version: Int
 
+  /// The metadata for this pattern.
+  public var metadata: Metadata
+
   /// The elements in this pattern.
   public var elements: [Element]
 
@@ -22,10 +25,12 @@ public struct AHAPPattern: Hashable, Sendable {
   ///
   /// - Parameters:
   ///   - version: The numerical version of this pattern.
+  ///   - metadata: The metadata for this pattern.
   ///   - elements: The elements in this pattern.
-  public init(version: Int = 1, elements: [AHAPPattern.Element]) {
+  public init(version: Int = 1, metadata: Metadata = Metadata(), elements: [AHAPPattern.Element]) {
     self.version = version
     self.elements = elements
+    self.metadata = metadata
   }
 }
 
@@ -34,9 +39,10 @@ extension AHAPPattern {
   ///
   /// - Parameters:
   ///   - version: The numerical version of this pattern.
+  ///   - metadata: The metadata for this pattern.
   ///   - elements: The elements in this pattern.
-  public init(version: Int = 1, _ elements: Element...) {
-    self.init(version: version, elements: Array(elements))
+  public init(version: Int = 1, metadata: Metadata = Metadata(), _ elements: Element...) {
+    self.init(version: version, metadata: metadata, elements: Array(elements))
   }
 }
 
@@ -44,12 +50,14 @@ extension AHAPPattern: Codable {
   private enum CodingKeys: String, CodingKey {
     case version = "Version"
     case elements = "Pattern"
+    case metadata = "Metadata"
   }
 
   public init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.version = try container.decodeIfPresent(Int.self, forKey: .version) ?? 1
     self.elements = try container.decode([AHAPPattern.Element].self, forKey: .elements)
+    self.metadata = try container.decodeIfPresent(Metadata.self, forKey: .metadata) ?? Metadata()
   }
 }
 
@@ -108,6 +116,113 @@ extension AHAPPattern {
   ///   - options: Options for reading the data. Default value is `[]`.
   public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
     try self.init(from: Data(contentsOf: url, options: options))
+  }
+}
+
+// MARK: - Metadata
+
+extension AHAPPattern {
+  /// The metadata of an AHAP pattern.
+  public typealias Metadata = [String: MetadataValue?]
+
+  /// A value for the metadata of an AHAP pattern.
+  public enum MetadataValue: Hashable, Sendable {
+    case string(String)
+    case double(Double)
+    case integer(Int64)
+    case boolean(Bool)
+    case array([MetadataValue])
+    case object([String: MetadataValue])
+  }
+}
+
+extension AHAPPattern.MetadataValue: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .string(let value):
+      try container.encode(value)
+    case .double(let value):
+      try container.encode(value)
+    case .integer(let value):
+      try container.encode(value)
+    case .boolean(let value):
+      try container.encode(value)
+    case .array(let value):
+      try container.encode(value)
+    case .object(let value):
+      try container.encode(value)
+    }
+  }
+}
+
+extension AHAPPattern.MetadataValue: Decodable {
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    if let boolValue = try? container.decode(Bool.self) {
+      self = .boolean(boolValue)
+      return
+    }
+    if let intValue = try? container.decode(Int64.self) {
+      self = .integer(intValue)
+      return
+    }
+    if let doubleValue = try? container.decode(Double.self) {
+      self = .double(doubleValue)
+      return
+    }
+    if let stringValue = try? container.decode(String.self) {
+      self = .string(stringValue)
+      return
+    }
+    if let arrayValue = try? container.decode([Self].self) {
+      self = .array(arrayValue)
+      return
+    }
+    if let objectValue = try? container.decode([String: Self].self) {
+      self = .object(objectValue)
+      return
+    }
+    throw DecodingError.dataCorruptedError(
+      in: container,
+      debugDescription: "Unrecognized AHAPPattern.MetadataValue type."
+    )
+  }
+}
+
+extension AHAPPattern.MetadataValue: ExpressibleByStringLiteral {
+  public init(stringLiteral value: String) {
+    self = .string(value)
+  }
+}
+
+extension AHAPPattern.MetadataValue: ExpressibleByIntegerLiteral {
+  public init(integerLiteral value: Int) {
+    self = .integer(Int64(value))
+  }
+}
+
+extension AHAPPattern.MetadataValue: ExpressibleByFloatLiteral {
+  public init(floatLiteral value: Double) {
+    self = .double(value)
+  }
+}
+
+extension AHAPPattern.MetadataValue: ExpressibleByBooleanLiteral {
+  public init(booleanLiteral value: Bool) {
+    self = .boolean(value)
+  }
+}
+
+extension AHAPPattern.MetadataValue: ExpressibleByArrayLiteral {
+  public init(arrayLiteral elements: AHAPPattern.MetadataValue...) {
+    self = .array(elements)
+  }
+}
+
+extension AHAPPattern.MetadataValue: ExpressibleByDictionaryLiteral {
+  public init(dictionaryLiteral elements: (String, AHAPPattern.MetadataValue)...) {
+    self = .object([String: Self](uniqueKeysWithValues: elements))
   }
 }
 

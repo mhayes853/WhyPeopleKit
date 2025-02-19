@@ -1,6 +1,9 @@
 {
   "Metadata" : {
-
+    "foo" : "bar",
+    "payload" : {
+      "a" : "test"
+    }
   },
   "Pattern" : [
     {

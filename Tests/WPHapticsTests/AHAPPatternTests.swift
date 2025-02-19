@@ -1,5 +1,6 @@
 import CustomDump
 import Foundation
+import IssueReporting
 import Testing
 import WPHaptics
 import WPSnapshotTesting
@@ -229,9 +230,127 @@ struct AHAPPatternTests {
     expectNoDifference(pattern, .test)
   }
 
+  @Test("From Raw AHAP Data With Metadata")
+  func fromAHAPDataWithMetadata() throws {
+    let data = """
+          {
+            "Metadata": {
+              "foo": "bar",
+              "payload": {
+                "a": "test"
+              }
+            },
+            "Pattern": [
+              {
+                "Event": {
+                  "EventType": "HapticTransient",
+                  "Time": 0,
+                  "EventParameters": [
+                    {
+                      "ParameterID": "HapticIntensity",
+                      "ParameterValue": 0.5
+                    },
+                    {
+                      "ParameterID": "HapticSharpness",
+                      "ParameterValue": 0.5
+                    }
+                  ]
+                }
+              },
+              {
+                "Event": {
+                  "EventType": "HapticContinuous",
+                  "Time": 0,
+                  "EventDuration": 2,
+                  "EventParameters": [
+                    {
+                      "ParameterID": "HapticIntensity",
+                      "ParameterValue": 0.5
+                    },
+                    {
+                      "ParameterID": "HapticSharpness",
+                      "ParameterValue": 0.5
+                    }
+                  ]
+                }
+              },
+              {
+                "Event": {
+                  "EventType": "AudioCustom",
+                  "EventWaveformPath": "coins",
+                  "Time": 0.5,
+                  "EventParameters": [
+                    {
+                      "ParameterID": "AudioVolume",
+                      "ParameterValue": 0.3
+                    }
+                  ]
+                }
+              },
+              {
+                "ParameterCurve": {
+                  "ParameterID": "HapticIntensityControl",
+                  "Time": 0,
+                  "ParameterCurveControlPoints": [
+                    {
+                      "ParameterValue": 0,
+                      "Time": 0
+                    },
+                    {
+                      "ParameterValue": 1,
+                      "Time": 0.1
+                    },
+                    {
+                      "ParameterValue": 0.5,
+                      "Time": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "ParameterCurve": {
+                  "ParameterID": "HapticSharpnessControl",
+                  "Time": 2,
+                  "ParameterCurveControlPoints": [
+                    {
+                      "ParameterValue": 0,
+                      "Time": 0
+                    },
+                    {
+                      "ParameterValue": 1,
+                      "Time": 0.1
+                    },
+                    {
+                      "ParameterValue": 0.5,
+                      "Time": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "Parameter": {
+                  "ParameterID": "AudioVolumeControl",
+                  "Time": 0.5,
+                  "ParameterValue": 0.8
+                }
+              }
+            ]
+          }
+      """
+      .data(using: .utf8)!
+
+    let pattern = try AHAPPattern(from: data)
+    expectNoDifference(pattern, .testWithMetadata)
+  }
+
   @Test("Data Snapshot")
   func snapshot() throws {
     assertSnapshot(of: AHAPPattern.test, as: .ahap)
+  }
+
+  @Test("Data With Metadata Snapshot")
+  func withMetadataSnapshot() throws {
+    assertSnapshot(of: AHAPPattern.testWithMetadata, as: .ahap)
   }
 
   @Test("Throws When Invalid Data Decoded")
@@ -299,4 +418,19 @@ extension AHAPPattern {
     ),
     .dynamicParameter(id: .audioVolumeControl, time: 0.5, value: 0.8)
   )
+
+  fileprivate static var testWithMetadata: Self {
+    var pattern = Self.test
+    pattern.metadata["foo"] = "bar"
+    pattern.metadata["payload"] = ["a": "test"]
+    return pattern
+  }
+}
+
+private struct Payload: Hashable, Codable {
+  var a = "test"
+}
+
+private struct Payload2: Hashable, Codable {
+  var b = "test"
 }
