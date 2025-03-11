@@ -1,5 +1,5 @@
 {
-  "originHash" : "4f6325696e6ab0aaeb360fc4a0db93af2e5d7fba97f8bdbc7994f2d923373e25",
+  "originHash" : "a26d616fbe9fe1a9f1f8adee50c3acad49edda50242c561a294c3971a920819d",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "c7205b172f38439e7ee62c208d1d76fa353c0a81",
         "version" : "7.2.0"
+      }
+    },
+    {
+      "identity" : "javascript-core-extras",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mhayes853/javascript-core-extras",
+      "state" : {
+        "revision" : "ab457366db09a64264dd99e7f91f00ba907d5437",
+        "version" : "0.1.0"
       }
     },
     {

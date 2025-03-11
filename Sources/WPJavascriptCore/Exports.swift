@@ -1,3 +1,3 @@
-#if canImport(JavaScriptCore)
-  @_exported import JavaScriptCore
+#if canImport(JavaScriptCoreExtras)
+  @_exported import JavaScriptCoreExtras
 #endif

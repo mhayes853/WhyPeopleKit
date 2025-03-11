@@ -55,7 +55,8 @@ let package = Package(
       url: "https://github.com/pointfreeco/swift-composable-architecture",
       .upToNextMajor(from: "1.17.1")
     ),
-    .package(url: "https://github.com/pointfreeco/sharing-grdb", .upToNextMajor(from: "0.1.0"))
+    .package(url: "https://github.com/pointfreeco/sharing-grdb", .upToNextMajor(from: "0.1.0")),
+    .package(url: "https://github.com/mhayes853/javascript-core-extras", from: "0.1.0")
   ],
   targets: [
     .target(
@@ -180,20 +181,13 @@ let package = Package(
     .target(
       name: "WPJavascriptCore",
       dependencies: [
-        "WPFoundation",
-        "_CWPJavascriptCore",
-        .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
-        .product(name: "CustomDump", package: "swift-custom-dump")
-      ],
-      resources: [.process("js")]
-    ),
-    .testTarget(
-      name: "WPJavascriptCoreTests",
-      dependencies: [
-        "WPJavascriptCore", "WPSnapshotTesting", .product(name: "Clocks", package: "swift-clocks")
+        .product(
+          name: "JavaScriptCoreExtras",
+          package: "javascript-core-extras",
+          condition: .whenApplePlatforms
+        )
       ]
     ),
-    .target(name: "_CWPJavascriptCore"),
     .target(
       name: "WPSharing",
       dependencies: [
