@@ -1,4 +1,4 @@
-#if canImport(WPGRDB)
+#if canImport(WPGRDB) && canImport(SharingGRDB)
   import CustomDump
   import Testing
   import WPDependencies

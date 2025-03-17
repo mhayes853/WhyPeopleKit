@@ -31,9 +31,7 @@ public struct WithSecurityScope: Sendable {
 
 public struct SecurityScopeError: Error {}
 
-// MARK: - DependencyKey Conformance
-
-extension WithSecurityScope: DependencyKey {
+extension WithSecurityScope {
   public static let alwaysAccessible = Self { _ in
     true
   } stopAccessing: { _ in
@@ -43,15 +41,23 @@ extension WithSecurityScope: DependencyKey {
     false
   } stopAccessing: { _ in
   }
-
-  public static let liveValue = Self {
-    $0.startAccessingSecurityScopedResource()
-  } stopAccessing: {
-    $0.stopAccessingSecurityScopedResource()
-  }
-
-  public static let testValue = Self.alwaysAccessible
 }
+
+// MARK: - DependencyKey Conformance
+
+extension WithSecurityScope: TestDependencyKey {
+   public static let testValue = Self.alwaysAccessible
+}
+
+#if !os(Linux)
+  extension WithSecurityScope: DependencyKey {
+    public static let liveValue = Self {
+      $0.startAccessingSecurityScopedResource()
+    } stopAccessing: {
+      $0.stopAccessingSecurityScopedResource()
+    }
+  }
+#endif
 
 // MARK: - Dependency Value
 

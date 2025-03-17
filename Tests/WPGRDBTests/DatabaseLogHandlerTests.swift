@@ -1,4 +1,4 @@
-#if canImport(GRDB)
+#if canImport(WPGRDB)
   import CustomDump
   import Logging
   import Synchronization

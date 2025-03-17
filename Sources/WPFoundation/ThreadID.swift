@@ -9,8 +9,12 @@ public struct ThreadID: Hashable, Sendable {
 extension ThreadID {
   /// The current thread id.
   public static var current: Self {
-    var id = UInt64(0)
-    pthread_threadid_np(nil, &id)
-    return Self(rawValue: id)
+    #if os(Linux)
+      return Self(rawValue: UInt64(pthread_self()))
+    #else
+      var id = UInt64(0)
+      pthread_threadid_np(nil, &id)
+      return Self(rawValue: id)
+    #endif
   }
 }
