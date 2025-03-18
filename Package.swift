@@ -56,7 +56,8 @@ let package = Package(
       .upToNextMajor(from: "1.17.1")
     ),
     .package(url: "https://github.com/pointfreeco/sharing-grdb", .upToNextMajor(from: "0.1.0")),
-    .package(url: "https://github.com/mhayes853/javascript-core-extras", from: "0.1.0")
+    .package(url: "https://github.com/mhayes853/javascript-core-extras", from: "0.1.0"),
+    .package(url: "https://github.com/pointfreeco/swift-structured-queries", branch: "main")
   ],
   targets: [
     .target(
@@ -227,7 +228,7 @@ let package = Package(
         "WPSharing"
       ]
     ),
-    .testTarget(name: "WPGRDBSharingTests", dependencies: ["WPGRDBSharing"])
+    .testTarget(name: "WPGRDBSharingTests", dependencies: ["WPGRDBSharing"]),
   ],
   swiftLanguageModes: [.version("6")]
 )
