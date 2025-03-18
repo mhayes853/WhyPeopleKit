@@ -1,4 +1,4 @@
-#if canImport(WPGRDB)
+#if canImport(WPGRDB) && canImport(SharingGRDB)
   import SwiftUI
   import WPDependencies
   import WPFoundation

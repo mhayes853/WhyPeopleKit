@@ -23,13 +23,10 @@ let package = Package(
     .library(name: "WPMixpanelAnalytics", targets: ["WPMixpanelAnalytics"]),
     .library(name: "WPPostHogAnalytics", targets: ["WPPostHogAnalytics"]),
     .library(name: "WPSwiftNavigation", targets: ["WPSwiftNavigation"]),
-    .library(name: "WPGRDB", targets: ["WPGRDB"]),
     .library(name: "WPPerception", targets: ["WPPerception"]),
     .library(name: "WPSnapshotTesting", targets: ["WPSnapshotTesting"]),
     .library(name: "WPJavascriptCore", targets: ["WPJavascriptCore"]),
-    .library(name: "WPSharing", targets: ["WPSharing"]),
-    .library(name: "WPGRDBSharing", targets: ["WPGRDBSharing"]),
-    .library(name: "WPTCA", targets: ["WPTCA"])
+    .library(name: "WPSharing", targets: ["WPSharing"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
@@ -157,17 +154,6 @@ let package = Package(
     ),
     .testTarget(name: "WPSwiftNavigationTests", dependencies: ["WPSwiftNavigation"]),
     .target(
-      name: "WPGRDB",
-      dependencies: [
-        "WPFoundation",
-        .product(name: "GRDB", package: "GRDB.swift", condition: .whenApplePlatforms),
-        .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
-        .product(name: "Logging", package: "swift-log"),
-        .product(name: "CustomDump", package: "swift-custom-dump")
-      ]
-    ),
-    .testTarget(name: "WPGRDBTests", dependencies: ["WPGRDB"]),
-    .target(
       name: "WPPerception",
       dependencies: [.product(name: "Perception", package: "swift-perception")]
     ),
@@ -204,34 +190,62 @@ let package = Package(
         "WPSharing",
         .product(name: "CustomDump", package: "swift-custom-dump")
       ]
-    ),
-    .target(
-      name: "WPTCA",
-      dependencies: [
-        "WPSwiftNavigation",
-        "WPDependencies",
-        "WPHaptics",
-        "WPSharing",
-        .product(
-          name: "ComposableArchitecture",
-          package: "swift-composable-architecture",
-          condition: .whenApplePlatforms
-        )
-      ]
-    ),
-    .testTarget(name: "WPTCATests", dependencies: ["WPTCA"]),
-    .target(
-      name: "WPGRDBSharing",
-      dependencies: [
-        .product(name: "SharingGRDB", package: "sharing-grdb"),
-        .targetItem(name: "WPGRDB", condition: .whenApplePlatforms),
-        "WPSharing"
-      ]
-    ),
-    .testTarget(name: "WPGRDBSharingTests", dependencies: ["WPGRDBSharing"]),
+    )
   ],
   swiftLanguageModes: [.version("6")]
 )
+
+#if !os(Linux)
+  package.products.append(
+    contentsOf: [
+      .library(name: "WPTCA", targets: ["WPTCA"]),
+      .library(name: "WPGRDB", targets: ["WPGRDB"]),
+      .library(name: "WPGRDBSharing", targets: ["WPGRDBSharing"])
+    ]
+  )
+  package.targets.append(
+    contentsOf: [
+      .target(
+        name: "WPTCA",
+        dependencies: [
+          "WPSwiftNavigation",
+          "WPDependencies",
+          "WPHaptics",
+          "WPSharing",
+          .product(
+            name: "ComposableArchitecture",
+            package: "swift-composable-architecture",
+            condition: .whenApplePlatforms
+          )
+        ]
+      ),
+      .testTarget(name: "WPTCATests", dependencies: ["WPTCA"]),
+      .target(
+        name: "WPGRDB",
+        dependencies: [
+          "WPFoundation",
+          .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
+          .product(name: "Logging", package: "swift-log"),
+          .product(name: "CustomDump", package: "swift-custom-dump"),
+          .product(name: "GRDB", package: "GRDB.swift", condition: .whenApplePlatforms)
+        ]
+      ),
+      .testTarget(
+        name: "WPGRDBTests",
+        dependencies: [.targetItem(name: "WPGRDB", condition: .whenApplePlatforms)]
+      ),
+      .target(
+        name: "WPGRDBSharing",
+        dependencies: [
+          .product(name: "SharingGRDB", package: "sharing-grdb", condition: .whenApplePlatforms),
+          .targetItem(name: "WPGRDB", condition: .whenApplePlatforms),
+          "WPSharing"
+        ]
+      ),
+      .testTarget(name: "WPGRDBSharingTests", dependencies: ["WPGRDBSharing"])
+    ]
+  )
+#endif
 
 extension TargetDependencyCondition {
   static var whenApplePlatforms: Self? {

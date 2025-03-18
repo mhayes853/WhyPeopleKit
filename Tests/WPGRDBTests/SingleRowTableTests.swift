@@ -1,4 +1,4 @@
-#if canImport(GRDB)
+#if canImport(WPGRDB)
   import Testing
   import WPGRDB
 
