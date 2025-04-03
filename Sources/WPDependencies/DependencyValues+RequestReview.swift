@@ -24,14 +24,16 @@
 
   extension DependencyValues {
     /// A dependency that requests a review.
-    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
+    @available(iOS 16, macOS 13, tvOS 16, *)
+    @available(watchOS, unavailable)
     public var requestReview: RequestReviewEffect {
       get { self[RequestReviewKey.self] }
       set { self[RequestReviewKey.self] = newValue }
     }
   }
 
-  @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
+  @available(iOS 16, macOS 13, tvOS 16, *)
+  @available(watchOS, unavailable)
   private enum RequestReviewKey: DependencyKey {
     static var liveValue: RequestReviewEffect {
       RequestReviewEffect {

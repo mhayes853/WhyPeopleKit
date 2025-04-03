@@ -10,5 +10,6 @@ public protocol DefaultsKeyValueStore: NSObject {
 extension UserDefaults: DefaultsKeyValueStore {}
 
 #if !os(Linux)
+  @available(watchOS 9.0, *)
   extension NSUbiquitousKeyValueStore: DefaultsKeyValueStore {}
 #endif

@@ -32,11 +32,11 @@ extension DependencyValues {
 
     private struct WatchHapticsPlayerKey: DependencyKey {
       public static var liveValue: AnySendableHapticsPlayable<WKHapticType> {
-        AnyHapticsPlayable(WKInterfaceDevicePlayer())
+        AnySendableHapticsPlayable(WKInterfaceDevicePlayer())
       }
 
       public static var testValue: AnySendableHapticsPlayable<WKHapticType> {
-        AnyHapticsPlayable(TestHapticsPlayable<WKHapticType>())
+        AnySendableHapticsPlayable(TestHapticsPlayable<WKHapticType>())
       }
     }
   }

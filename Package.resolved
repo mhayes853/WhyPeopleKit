@@ -1,5 +1,5 @@
 {
-  "originHash" : "cc9548d0f09456a89c13c2505daa90889f6d6727fd6e689da6d9a23c96e19ec1",
+  "originHash" : "1e30a50922cefef262a708456b0a43dbb0afabda6d26fa84c801663980d1ee16",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -15,17 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/GRDB.swift",
       "state" : {
-        "revision" : "c7205b172f38439e7ee62c208d1d76fa353c0a81",
-        "version" : "7.2.0"
-      }
-    },
-    {
-      "identity" : "javascript-core-extras",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/mhayes853/javascript-core-extras",
-      "state" : {
-        "revision" : "ab457366db09a64264dd99e7f91f00ba907d5437",
-        "version" : "0.1.0"
+        "revision" : "04e73c26c4ce8218ab85aaf791942bb0b204f330",
+        "version" : "7.4.1"
       }
     },
     {
@@ -33,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mixpanel/mixpanel-swift",
       "state" : {
-        "revision" : "48d6668ceaaefc338f94e2b084c3cf77b90182f8",
-        "version" : "4.3.0"
+        "revision" : "c550cbef7654e59d06bf9c224ea25f681dea8975",
+        "version" : "4.4.0"
       }
     },
     {
@@ -42,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios",
       "state" : {
-        "revision" : "22f1a379b32838d9db484d873d6a8b5d39e50e27",
-        "version" : "3.19.2"
+        "revision" : "889f89a0da78544df735674d6bd1cb18481817c9",
+        "version" : "3.21.0"
       }
     },
     {
@@ -51,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/sharing-grdb",
       "state" : {
-        "revision" : "8c848635c0495795ecffcac740cfae6f761cb712",
-        "version" : "0.1.0"
+        "revision" : "83ad5261983c4fcc92d071610e09718ce5227e29",
+        "version" : "0.1.1"
       }
     },
     {
@@ -60,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-case-paths",
       "state" : {
-        "revision" : "e7039aaa4d9cf386fa8324a89f258c3f2c54d751",
-        "version" : "1.6.0"
+        "revision" : "19b7263bacb9751f151ec0c93ec816fe1ef67c7b",
+        "version" : "1.6.1"
       }
     },
     {
@@ -87,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-composable-architecture",
       "state" : {
-        "revision" : "2ebda6ae2b155a5c3d75aff5f6d25c024bc91311",
-        "version" : "1.17.1"
+        "revision" : "fd409c79ea8ba378bd3997e2719dcf74f4ed909b",
+        "version" : "1.19.0"
       }
     },
     {
@@ -114,8 +105,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-dependencies",
       "state" : {
-        "revision" : "52b5e1a09dc016e64ce253e19ab3124b7fae9ac9",
-        "version" : "1.7.0"
+        "revision" : "4e6b6a814675daf2c1973514314283448f95f941",
+        "version" : "1.9.0"
       }
     },
     {
@@ -123,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-identified-collections",
       "state" : {
-        "revision" : "2f5ab6e091dd032b63dacbda052405756010dc3b",
-        "version" : "1.1.0"
+        "revision" : "322d9ffeeba85c9f7c4984b39422ec7cc3c56597",
+        "version" : "1.1.1"
       }
     },
     {
@@ -132,8 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log",
       "state" : {
-        "revision" : "96a2f8a0fa41e9e09af4585e2724c4e825410b91",
-        "version" : "1.6.2"
+        "revision" : "3d8596ed08bd13520157f0355e35caed215ffbfa",
+        "version" : "1.6.3"
       }
     },
     {
@@ -141,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-navigation",
       "state" : {
-        "revision" : "e28911721538fa0c2439e92320bad13e3200866f",
-        "version" : "2.2.3"
+        "revision" : "db6bc9dbfed001f21e6728fd36413d9342c235b4",
+        "version" : "2.3.0"
       }
     },
     {
@@ -150,8 +141,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-numerics",
       "state" : {
-        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
-        "version" : "1.0.2"
+        "revision" : "e0ec0f5f3af6f3e4d5e7a19d2af26b481acb6ba8",
+        "version" : "1.0.3"
       }
     },
     {
@@ -159,8 +150,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-perception",
       "state" : {
-        "revision" : "9e9ec5177724e78de1ecfd5b7bf881ae027be4ac",
-        "version" : "1.4.2"
+        "revision" : "671fa54b279fd73933b4a8b34782ebf6c8869145",
+        "version" : "1.5.1"
       }
     },
     {
@@ -168,8 +159,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-sharing",
       "state" : {
-        "revision" : "c9fd8da9f2683b8c3201abd849b35c307d50ab9f",
-        "version" : "2.3.1"
+        "revision" : "732871fabfc6b38fcdff5ad2f7336327dbf78e81",
+        "version" : "2.4.0"
       }
     },
     {
@@ -177,8 +168,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-snapshot-testing",
       "state" : {
-        "revision" : "f5bfff796ee8e3bc9a685b7ffba1bf20663eb370",
-        "version" : "1.18.0"
+        "revision" : "1be8144023c367c5de701a6313ed29a3a10bf59b",
+        "version" : "1.18.3"
       }
     },
     {
@@ -187,7 +178,7 @@
       "location" : "https://github.com/pointfreeco/swift-structured-queries",
       "state" : {
         "branch" : "main",
-        "revision" : "84ca597bd44d887629e846e9885a25caa5baa43b"
+        "revision" : "f3be457384b9175e670fafe6bdb75795ac47b167"
       }
     },
     {
@@ -204,8 +195,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
       "state" : {
-        "revision" : "9243488728a70a457f15651fdea44cacf12ee4ff",
-        "version" : "1.5.0"
+        "revision" : "39de59b2d47f7ef3ca88a039dff3084688fe27f4",
+        "version" : "1.5.2"
       }
     }
   ],

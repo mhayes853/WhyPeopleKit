@@ -10,7 +10,7 @@ let package = Package(
     .macOS(.v10_15),
     .iOS(.v13),
     .tvOS(.v13),
-    .watchOS(.v6),
+    .watchOS(.v7),
     .macCatalyst(.v13)
   ],
   products: [
@@ -25,7 +25,6 @@ let package = Package(
     .library(name: "WPSwiftNavigation", targets: ["WPSwiftNavigation"]),
     .library(name: "WPPerception", targets: ["WPPerception"]),
     .library(name: "WPSnapshotTesting", targets: ["WPSnapshotTesting"]),
-    .library(name: "WPJavascriptCore", targets: ["WPJavascriptCore"]),
     .library(name: "WPSharing", targets: ["WPSharing"])
   ],
   dependencies: [
@@ -52,8 +51,7 @@ let package = Package(
       url: "https://github.com/pointfreeco/swift-composable-architecture",
       .upToNextMajor(from: "1.17.1")
     ),
-    .package(url: "https://github.com/pointfreeco/sharing-grdb", .upToNextMajor(from: "0.1.0")),
-    .package(url: "https://github.com/mhayes853/javascript-core-extras", from: "0.1.0"),
+    .package(url: "https://github.com/pointfreeco/sharing-grdb", .upToNextMajor(from: "0.1.1")),
     .package(url: "https://github.com/pointfreeco/swift-structured-queries", branch: "main")
   ],
   targets: [
@@ -163,16 +161,6 @@ let package = Package(
       dependencies: [
         "WPHaptics",
         .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
-      ]
-    ),
-    .target(
-      name: "WPJavascriptCore",
-      dependencies: [
-        .product(
-          name: "JavaScriptCoreExtras",
-          package: "javascript-core-extras",
-          condition: .whenApplePlatforms
-        )
       ]
     ),
     .target(

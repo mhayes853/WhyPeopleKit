@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(iOS 16, macOS 13, tvOS 16, watchOS 8, *)
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 public struct _AsyncTimerSequence<C: Clock>: AsyncSequence, Sendable {
   public typealias Element = Void
 
