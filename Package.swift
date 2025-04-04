@@ -46,7 +46,7 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
     .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.6"),
     .package(url: "https://github.com/apple/swift-log", from: "1.6.1"),
-    .package(url: "https://github.com/pointfreeco/swift-sharing", .upToNextMajor(from: "2.0.0")),
+    .package(url: "https://github.com/pointfreeco/swift-sharing", .upToNextMajor(from: "2.4.0")),
     .package(
       url: "https://github.com/pointfreeco/swift-composable-architecture",
       .upToNextMajor(from: "1.17.1")

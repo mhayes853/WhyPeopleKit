@@ -1,4 +1,5 @@
 import ConcurrencyExtras
+import CustomDump
 import WPDependencies
 import WPFoundation
 import WPSharing
@@ -51,6 +52,22 @@ final class NotificationCenterKeyTests: XCTestCase, @unchecked Sendable {
       value: self.expectedInitialValue,
       expectation: expectation2
     )
+  }
+
+  func testIsLoadingWhenUpdatingValue() async {
+    let expectation = self.expectation(description: "begins loading")
+    let key = NotificationCenterKey<Int>
+      .notification(name: self.notification) { @Sendable _ in
+        self.expectedInitialValue
+      } onNotification: { @Sendable _ in
+        expectation.fulfill()
+        try await Task.never()
+        return self.expectedValueAfterPublish
+      }
+    @SharedReader(key) var state = 0
+    self.center.post(name: self.notification, object: nil)
+    await self.fulfillment(of: [expectation], timeout: 0.1)
+    expectNoDifference($state.isLoading, true)
   }
 
   func testCancelsInitialLoadWhenNotificationArrives() async {

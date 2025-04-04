@@ -97,6 +97,7 @@ extension NotificationCenterKey: SharedReaderKey {
       queue: nil
     ) { notification in
       let transfer = UnsafeTransfer(value: notification)
+      subscriber.yieldLoading()
       self.taskBox.setTask { try await self.updatedValue(transfer.value) }
     }
     return SharedSubscription {
