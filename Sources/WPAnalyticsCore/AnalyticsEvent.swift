@@ -230,3 +230,54 @@ extension AnalyticsEvent.Value: ExpressibleByDictionaryLiteral {
     self = .dict([String: Self?](uniqueKeysWithValues: elements))
   }
 }
+
+// MARK: - Value Codable
+
+extension AnalyticsEvent.Value: Encodable {
+  public func encode(to encoder: any Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case let .string(value):
+      try container.encode(value)
+    case let .integer(value):
+      try container.encode(value)
+    case let .unsignedInteger(value):
+      try container.encode(value)
+    case let .url(value):
+      try container.encode(value)
+    case let .date(value):
+      try container.encode(value)
+    case let .double(value):
+      try container.encode(value)
+    case let .boolean(value):
+      try container.encode(value)
+    case let .array(value):
+      try container.encode(value)
+    case let .dict(value):
+      try container.encode(value)
+    }
+  }
+}
+
+extension AnalyticsEvent.Value: Decodable {
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    if let string = try? container.decode(String.self) {
+      self = .string(string)
+    } else if let integer = try? container.decode(Int.self) {
+      self = .integer(integer)
+    } else if let unsignedInteger = try? container.decode(UInt.self) {
+      self = .unsignedInteger(unsignedInteger)
+    } else if let double = try? container.decode(Double.self) {
+      self = .double(double)
+    } else if let boolean = try? container.decode(Bool.self) {
+      self = .boolean(boolean)
+    } else if let array = try? container.decode([Self].self) {
+      self = .array(array)
+    } else if let dict = try? container.decode([String: Self?].self) {
+      self = .dict(dict)
+    } else {
+      throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid value")
+    }
+  }
+}
