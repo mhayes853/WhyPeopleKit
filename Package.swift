@@ -65,6 +65,7 @@ let package = Package(
       dependencies: [
         "WPFoundation",
         "WPTestSupport",
+        "WPSnapshotTesting",
         .product(name: "IssueReportingTestSupport", package: "xctest-dynamic-overlay"),
         .product(name: "Logging", package: "swift-log")
       ]
