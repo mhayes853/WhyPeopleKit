@@ -2,7 +2,11 @@
   import zlib
   import Foundation
 
-  extension Data {
+extension Data {
+    /// GZip compresses this data using zlib.
+    ///
+    /// - Parameter level: The ``GZipCompressionLevel`` to use.
+    /// - Returns: The compressed data.
     public func gzipped(
       level: GZipCompressionLevel = .defaultCompression
     ) throws(GZipError) -> Data {
@@ -10,7 +14,10 @@
       try new.gzip(level: level)
       return new
     }
-
+  
+    /// GZip compresses this data using zlib.
+    ///
+    /// - Parameter level: The ``GZipCompressionLevel`` to use.
     public mutating func gzip(
       level: GZipCompressionLevel = .defaultCompression
     ) throws(GZipError) {
@@ -70,6 +77,7 @@
   // MARK: - Compression Level
 
   extension Data {
+    /// A compression level from zlib.
     public struct GZipCompressionLevel: RawRepresentable, Sendable {
       public var rawValue: Int32
 
