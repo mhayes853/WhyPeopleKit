@@ -187,6 +187,15 @@ extension AnalyticsEvent.Value {
   }
 }
 
+// MARK: - Duration Values
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension AnalyticsEvent.Value {
+  public static func duration(_ d: Duration) -> Self {
+    .double(TimeInterval(duration: d))
+  }
+}
+
 // MARK: - Value Expressibles
 
 extension AnalyticsEvent.Value: ExpressibleByStringLiteral {
