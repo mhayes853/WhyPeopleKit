@@ -36,7 +36,7 @@ let package = Package(
       .upToNextMajor(from: "1.3.9")
     ),
     .package(url: "https://github.com/mixpanel/mixpanel-swift", .upToNextMajor(from: "4.2.1")),
-    .package(url: "https://github.com/PostHog/posthog-ios", .upToNextMajor(from: "3.0.0")),
+    .package(url: "https://github.com/PostHog/posthog-ios", .upToNextMinor(from: "3.24.0")),
     .package(
       url: "https://github.com/pointfreeco/xctest-dynamic-overlay",
       .upToNextMajor(from: "1.2.2")
