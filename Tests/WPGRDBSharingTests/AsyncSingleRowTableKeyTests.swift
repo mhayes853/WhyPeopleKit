@@ -5,8 +5,8 @@
   import WPFoundation
   import WPGRDBSharing
 
-  @Suite("SingleRowTableKey tests")
-  struct SingleRowTableKeyTests {
+  @Suite("AsyncSingleRowTableKey tests")
+  struct AsyncSingleRowTableKeyTests {
     private let database = try! DatabaseQueue()
 
     init() async throws {
@@ -39,6 +39,7 @@
       }
 
       @Shared(.testRecord(self.database)) var record
+      await Task.megaYield()
       expectNoDifference(record, newRecord)
     }
 
@@ -51,16 +52,38 @@
       try await self.database.write { db in
         try TestRecord.update(db) { $0 = newRecord }
       }
+      await Task.megaYield()
       // NB: Shared will perform a main thread hop when setting the value.
       await MainActor.run {
         expectNoDifference(record, newRecord)
       }
     }
+
+    @Test("Forwards Error When Database Initialization Fails")
+    func forwardsWhenInitializationFails() async throws {
+      @Shared(.failingTestRecord) var record
+      await Task.megaYield()
+      expectNoDifference($record.loadError as? FailingWriter.SomeError, FailingWriter.SomeError())
+    }
   }
 
-  extension SharedKey where Self == SingleRowTableKey<TestRecord>.Default {
+  extension SharedKey where Self == AsyncSingleRowTableKey<TestRecord>.Default {
     fileprivate static func testRecord(_ database: DatabaseQueue) -> Self {
-      Self[.singleRowTableRecord(database: database), default: TestRecord()]
+      Self[.asyncSingleRowTableRecord(database: .constant(database)), default: TestRecord()]
+    }
+  }
+
+  extension SharedKey where Self == AsyncSingleRowTableKey<TestRecord>.Default {
+    fileprivate static var failingTestRecord: Self {
+      Self[.asyncSingleRowTableRecord(database: FailingWriter()), default: TestRecord()]
+    }
+  }
+
+  private final class FailingWriter: AsyncInitializedDatabaseWriter {
+    struct SomeError: Equatable, Error {}
+
+    var writer: any DatabaseWriter {
+      get throws { throw SomeError() }
     }
   }
 

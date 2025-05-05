@@ -24,7 +24,7 @@
   ///   }
   /// }
   /// ```
-  public protocol AsyncInitializedDatabaseWriter: Sendable {
+  public protocol AsyncInitializedDatabaseWriter: AnyObject, Sendable {
     /// The initialized `DatabaseWriter` retrieved asynchronously.
     var writer: any DatabaseWriter { get async throws }
   }
@@ -35,8 +35,12 @@
   ///
   /// This is primarily useful for testing or SwiftUI previews, where async initialization is not
   /// necessary.
-  public struct ConstantInitializedDatabaseWriter: AsyncInitializedDatabaseWriter {
+  public final class ConstantInitializedDatabaseWriter: AsyncInitializedDatabaseWriter {
     public let writer: any DatabaseWriter
+
+    init(writer: any DatabaseWriter) {
+      self.writer = writer
+    }
   }
 
   extension AsyncInitializedDatabaseWriter where Self == ConstantInitializedDatabaseWriter {
