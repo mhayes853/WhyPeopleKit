@@ -34,9 +34,7 @@
 
         struct SomeError: Error, Equatable {}
 
-        await withExpectedIssue {
-          await outputVolume.send(result: .failure(SomeError()))
-        }
+        await outputVolume.send(result: .failure(SomeError()))
         let error = $volume.loadError as? SomeError
         #expect(error == SomeError())
       }

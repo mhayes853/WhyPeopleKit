@@ -2,16 +2,15 @@
   import AudioToolbox
   import CoreAudio
   import Numerics
-  import Testing
+  import XCTest
   import WPDeviceVolume
   import WPFoundation
+  import CustomDump
 
   // MARK: - Test Suite
 
-  @Suite("CoreAudioDeviceOutputVolume tests", .serialized)
-  struct CoreAudioDeviceOutputVolumeTests {
-    @Test("Status Updates Respond to Mute Switch Changes")
-    func respondToMuteSwitchChanges() async throws {
+  final class CoreAudioDeviceOutputVolumeTests: XCTestCase {
+    func testRespondToMuteSwitchChanges() async throws {
       let silentMode = try CoreAudioDeviceOutputVolume()
       let testDecibals = 0.5
       try await setVolume(outputVolume: testDecibals)
@@ -35,11 +34,10 @@
         DeviceOutputVolumeStatus(outputVolume: testDecibals, isMuted: false)
       ]
       .map(TestStatus.init(volumeStatus:))
-      #expect(statuses == expectedStatuses)
+      expectNoDifference(statuses, expectedStatuses)
     }
 
-    @Test("Status Updates Respond to Volume Changes")
-    func respondToVolumeChanges() async throws {
+    func testRespondToVolumeChanges() async throws {
       let silentMode = try CoreAudioDeviceOutputVolume()
       try await setVolume(outputVolume: 1)
       try await setIsMuted(false)
@@ -63,7 +61,7 @@
         DeviceOutputVolumeStatus(outputVolume: 0.5, isMuted: false)
       ]
       .map(TestStatus.init(volumeStatus:))
-      #expect(statuses == expectedStatuses)
+      expectNoDifference(statuses, expectedStatuses)
     }
   }
 
@@ -87,7 +85,7 @@
 
   private func setVolume(outputVolume: Double) async throws {
     var outputVolume = Float(outputVolume)
-    let deviceId = try #require(try _defaultOutputDeviceId())
+    let deviceId = try! _defaultOutputDeviceId()!
     try withUnsafePointer(to: _volumePropertyAddress) {
       let status = AudioObjectSetPropertyData(
         deviceId,
@@ -106,7 +104,7 @@
 
   private func setIsMuted(_ isMuted: Bool) async throws {
     var isMuted: UInt32 = isMuted ? 1 : 0
-    let deviceId = try #require(try _defaultOutputDeviceId())
+    let deviceId = try! _defaultOutputDeviceId()!
     try withUnsafePointer(to: _mutePropertyAddress) {
       let status = AudioObjectSetPropertyData(
         deviceId,
@@ -124,6 +122,6 @@
   }
 
   private func yield() async {
-    await Task.megaYield(count: 10_000)
+    try? await Task.sleep(for: .milliseconds(200))
   }
 #endif

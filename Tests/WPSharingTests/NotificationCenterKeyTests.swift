@@ -65,6 +65,7 @@ final class NotificationCenterKeyTests: XCTestCase, @unchecked Sendable {
         return self.expectedValueAfterPublish
       }
     @SharedReader(key) var state = 0
+    await Task.megaYield()
     self.center.post(name: self.notification, object: nil)
     await self.fulfillment(of: [expectation], timeout: 0.1)
     expectNoDifference($state.isLoading, true)

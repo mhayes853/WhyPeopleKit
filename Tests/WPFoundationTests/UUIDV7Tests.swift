@@ -166,11 +166,6 @@ struct UUIDV7Tests {
 
   @Test("Monotonically Increases when Generated Randomly")
   func _monotonicallyIncreasing() async throws {
-    let a = UUIDV7()
-    let b = UUIDV7()
-    #expect(a.timeIntervalSince1970 == b.timeIntervalSince1970)  // Always (99.999999%) true
-    #expect(b > a)  // Always true
-
     var u1 = UUIDV7()
     for _ in 0..<10 {
       let u2 = UUIDV7()

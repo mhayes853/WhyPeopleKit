@@ -50,7 +50,10 @@
       try await self.database.write { db in
         try TestRecord.update(db) { $0 = newRecord }
       }
-      expectNoDifference(record, newRecord)
+      // NB: Shared will perform a main thread hop when setting the value.
+      await MainActor.run {
+        expectNoDifference(record, newRecord)
+      }
     }
   }
 
