@@ -3,7 +3,7 @@
   import SwiftUI
 
   /// A `ValueObservationScheduler` that plays an animation on the main queue.
-  public struct AnimatedScheduler: ValueObservationScheduler {
+  public struct AnimatedScheduler: ValueObservationScheduler, Hashable {
     let animation: Animation?
 
     public func immediateInitialValue() -> Bool { true }
