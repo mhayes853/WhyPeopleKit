@@ -52,7 +52,10 @@ let package = Package(
       .upToNextMajor(from: "1.17.1")
     ),
     .package(url: "https://github.com/pointfreeco/sharing-grdb", .upToNextMajor(from: "0.1.1")),
-    .package(url: "https://github.com/pointfreeco/swift-structured-queries", branch: "main")
+    .package(
+      url: "https://github.com/pointfreeco/swift-structured-queries",
+      .upToNextMajor(from: "0.2.0")
+    )
   ],
   targets: [
     .target(
@@ -178,6 +181,21 @@ let package = Package(
       dependencies: [
         "WPSharing",
         .product(name: "CustomDump", package: "swift-custom-dump")
+      ]
+    ),
+    .target(
+      name: "WPStructuredQueries",
+      dependencies: [
+        "WPFoundation",
+        .product(name: "StructuredQueries", package: "swift-structured-queries")
+      ]
+    ),
+
+    .testTarget(
+      name: "WPStructuredQueriesTests",
+      dependencies: [
+        "WPStructuredQueries",
+        .product(name: "_StructuredQueriesSQLite", package: "swift-structured-queries")
       ]
     )
   ],
