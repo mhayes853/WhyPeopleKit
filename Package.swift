@@ -25,7 +25,8 @@ let package = Package(
     .library(name: "WPSwiftNavigation", targets: ["WPSwiftNavigation"]),
     .library(name: "WPPerception", targets: ["WPPerception"]),
     .library(name: "WPSnapshotTesting", targets: ["WPSnapshotTesting"]),
-    .library(name: "WPSharing", targets: ["WPSharing"])
+    .library(name: "WPSharing", targets: ["WPSharing"]),
+    .library(name: "WPStructuredQueries", targets: ["WPStructuredQueries"])
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
