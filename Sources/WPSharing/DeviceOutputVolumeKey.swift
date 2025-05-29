@@ -3,16 +3,31 @@
   import WPDependencies
   import WPDeviceVolume
 
+  #if canImport(SwiftUI)
+    import SwiftUI
+  #endif
+
   // MARK: - SystemDeviceOutputVolumeKey
 
   /// A shared key for the system device output volume.
   public struct SystemDeviceOutputVolumeKey: Sendable {
     private let volume: any DeviceOutputVolume & Sendable
+    #if canImport(SwiftUI)
+      private let animation: Animation?
+    #endif
 
-    fileprivate init() {
-      @Dependency(\.systemDeviceOutputVolume) var volume
-      self.volume = volume
-    }
+    #if canImport(SwiftUI)
+      fileprivate init(animation: Animation? = nil) {
+        @Dependency(\.systemDeviceOutputVolume) var volume
+        self.volume = volume
+        self.animation = animation
+      }
+    #else
+      fileprivate init() {
+        @Dependency(\.systemDeviceOutputVolume) var volume
+        self.volume = volume
+      }
+    #endif
   }
 
   // MARK: - SharedReaderKey Conformance
@@ -29,7 +44,13 @@
       subscriber: SharedSubscriber<Value>
     ) -> SharedSubscription {
       let subscription = self.volume.subscribe { result in
-        subscriber.yield(with: result.map { $0 as Value? })
+        #if canImport(SwiftUI)
+          withBackgroundAnimation(self.animation) {
+            subscriber.yield(with: result.map { $0 as Value? })
+          }
+        #else
+          subscriber.yield(with: result.map { $0 as Value? })
+        #endif
       }
       return SharedSubscription { subscription.cancel() }
     }
@@ -57,21 +78,44 @@
     public static var systemDeviceOutputVolume: Self {
       Self[SystemDeviceOutputVolumeKey(), default: DeviceOutputVolumeStatus(outputVolume: 0)]
     }
+
+    #if canImport(SwiftUI)
+      public static func systemDeviceOutputVolume(_ animation: Animation? = nil) -> Self {
+        Self[
+          SystemDeviceOutputVolumeKey(animation: animation),
+          default: DeviceOutputVolumeStatus(outputVolume: 0)
+        ]
+      }
+    #endif
   }
 
   // MARK: - ID
 
   public struct SystemDeviceOutputVolumeKeyID: Hashable {
     private let id: ObjectIdentifier
+    #if canImport(SwiftUI)
+      private let animation: Animation?
+    #endif
 
-    fileprivate init(volume: any DeviceOutputVolume) {
-      self.id = ObjectIdentifier(volume as AnyObject)
-    }
+    #if canImport(SwiftUI)
+      fileprivate init(volume: any DeviceOutputVolume, animation: Animation?) {
+        self.id = ObjectIdentifier(volume as AnyObject)
+        self.animation = animation
+      }
+    #else
+      fileprivate init(volume: any DeviceOutputVolume) {
+        self.id = ObjectIdentifier(volume as AnyObject)
+      }
+    #endif
   }
 
   extension SystemDeviceOutputVolumeKey {
     public var id: SystemDeviceOutputVolumeKeyID {
-      SystemDeviceOutputVolumeKeyID(volume: self.volume)
+      #if canImport(SwiftUI)
+        SystemDeviceOutputVolumeKeyID(volume: self.volume, animation: self.animation)
+      #else
+        SystemDeviceOutputVolumeKeyID(volume: self.volume)
+      #endif
     }
   }
 #endif
