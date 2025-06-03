@@ -5,83 +5,52 @@ extension StringProtocol {
   /// - Parameter other: The string to compare this string with.
   /// - Returns: The Levenshtein Distance.
   public func levenshteinDistance(from other: some StringProtocol) -> Int {
-    var cache = Cache(left: self.count, right: other.count)
-    return self.levenshteinDistance(
-      from: other,
-      currentKey: Cache.Key(),
-      cache: &cache
-    )
+    self._levenshteinDistance(from: other, threshold: .max) ?? .max
   }
 
-  private func levenshteinDistance(
-    from other: some StringProtocol,
-    currentKey: Cache.Key,
-    cache: inout Cache
-  ) -> Int {
-    if self.isEmpty {
-      return other.count
-    } else if other.isEmpty {
-      return self.count
-    } else if let value = cache[currentKey] {
-      return value
-    }
-    let increment = self.last == other.last ? 0 : 1
-    let value = Swift.min(
-      self.dropLast()
-        .levenshteinDistance(
-          from: other,
-          currentKey: currentKey.leftDropped,
-          cache: &cache
-        ) + 1,
-      self.levenshteinDistance(
-        from: other.dropLast(),
-        currentKey: currentKey.rightDropped,
-        cache: &cache
-      ) + 1,
-      self.dropLast()
-        .levenshteinDistance(
-          from: other.dropLast(),
-          currentKey: currentKey.dropped,
-          cache: &cache
-        ) + increment
-    )
-    cache[currentKey] = value
-    return value
-  }
-}
-
-// MARK: - Cache
-
-private struct Cache {
-  private var array: [[Int?]]
-
-  init(left: Int, right: Int) {
-    self.array = [[Int?]](repeating: [Int?](repeating: nil, count: right + 1), count: left + 1)
+  /// Returns true if the [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
+  /// between this string and the other string are less than a given threshold.
+  ///
+  /// - Parameters:
+  ///   - other: The string to compare this string with.
+  ///   - distance: The threshold distance.
+  /// - Returns: True if the Levenshtein Distance is less than the threshold.
+  public func isUnderLevenshteinDistance(_ other: some StringProtocol, distance: Int) -> Bool {
+    self._levenshteinDistance(from: other, threshold: distance) != nil
   }
 
-  subscript(key: Key) -> Int? {
-    get { self.array[key.left][key.right] }
-    set { self.array[key.left][key.right] = newValue }
-  }
-}
+  private func _levenshteinDistance(from other: some StringProtocol, threshold: Int) -> Int? {
+    let len1 = self.count
+    let len2 = other.count
+    guard abs(len1 - len2) <= threshold else { return nil }
 
-// MARK: - CacheKey
+    var prevRow = [Int](0...len2)
+    var currRow = [Int](repeating: 0, count: len2 + 1)
 
-extension Cache {
-  struct Key: Hashable {
-    var left = 0
-    var right = 0
+    for (i, c1) in self.enumerated() {
+      currRow[0] = i + 1
+      var minInRow = currRow[0]
 
-    var leftDropped: Self {
-      Self(left: self.left + 1, right: self.right)
+      var jIndex = other.startIndex
+      for j in 0..<len2 {
+        let cost = (c1 == other[jIndex]) ? 0 : 1
+        let insertion = currRow[j] + 1
+        let deletion = prevRow[j + 1] + 1
+        let substitution = prevRow[j] + cost
+
+        currRow[j + 1] = Swift.min(insertion, deletion, substitution)
+        minInRow = Swift.min(minInRow, currRow[j + 1])
+        jIndex = other.index(after: jIndex)
+      }
+
+      if minInRow > threshold {
+        return nil
+      }
+
+      swap(&prevRow, &currRow)
     }
 
-    var rightDropped: Self {
-      Self(left: self.left, right: self.right + 1)
-    }
-
-    var dropped: Self {
-      Self(left: self.left + 1, right: self.right + 1)
-    }
+    let result = prevRow[len2]
+    return result > threshold ? nil : result
   }
 }
