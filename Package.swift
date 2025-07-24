@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -29,6 +29,11 @@ let package = Package(
     .library(name: "WPStructuredQueries", targets: ["WPStructuredQueries"])
   ],
   dependencies: [
+    .package(
+      url: "https://github.com/mhayes853/swift-uuidv7",
+      from: "0.1.0",
+      traits: ["SwiftUUIDV7Tagged", "SwiftUUIDV7StructuredQueries", "SwiftUUIDV7Dependencies"]
+    ),
     .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
     .package(url: "https://github.com/apple/swift-numerics", from: "1.0.2"),
     .package(url: "https://github.com/pointfreeco/swift-perception", .upToNextMajor(from: "1.0.0")),
@@ -61,7 +66,10 @@ let package = Package(
   targets: [
     .target(
       name: "WPFoundation",
-      dependencies: [.product(name: "IssueReporting", package: "xctest-dynamic-overlay")],
+      dependencies: [
+        .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
+        .product(name: "UUIDV7", package: "swift-uuidv7")
+      ],
       resources: [.process("Resources")]
     ),
     .testTarget(
@@ -189,14 +197,6 @@ let package = Package(
       dependencies: [
         "WPFoundation",
         .product(name: "StructuredQueries", package: "swift-structured-queries")
-      ]
-    ),
-
-    .testTarget(
-      name: "WPStructuredQueriesTests",
-      dependencies: [
-        "WPStructuredQueries",
-        .product(name: "_StructuredQueriesSQLite", package: "swift-structured-queries")
       ]
     )
   ],

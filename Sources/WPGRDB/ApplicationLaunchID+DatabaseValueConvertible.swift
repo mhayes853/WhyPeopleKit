@@ -1,5 +1,6 @@
 #if canImport(GRDB)
   import GRDB
+  import UUIDV7
   import WPFoundation
 
   extension ApplicationLaunchID: DatabaseValueConvertible {
@@ -8,7 +9,8 @@
     }
 
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> ApplicationLaunchID? {
-      UUIDV7.fromDatabaseValue(dbValue).map { ApplicationLaunchID(rawValue: $0) }
+      UUID.fromDatabaseValue(dbValue).flatMap { UUIDV7($0) }
+        .map { ApplicationLaunchID(rawValue: $0) }
     }
   }
 #endif

@@ -1,5 +1,6 @@
 import Foundation
 import IssueReporting
+import UUIDV7
 
 // MARK: - ApplicationLaunchID
 

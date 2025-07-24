@@ -1,4 +1,5 @@
 import Testing
+import UUIDV7
 import WPFoundation
 
 @Suite("ApplicationLaunchID tests")
