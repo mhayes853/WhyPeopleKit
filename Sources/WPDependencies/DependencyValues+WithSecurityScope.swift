@@ -27,7 +27,7 @@ public struct WithSecurityScope: Sendable {
   }
 
   public func callAsFunction<T>(
-    url: URL,
+    for url: URL,
     perform work: @Sendable () async throws -> sending T
   ) async throws -> sending T {
     guard self.startAccessing(url) else { throw SecurityScopeError() }
