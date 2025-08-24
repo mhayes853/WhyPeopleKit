@@ -25,6 +25,15 @@ public struct WithSecurityScope: Sendable {
     defer { self.stopAccessing(url) }
     return try await work()
   }
+
+  public func callAsFunction<T>(
+    url: URL,
+    perform work: @Sendable () async throws -> sending T
+  ) async throws -> sending T {
+    guard self.startAccessing(url) else { throw SecurityScopeError() }
+    defer { self.stopAccessing(url) }
+    return try await work()
+  }
 }
 
 // MARK: - Security Scope Error
@@ -46,7 +55,7 @@ extension WithSecurityScope {
 // MARK: - DependencyKey Conformance
 
 extension WithSecurityScope: TestDependencyKey {
-   public static let testValue = Self.alwaysAccessible
+  public static let testValue = Self.alwaysAccessible
 }
 
 #if !os(Linux)
