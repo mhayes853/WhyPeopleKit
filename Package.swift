@@ -29,11 +29,7 @@ let package = Package(
     .library(name: "WPStructuredQueries", targets: ["WPStructuredQueries"])
   ],
   dependencies: [
-    .package(
-      url: "https://github.com/mhayes853/swift-uuidv7",
-      from: "0.1.0",
-      traits: ["SwiftUUIDV7Tagged", "SwiftUUIDV7StructuredQueries", "SwiftUUIDV7Dependencies"]
-    ),
+    .package(url: "https://github.com/mhayes853/swift-uuidv7", from: "0.1.0"),
     .package(url: "https://github.com/pointfreeco/swift-clocks", .upToNextMajor(from: "1.0.4")),
     .package(url: "https://github.com/apple/swift-numerics", from: "1.0.2"),
     .package(url: "https://github.com/pointfreeco/swift-perception", .upToNextMajor(from: "1.0.0")),
@@ -57,7 +53,6 @@ let package = Package(
       url: "https://github.com/pointfreeco/swift-composable-architecture",
       .upToNextMajor(from: "1.17.1")
     ),
-    .package(url: "https://github.com/pointfreeco/sharing-grdb", .upToNextMajor(from: "0.1.1")),
     .package(
       url: "https://github.com/pointfreeco/swift-structured-queries",
       .upToNextMajor(from: "0.2.0")
@@ -207,8 +202,7 @@ let package = Package(
   package.products.append(
     contentsOf: [
       .library(name: "WPTCA", targets: ["WPTCA"]),
-      .library(name: "WPGRDB", targets: ["WPGRDB"]),
-      .library(name: "WPGRDBSharing", targets: ["WPGRDBSharing"])
+      .library(name: "WPGRDB", targets: ["WPGRDB"])
     ]
   )
   package.targets.append(
@@ -241,16 +235,7 @@ let package = Package(
       .testTarget(
         name: "WPGRDBTests",
         dependencies: [.targetItem(name: "WPGRDB", condition: .whenApplePlatforms)]
-      ),
-      .target(
-        name: "WPGRDBSharing",
-        dependencies: [
-          .product(name: "SharingGRDB", package: "sharing-grdb", condition: .whenApplePlatforms),
-          .targetItem(name: "WPGRDB", condition: .whenApplePlatforms),
-          "WPSharing"
-        ]
-      ),
-      .testTarget(name: "WPGRDBSharingTests", dependencies: ["WPGRDBSharing"])
+      )
     ]
   )
 #endif
